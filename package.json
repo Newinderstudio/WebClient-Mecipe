@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run lint && next dev --turbopack -p 3000",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build",
     "start": "next start -p 8080",
     "start:ssl": "next start -p 443",
