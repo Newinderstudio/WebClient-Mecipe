@@ -47,7 +47,7 @@ const Header = ({
     } else {
       router.push('/');
     }
-  }, [userType]);
+  }, [dispatch, router, userType]);
 
   return (
     <div

@@ -1,11 +1,90 @@
-import { fenxyBlue } from '@/util/constants/style';
-import { Flex, FlexCenter, FlexRow } from '../styledComponents';
-import Image from 'next/image';
-import { useAdminTable } from './hooks/useAdminTable';
-import { Interpolation } from '@emotion/serialize';
-import { Theme } from '@emotion/react';
+"use client"
 
-const AdminTable = ({
+import styled from '@emotion/styled'
+import { fenxyBlue } from '@/util/constants/style'
+import { Flex, FlexCenter, FlexRow } from '../styledComponents'
+import Image from 'next/image'
+import { useAdminTable } from './hooks/useAdminTable'
+import { CSSProperties } from 'react'
+
+const TableHeader = styled(FlexRow)({
+  borderTop: '2px solid #4A5864',
+  backgroundColor: '#f5f5f5',
+  color: '#333',
+  fontSize: 14,
+  '>div': {
+    borderLeft: 0,
+    borderTop: 0,
+    padding: 10,
+  },
+})
+
+const TableRow = styled(Flex)({
+  display: 'flex',
+  alignItems: 'center',
+  borderBottom: '1px solid #f5f5f5',
+  '>div': {
+    padding: 10,
+  },
+})
+
+const TableCell = styled.div({
+  '&, &>*': {
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+})
+
+const PagingElement = styled(FlexRow)({
+  marginTop: 30,
+  gap: 4,
+  justifyContent: 'center',
+  alignItems: 'center',
+  '>div': {
+    fontSize: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    color: '#999',
+    cursor: 'pointer',
+  },
+  '>.btnPageNum:hover, >.btnPageNum.active': {
+    background: fenxyBlue,
+    color: '#fff',
+  },
+})
+
+interface Header<T> {
+  name: string
+  selector?: keyof T
+  minWidth?: number
+  maxWidth?: number
+  cell?: ({ data }: { data: T }) => React.JSX.Element
+}
+
+interface Category {
+  title?: string
+  name?: string
+  value?: string | number
+}
+
+interface Props<T> {
+  minWidth?: number
+  headers: Header<T>[]
+  datas: T[]
+  categories?: Category[]
+  take?: number
+  totalCount?: number
+  page: number
+  pageGroupCount?: number
+  tableCss?: (item: T) => CSSProperties
+  headerCss?: CSSProperties
+  setPage: (page: number) => void
+}
+
+const AdminTable = <T,>({
   minWidth = 500,
   headers = [],
   datas = [],
@@ -17,23 +96,12 @@ const AdminTable = ({
   tableCss,
   setPage,
   headerCss
-}: {
-  minWidth?: number;
-  headers: any[];
-  datas: any[];
-  categories?: any[];
-  take?: number;
-  totalCount?: number;
-  page: number;
-  pageGroupCount?: number;
-  tableCss?: (item?: any) => Interpolation<Theme>;
-  headerCss?: any
-  setPage: (page: number) => void;
-}) => {
-  const hookMember = useAdminTable(totalCount, take, pageGroupCount, setPage);
+}: Props<T>) => {
+  const hookMember = useAdminTable(totalCount, take, pageGroupCount, setPage)
 
   return (
     <Flex>
+      {/* 상단 카테고리 요약 */}
       <FlexRow>
         <Flex style={{ color: '#333', marginBottom: 4, fontWeight: 500 }}>
           전체 {totalCount}
@@ -41,157 +109,113 @@ const AdminTable = ({
         {categories?.map((item, index) => {
           if (item.title)
             return (
-              <Flex style={{ color: '#333', marginBottom: 4, marginLeft: 10 }}>
+              <Flex key={`cat_title_${index}`} style={{ color: '#333', marginBottom: 4, marginLeft: 10 }}>
                 {item.title}
               </Flex>
-            );
+            )
           else if (item.name && (item.value || item.value === 0))
             return (
-              <Flex style={{ color: '#999', marginBottom: 4, marginLeft: 10 }}>
+              <Flex key={`cat_val_${index}`} style={{ color: '#999', marginBottom: 4, marginLeft: 10 }}>
                 {item.name} {item.value}
               </Flex>
-            );
-          else return undefined;
+            )
+          else return null
         })}
       </FlexRow>
 
       {/* 테이블 헤더 */}
-      <FlexRow
-        style={{
-          borderTop: '2px solid #4A5864',
-          backgroundColor: '#f5f5f5',
-          color: '#333',
-          fontSize: 14,
-          '>div': {
-            borderLeft: 0,
-            borderTop: 0,
-            padding: 10,
-          },
-          minWidth: minWidth, // TODO
-        }}>
+      <TableHeader style={{ minWidth }}>
         {headers.map((item, index) => {
-          let minw = 0;
-          let maxw = 0;
-          if (item?.minWidth) minw = item.minWidth;
-          if (item?.maxWidth) maxw = item.maxWidth;
+          const minw = item.minWidth ?? 0
+          const maxw = item.maxWidth
+
           return (
             <Flex
-              key={index.toString()}
+              key={`head_${index}`}
               style={{
                 minWidth: `${minw}px`,
-                maxWidth: maxw ? maxw + 'px' : undefined,
+                maxWidth: maxw ? `${maxw}px` : undefined,
                 flex: 1,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 ...headerCss
-              }}>
-              {item?.name}
+              }}
+            >
+              {item.name}
             </Flex>
-          );
+          )
         })}
-      </FlexRow>
-      {/* 테이블 로우 */}
+      </TableHeader>
+
+      {/* 테이블 데이터 로우 */}
       <Flex style={{ fontSize: 14, color: '#333' }}>
         {datas.map((item, index) => {
-          const tableCssTheme: any = tableCss ? tableCss(item) : {};
+          const tableCssTheme = tableCss?.(item) ?? {}
+
           return (
-            <FlexRow
-              key={'row_' + index.toString()}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                borderBottom: '1px solid #f5f5f5',
-                '>div': {
-                  padding: 10,
-                },
-                ...tableCssTheme,
-              }}>
+            <TableRow key={`row_${index}`} style={tableCssTheme}>
               {headers.map((inItem, inIndex) => {
-                let minw = 0;
-                let maxw = 0;
-                if (inItem?.minWidth) minw = inItem.minWidth;
-                if (inItem?.maxWidth) maxw = inItem.maxWidth;
+                const minw = inItem.minWidth ?? 0
+                const maxw = inItem.maxWidth
+
                 return (
-                  <div
-                    key={'cel_' + inIndex.toString()}
+                  <TableCell
+                    key={`cell_${inIndex}`}
                     style={{
-                      minWidth: minw ? `${minw}px` : undefined,
-                      maxWidth: maxw ? maxw + 'px' : undefined,
-                      '&, &>*': {
-                        flex: 1,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      },
+                      minWidth: minw,
+                      maxWidth: maxw,
                     }}
-                    // { inItem?.minWidth ? minWidth : inItem?.minWidth}
                   >
-                    {inItem?.cell ? (
+                    {inItem.cell ? (
                       <inItem.cell data={item} />
+                    ) : inItem.selector ? (
+                      String(item[inItem.selector])
                     ) : (
-                      item?.[inItem?.selector]
+                      ''
                     )}
-                  </div>
-                );
+                  </TableCell>
+                )
               })}
-            </FlexRow>
-          );
+            </TableRow>
+          )
         })}
       </Flex>
+
       {/* 페이징 */}
       <Flex>
-        <FlexRow
-          style={{
-            marginTop: 30,
-            gap: 4,
-            justifyContent: 'center',
-            alignItems: 'center',
-            '>div': {
-              fontsize: 12,
-              width: 24,
-              height: 24,
-              borderRadius: 8,
-              color: '#999',
-              cursor: 'pointer',
-            },
-            '>.btnPageNum:hover, >.btnPageNum.active': {
-              background: fenxyBlue,
-              color: '#fff',
-            },
-          }}>
+        <PagingElement>
           <FlexCenter onClick={hookMember.onClickPrevPageGroup}>
             <Image
-              src={'/image/admin/table/arrow-left.svg'}
+              src="/image/admin/table/arrow-left.svg"
               width={16}
               height={16}
-              alt="이전 버튼"
+              alt="이전"
             />
           </FlexCenter>
-          {/*  */}
-          {/* {console.log(datas.length % basicItemCount)} */}
+
           {hookMember.pageArray.map((item) => (
             <FlexCenter
-              onClick={() => {
-                setPage(item);
-              }}
-              className={'btnPageNum ' + (item === page && 'active')}
-              key={item}>
+              onClick={() => setPage(item)}
+              className={`btnPageNum ${item === page ? 'active' : ''}`}
+              key={item}
+            >
               {item}
             </FlexCenter>
           ))}
+
           <FlexCenter onClick={hookMember.onClickNextPageGroup}>
             <Image
-              src={'/image/admin/table/arrow-right.svg'}
+              src="/image/admin/table/arrow-right.svg"
               width={16}
               height={16}
-              alt="다음 버튼"
+              alt="다음"
             />
           </FlexCenter>
-        </FlexRow>
+        </PagingElement>
       </Flex>
     </Flex>
-  );
-};
+  )
+}
 
-export default AdminTable;
+export default AdminTable

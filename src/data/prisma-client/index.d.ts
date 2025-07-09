@@ -1,6 +1,3 @@
-import { StringDecoder } from "node:string_decoder"
-import { StringLiteralType } from "typescript"
-
 export type User = {
     id?: number
     createdAt?: Date | string

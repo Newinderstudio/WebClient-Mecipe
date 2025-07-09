@@ -1,17 +1,17 @@
 export function func_get_now_yyyymmddhhiiss() {
-  const date: any = new Date();
+  const date = new Date();
 
-  const year: any = date.getFullYear();
+  const year = date.getFullYear().toString();
 
-  let month: any = new String(date.getMonth() + 1);
+  let month = new String(date.getMonth() + 1);
 
-  let day: any = new String(date.getDate());
+  let day = new String(date.getDate());
 
-  let hour: any = date.getHours();
+  let hour = date.getHours().toString();
 
-  let minute: any = date.getMinutes();
+  let minute = date.getMinutes().toString();
 
-  let second: any = date.getSeconds();
+  let second = date.getSeconds().toString();
 
   // 한자리수일 경우 0을 채워준다.
 

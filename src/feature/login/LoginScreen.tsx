@@ -6,6 +6,7 @@ import { useLoginScreen } from './hooks/useLoginScreen';
 import Header from '@/common/header/Header';
 import { MainFooter } from '@/common/footer/MainFooter';
 import WaitLoginModal from '@/common/modal/WaitLoginModal';
+import { use } from 'react';
 
 const InputField = styled.input({
   '::placeholder': { color: '#888' }
@@ -19,7 +20,12 @@ const PasswordInputField = styled(InputField)({
   }
 })
 
-const LoginScreen = () => {
+type SearchParams = Promise<{ code: string }>;
+
+const LoginScreen = ({searchParams}: { searchParams: SearchParams }) => {
+
+  const { code: verifyKaKaoCode } = use(searchParams);
+
   const hookMember = useLoginScreen();
 
   return (
@@ -34,10 +40,10 @@ const LoginScreen = () => {
           }
         />
         {
-          hookMember.verifyTargetEmail !== null || hookMember.verifyKaKaoCode !== null ?
+          hookMember.verifyTargetEmail !== undefined || verifyKaKaoCode !== undefined ?
             <WaitLoginModal
               verifyTargetEmail={hookMember.verifyTargetEmail}
-              verifyKaKaoCode={hookMember.verifyKaKaoCode}
+              verifyKaKaoCode={verifyKaKaoCode}
               onEndVerify={hookMember.onEndVerify}
             />
             :

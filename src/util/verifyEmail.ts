@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { rootUrl } from "./constants/app";
 
 export type EmailType = {
     from: string;
@@ -35,9 +34,9 @@ export async function sendEmail({ from, to, subject, message }: EmailType) {
     return transporter.sendMail(mailData);
 }
 
-const mailOptions = {
-    from: "FROM에서 보냄",
-    to: "이메일 보낼 곳",
-    subject: "[이메일 인증] 회원가입 인증번호입니다.",
-    message: "message",
-};
+// const mailOptions = {
+//     from: "FROM에서 보냄",
+//     to: "이메일 보낼 곳",
+//     subject: "[이메일 인증] 회원가입 인증번호입니다.",
+//     message: "message",
+// };

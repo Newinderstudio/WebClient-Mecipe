@@ -7,6 +7,7 @@ import Header from '@/common/header/Header';
 import { ContentFlex, Flex, FlexCenter, FlexRow } from '@/common/styledComponents';
 import { useSignupScreen } from './hooks/useSignupScreen';
 import BasicModal from '@/common/modal/BasicModal';
+import { use } from 'react';
 
 const underTextCss = { marginLeft: 12, fontSize: 12, color: '#999', marginTop: 4, }
 
@@ -21,8 +22,13 @@ const RePasswordInputField = styled(InputField)({
   }
 })
 
-const SignupScreen = () => {
-  const hookMember = useSignupScreen();
+type SearchParams = Promise<{ code: string, business:string }>;
+
+const SignupScreen = ({searchParams}: { searchParams: SearchParams })  => {
+
+  const { code: queryCode, business: queryBusiness } = use(searchParams);
+
+  const hookMember = useSignupScreen({queryCode, queryBusiness});
   if (hookMember.loading) {
     return (
       <Flex style={{ flex: 1, backgroundColor: 'white' }}>

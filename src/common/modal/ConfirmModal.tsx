@@ -3,7 +3,7 @@ import { Flex, FlexCenter, FlexRow } from '../styledComponents';
 
 interface ConfirmModalProps {
   display: 'flex' | 'none';
-  content?: any;
+  content?: React.JSX.Element | string;
   confirmBtn?: () => void;
   closeBtn?: () => void;
   scroll?: boolean;
@@ -11,7 +11,7 @@ interface ConfirmModalProps {
 
 const ConfirmModal = (props: ConfirmModalProps) => {
   useEffect(() => {
-    if(props.scroll === true) return;
+    if (props.scroll === true) return;
     if (props.display === 'flex') {
       document.body.style.overflow = 'hidden';
       document.body.style.height = '100vh';
@@ -19,7 +19,7 @@ const ConfirmModal = (props: ConfirmModalProps) => {
       document.body.style.removeProperty('overflow');
       document.body.style.removeProperty('height');
     }
-  }, [props.display]);
+  }, [props]);
 
   return (
     <FlexCenter
@@ -54,11 +54,13 @@ const ConfirmModal = (props: ConfirmModalProps) => {
           <FlexCenter
             style={{ flex: 1, cursor: 'pointer' }}
             onClick={() => {
-              props?.closeBtn
-                ? props.closeBtn()
-                : alert(
-                    '닫기 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                  );
+              if (props?.closeBtn) {
+                props.closeBtn();
+              } else {
+                alert(
+                  '닫기 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
+                );
+              }
             }}>
             <div
               style={{
@@ -73,11 +75,13 @@ const ConfirmModal = (props: ConfirmModalProps) => {
           <FlexCenter
             style={{ flex: 1, cursor: 'pointer' }}
             onClick={() => {
-              props?.confirmBtn
-                ? props.confirmBtn()
-                : alert(
-                    '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                  );
+              if (props?.confirmBtn) {
+                props.confirmBtn();
+              } else {
+                alert(
+                  '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
+                );
+              }
             }}>
             <div style={{ fontSize: 18, color: '#222', fontWeight: 500 }}>
               확인

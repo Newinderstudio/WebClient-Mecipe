@@ -1,6 +1,6 @@
 import { UserType } from '@/data/prisma-client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   useFindAdminAllUsersMutation,
   useRemoveUserByAdminMutation,
@@ -21,25 +21,25 @@ interface hookMember {
   page: number;
   take: number;
   totalCount: number;
-  setPage: (page:number)=>void;
+  setPage: (page: number) => void;
 
   searchText: string;
   searchType: string;
-  userType: UserType|'전체';
+  userType: UserType | '전체';
 
-  onClickRemoveUser: (id:number)=>void;
+  onClickRemoveUser: (id: number) => void;
   onClickCheckItem: (notice: UserResult) => void;
   onClickCheckAll: () => void;
   onClickDeleteChecked: () => void;
   deleteUserArray: UserResult[];
 
-  userTypeCount: {[key:string]:number};
+  userTypeCount: { [key: string]: number };
 
-  onChangeSearchType: (val:string)=>void;
-  onChangeSearchText: (val:string) =>void;
-  onClickSearch: ()=>void;
-  onClickReset:()=>void;
-  onClickUserType: (item:SearchUserType) =>void;
+  onChangeSearchType: (val: string) => void;
+  onChangeSearchText: (val: string) => void;
+  onClickSearch: () => void;
+  onClickReset: () => void;
+  onClickUserType: (item: SearchUserType) => void;
 
 }
 
@@ -53,81 +53,85 @@ export function useAdminUserScreen(): hookMember {
 
   const [userData, setUserData] = useState<UserResult[]>([]);
 
-  const [userTypeCount, setUserTypeCount] = useState<{[key:string]:number}>({});
+  const [userTypeCount, setUserTypeCount] = useState<{ [key: string]: number }>({});
   // const { data: generalData } = useFindUserByTypeQuery({ userType: 'GENERAL' });
   // const { data: businessData } = useFindUserByTypeQuery({
   //   userType: 'BUSINESS',
   // });
 
 
-    //***  페이징?? */
-    const [totalCount, setTotalCount] = useState<number>(0);
-    const [page, setPage] = useState<number>(1);
-    const take: number = 10;
-   
-    const [userType, setUserType] = useState<SearchUserType>('전체');
-    const [searchType, setSearchType] = useState<string>('');
-    const [searchText, setSearchText] = useState<string>('');
-  
-    useEffect(() => {
-      setSearchType('닉네임');
-      resetData();
-    }, []);
-  
-    const resetData = async () => {
-      const result = await findAdminAllUser({ page, take });
-      console.log(result)
-      if (result?.data) {
-        const success = result.data;
+  //***  페이징?? */
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const take: number = 10;
+
+  const [userType, setUserType] = useState<SearchUserType>('전체');
+  const [searchType, setSearchType] = useState<string>('');
+  const [searchText, setSearchText] = useState<string>('');
+
+
+  const resetData = useCallback(async () => {
+    const result = await findAdminAllUser({ page, take });
+    console.log(result)
+    if (result?.data) {
+      const success = result.data;
+      setUserData(success.data);
+      setTotalCount(success.count);
+    }
+  }, [page, take, findAdminAllUser]);
+
+  const changePageAndSearchUser = useCallback(async (page: number, item?: whereQuery) => {
+    const where = {
+      userType: item?.userType || userType,
+      searchType: item?.searchType || searchType,
+      searchText: item?.searchText || searchText,
+    };
+    const result = await findAdminAllUser({ page, take, ...where });
+
+    if (result?.data) {
+      const success = result.data;
+      if (success.data?.length === 0 && page - 1 > 0) {
+        changePageAndSearchUser(page - 1, item);
+      } else {
+        setPage(page);
         setUserData(success.data);
         setTotalCount(success.count);
-      }
-    };
-  
-    useEffect(() => {
-      if (page) changePageAndSearchUser(page);
-    }, [page]);
-
-    useEffect(() => {
-      console.log(userTypeCount,'hey')
-    }, [userTypeCount]);
-  
-    async function changePageAndSearchUser(page: number, item?:whereQuery) {
-      const where = {
-        userType: item?.userType || userType,
-        searchType: item?.searchType || searchType,
-        searchText: item?.searchText || searchText,
-      };
-      const result = await findAdminAllUser({ page, take, ...where });
-  
-      if (result?.data) {
-        const success = result.data;
-        if(success.data?.length === 0 && page-1 > 0) {
-          changePageAndSearchUser(page-1, item);
-        } else {
-          setPage(page);
-          setUserData(success.data);
-          setTotalCount(success.count);
-          setUserTypeCount(success.userCount);
-        }
+        setUserTypeCount(success.userCount);
       }
     }
+  }, [userType, searchType, searchText, findAdminAllUser]);
 
-    const onClickUserType = async (userType: SearchUserType) => {
-      setUserType(userType);
-  
-      changePageAndSearchUser(1, { userType });
-    };
-
-    const onClickSearch = async () => {
-      changePageAndSearchUser(1, { searchType, searchText });
+  useEffect(() => {
+    if (resetData) {
+      setSearchType('닉네임');
+      resetData();
     }
+  }, [resetData]);
 
-    const onClickReset = () => {
-      setUserType('전체');
-    };
+  useEffect(() => {
+    if (changePageAndSearchUser) changePageAndSearchUser(page);
+  }, [changePageAndSearchUser, page]);
 
-    //***페이징 */
+  useEffect(() => {
+    console.log(userTypeCount, 'hey')
+  }, [userTypeCount]);
+
+
+  const onClickUserType = async (userType: SearchUserType) => {
+    setUserType(userType);
+
+    changePageAndSearchUser(1, { userType });
+  };
+
+  const onClickSearch = async () => {
+    changePageAndSearchUser(1, { searchType, searchText });
+  }
+
+  const onClickReset = () => {
+    setUserType('전체');
+  };
+
+  //***페이징 */
 
   useEffect(() => {
     if (userData) {
@@ -167,9 +171,9 @@ export function useAdminUserScreen(): hookMember {
   };
 
   const onClickCheckItem = (user: UserResult) => {
-    if(user.userType==='GENERAL' ||
+    if (user.userType === 'GENERAL' ||
       user.userType === 'MANAGER' ||
-      user.userType ==='ADMIN'
+      user.userType === 'ADMIN'
     ) return;
 
     const clone = [...deleteUserArray];
@@ -185,15 +189,15 @@ export function useAdminUserScreen(): hookMember {
 
   const onClickDeleteChecked = async () => {
     console.log(deleteUserArray);
-    
+
     await Promise.all(
       deleteUserArray.map(async (item) => {
-        if(item.userType==='GENERAL' ||
+        if (item.userType === 'GENERAL' ||
           item.userType === 'MANAGER' ||
-          item.userType ==='ADMIN'
+          item.userType === 'ADMIN'
         ) return;
         console.log(item.nickname);
-        if(item.id) await removeUserByAdmin({adminId: adminId, id: item.id });
+        if (item.id) await removeUserByAdmin({ adminId: adminId, id: item.id });
       }),
     );
     setDeleteUserArray([]);
@@ -252,7 +256,7 @@ export function useAdminUserScreen(): hookMember {
 }
 
 interface whereQuery {
-  userType?: UserType|'전체';
+  userType?: UserType | '전체';
   searchType?: string;
   searchText?: string;
 }

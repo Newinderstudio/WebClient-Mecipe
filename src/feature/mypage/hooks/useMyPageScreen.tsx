@@ -30,7 +30,7 @@ export function useMyPageScreen(): HookMember {
     } else {
       router.push("/");
     }
-  }, []);
+  }, [dispatch, router]);
 
   const onClickLogout = () => {
     // id,pw를 가져오고 슬라이스의 로그인으로 넘김

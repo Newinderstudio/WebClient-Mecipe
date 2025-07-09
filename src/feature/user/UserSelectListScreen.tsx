@@ -120,7 +120,6 @@ const UserSelectListScreen = ({
                 },
                 {
                     name: '관리',
-                    selector: 'management',
                     cell: ({ data }: { data: UserResult }) => {
                         return (
                             <FlexRow

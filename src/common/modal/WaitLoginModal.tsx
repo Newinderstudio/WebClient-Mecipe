@@ -4,14 +4,15 @@ import { useWaitLoginModal } from './hooks/useWaitLoginModal';
 import { AuthCodeInput } from '../input/AuthCodeInput';
 
 interface ModalProps {
-  verifyTargetEmail: string | null;
-  verifyKaKaoCode: string | null;
+  verifyTargetEmail?: string;
+  verifyKaKaoCode?: string;
 
   onEndVerify: (authCode:string) => void;
 }
 
 const WaitLoginModal = (props: ModalProps) => {
-    const hookMember = useWaitLoginModal(props.verifyTargetEmail, props.verifyKaKaoCode, props.onEndVerify);
+
+    const hookMember = useWaitLoginModal(props);
 
     return (
         <FlexCenter

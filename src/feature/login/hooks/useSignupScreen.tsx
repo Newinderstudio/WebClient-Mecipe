@@ -1,5 +1,5 @@
 import { LoginType } from '@/data/prisma-client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useFindDuplicateUserDataMutation } from '@/api/usersApi';
 import * as accountSlice from '@/store/slices/accountSlice';
@@ -12,7 +12,7 @@ interface hookMember {
 
   generalUserDataErrorDisplayState: 'flex' | 'none';
   generalUserData: GeneralUserData;
-  errorMessage: unknown;
+  errorMessage: React.JSX.Element | string;
   duplicateId: boolean;
   duplicateNickname: boolean;
   duplicateEmailnumber: boolean;
@@ -45,10 +45,10 @@ interface hookMember {
   onClickGeneralUserDataErrorModal: () => void;
 }
 
-export function useSignupScreen(): hookMember {
+export function useSignupScreen(params:{queryCode?:string,queryBusiness?:string}): hookMember {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const searchParams = useSearchParams();
+
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -63,21 +63,20 @@ export function useSignupScreen(): hookMember {
 
   const [isBusiness, setIsBussiness] = useState<boolean>(false);
 
-  const queryCode = searchParams.get('code');
-  const queryBusiness = searchParams.get('business');
+
 
   useEffect(() => {
-    console.log(queryCode);
-    if (queryCode) {
+    console.log(params.queryCode);
+    if (params.queryCode) {
       setLoading(true);
     }
-  }, [queryCode]);
+  }, [params.queryCode]);
 
   useEffect(() => {
-    if (queryBusiness) {
+    if (params.queryBusiness) {
       setIsBussiness(true);
     }
-  }, [queryBusiness]);
+  }, [params.queryBusiness]);
 
   const [
     generalUserDataErrorDisplayState,
@@ -105,7 +104,7 @@ export function useSignupScreen(): hookMember {
 
   const [loginType] = useState<LoginType>();
 
-  const [errorMessage, setErrorMessage] = useState<unknown>(<div></div>);
+  const [errorMessage, setErrorMessage] = useState<React.JSX.Element | string>(<div></div>);
 
   const [duplicateMutaion] = useFindDuplicateUserDataMutation();
 
@@ -121,7 +120,7 @@ export function useSignupScreen(): hookMember {
   ) => {
     const clone = { ...generalUserData };
     if (item === 'userId') {
-      // eslint-disable-next-line no-useless-escape
+ 
       const regExp = /[ \{\}\[\]\/?.,;:|\)*~`!^\-_+┼<>@\#$%&\'\"\\\(\=]/gi;
 
       if (regExp.test(value)) {

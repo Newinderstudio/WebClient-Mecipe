@@ -1,12 +1,11 @@
 "use client"
 
-import { NextPage } from 'next';
 import { Flex, FlexCenter, FlexRow } from '@/common/styledComponents';
 import Header from '@/common/header/Header';
 import { MainFooter } from '@/common/footer/MainFooter';
 import { useMyPageScreen } from './hooks/useMyPageScreen';
 
-const MyPageScreen: NextPage = () => {
+const MyPageScreen = () => {
     const hookMember = useMyPageScreen();
 
     return (

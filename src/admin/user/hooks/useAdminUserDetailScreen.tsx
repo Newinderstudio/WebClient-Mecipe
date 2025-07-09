@@ -1,7 +1,7 @@
 // import { is } from 'immer/dist/internal';
 import { UserType } from '@/data/prisma-client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';;
+import React, { useEffect, useState } from 'react';;
 import {
   useFindUserQuery,
   UserResult,
@@ -34,7 +34,7 @@ interface hookMember {
 
   modalDisplayState: 'flex' | 'none';
   onClickCompleted: () => void;
-  modalContent: unknown;
+  modalContent: React.JSX.Element | string;
 }
 
 export function useAdminUserDetailScreen(props:{id:number}): hookMember {
@@ -51,7 +51,7 @@ export function useAdminUserDetailScreen(props:{id:number}): hookMember {
   const [modalDisplayState, setModalDisplayState] = useState<'flex' | 'none'>(
     'none',
   );
-  const [modalContent, setModalContent] = useState<unknown>(<div></div>);
+  const [modalContent, setModalContent] = useState<React.JSX.Element | string>(<div></div>);
 
   const onClickCompleted = () => {
     setModalDisplayState('none');
@@ -70,7 +70,7 @@ export function useAdminUserDetailScreen(props:{id:number}): hookMember {
 
   useEffect(() => {
     userRefetch();
-  }, []);
+  }, [userRefetch]);
 
 
   useEffect(()=>{

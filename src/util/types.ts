@@ -9,11 +9,11 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
-type Primitive = string | number | boolean | bigint | symbol | Date | null | undefined
+export type PrimitiveType = string | number | boolean | bigint | symbol | Date | null | undefined
 
 export type FilteredPropertiesOnlyPrimitiveAndEnum<T> = {
-  [K in keyof T as T[K] extends Primitive ? K :
-  T[K] extends Record<any, never> ? K : // enum 타입 처리
+  [K in keyof T as T[K] extends PrimitiveType ? K :
+  T[K] extends Record<string|number, never> ? K : // enum 타입 처리
   never
   ]: T[K]
 }

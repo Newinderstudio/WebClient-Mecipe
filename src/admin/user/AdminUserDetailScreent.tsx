@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { use } from 'react';
 import AdminHeader from '@/common/header/AdminHeader';
 import BasicModal from '@/common/modal/BasicModal';
 import {
@@ -14,12 +14,12 @@ import GetSeoulTime from '@/common/time/GetSeoulTime';
 import { fenxyBlue } from '@/util/constants/style';
 import { useAdminUserDetailScreen } from './hooks/useAdminUserDetailScreen';
 
-interface Props {
-  params: { id: number };
-}
+type Params = Promise<{ id: string }>;
 
-const AdminUserDetailScreen = (props:Props) => {
-    const hookMember = useAdminUserDetailScreen({id:props.params.id});
+function AdminUserDetailScreen(props: { params: Params }) {
+  const { id } = use(props.params);
+
+    const hookMember = useAdminUserDetailScreen({ id:Number(id) });
     const btnCheckBoxStyle = {
         width: 160,
         marginLeft: -1,

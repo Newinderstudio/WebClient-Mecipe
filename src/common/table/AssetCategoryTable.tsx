@@ -1,12 +1,89 @@
+"use client"
+
+import styled from '@emotion/styled';
 import { fenxyBlue } from '@/util/constants/style';
 import { Flex, FlexCenter, FlexRow } from '../styledComponents';
 import Image from 'next/image';
-import { useAdminTable } from './hooks/useAdminTable';
-import { Interpolation } from '@emotion/serialize';
-import { Theme } from '@emotion/react';
 import { useAssetCategoryTable } from './hooks/useAssetCategoryTable';
+import { CSSProperties } from 'react';
 
-const AssetCategoryTable = ({
+const TableHeaderRow = styled(FlexRow)({
+    borderTop: '2px solid #4A5864',
+    backgroundColor: '#f5f5f5',
+    color: '#333',
+    fontSize: 14,
+    '>div': {
+        borderLeft: 0,
+        borderTop: 0,
+        padding: 10,
+    },
+})
+
+const TableRow = styled(Flex)({
+    display: 'flex',
+    alignItems: 'center',
+    borderBottom: '1px solid #f5f5f5',
+    '>div': {
+        padding: 10,
+    },
+})
+
+const TableCell = styled.div({
+    '&, &>*': {
+        flex: 1,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
+})
+
+const PagingElement = styled(FlexRow)({
+    marginTop: 30,
+    gap: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    '>div': {
+        fontSize: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 8,
+        color: '#999',
+        cursor: 'pointer',
+    },
+    '>.btnPageNum:hover, >.btnPageNum.active': {
+        background: fenxyBlue,
+        color: '#fff',
+    },
+})
+
+interface Header<T> {
+    name: string
+    selector?: keyof T
+    minWidth?: number
+    maxWidth?: number
+    cell?: ({ data }: { data: T }) => React.JSX.Element
+}
+
+interface Category {
+    title?: string
+    name?: string
+    value?: string | number
+}
+
+interface Props<T> {
+    minWidth?: number
+    headers: Header<T>[]
+    datas: T[]
+    categories?: Category[]
+    take?: number
+    totalCount?: number
+    page: number
+    pageGroupCount?: number
+    tableCss?: (item: T) => CSSProperties
+    setPage: (page: number) => void
+}
+
+const AssetCategoryTable = <T,>({
     minWidth = 500,
     headers = [],
     datas = [],
@@ -17,18 +94,7 @@ const AssetCategoryTable = ({
     pageGroupCount = 5,
     tableCss,
     setPage,
-}: {
-    minWidth?: number;
-    headers: any[];
-    datas: any[];
-    categories?: any[];
-    take?: number;
-    totalCount?: number;
-    page: number;
-    pageGroupCount?: number;
-    tableCss?: (item?: any) => Interpolation<Theme>;
-    setPage: (page: number) => void;
-}) => {
+}: Props<T>) => {
     const hookMember = useAssetCategoryTable(totalCount, take, pageGroupCount, setPage);
 
     return (
@@ -40,13 +106,13 @@ const AssetCategoryTable = ({
                 {categories?.map((item, index) => {
                     if (item.title)
                         return (
-                            <Flex style={{ color: '#333', marginBottom: 4, marginLeft: 10 }}>
+                            <Flex key={index.toString()} style={{ color: '#333', marginBottom: 4, marginLeft: 10 }}>
                                 {item.title}
                             </Flex>
                         );
                     else if (item.name && (item.value || item.value === 0))
                         return (
-                            <Flex style={{ color: '#999', marginBottom: 4, marginLeft: 10 }}>
+                            <Flex key={index.toString()} style={{ color: '#999', marginBottom: 4, marginLeft: 10 }}>
                                 {item.name} {item.value}
                             </Flex>
                         );
@@ -55,17 +121,8 @@ const AssetCategoryTable = ({
             </FlexRow>
 
             {/* 테이블 헤더 */}
-            <FlexRow
+            <TableHeaderRow
                 style={{
-                    borderTop: '2px solid #4A5864',
-                    backgroundColor: '#f5f5f5',
-                    color: '#333',
-                    fontSize: 14,
-                    '>div': {
-                        borderLeft: 0,
-                        borderTop: 0,
-                        padding: 10,
-                    },
                     minWidth: minWidth, // TODO
                 }}>
                 {headers.map((item, index) => {
@@ -88,28 +145,10 @@ const AssetCategoryTable = ({
                         </Flex>
                     );
                 })}
-            </FlexRow>
+            </TableHeaderRow>
             {/* 페이징 */}
             <Flex>
-                <FlexRow
-                    style={{
-                        marginTop: 30,
-                        gap: 4,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        '>div': {
-                            fontsize: 12,
-                            width: 24,
-                            height: 24,
-                            borderRadius: 8,
-                            color: '#999',
-                            cursor: 'pointer',
-                        },
-                        '>.btnPageNum:hover, >.btnPageNum.active': {
-                            background: fenxyBlue,
-                            color: '#fff',
-                        },
-                    }}>
+                <PagingElement>
                     <FlexCenter onClick={hookMember.onClickPrevPageGroup}>
                         <Image
                             src={'/image/admin/table/arrow-left.svg'}
@@ -138,53 +177,42 @@ const AssetCategoryTable = ({
                             alt="다음 버튼"
                         />
                     </FlexCenter>
-                </FlexRow>
+                </PagingElement>
             </Flex>
             {/* 테이블 로우 */}
             <Flex style={{ fontSize: 14, color: '#333' }}>
                 {datas.map((item, index) => {
-                    const tableCssTheme: any = tableCss ? tableCss(item) : {};
+                    const tableCssTheme = tableCss?.(item) ?? {}
                     return (
-                        <FlexRow
+                        <TableRow
                             key={'row_' + index.toString()}
                             style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                borderBottom: '1px solid #f5f5f5',
-                                '>div': {
-                                    padding: 10,
-                                },
                                 ...tableCssTheme,
                             }}>
                             {headers.map((inItem, inIndex) => {
-                                let minw = 0;
-                                let maxw = 0;
-                                if (inItem?.minWidth) minw = inItem.minWidth;
-                                if (inItem?.maxWidth) maxw = inItem.maxWidth;
+                                const minw = inItem.minWidth ?? 0
+                                const maxw = inItem.maxWidth
+
                                 return (
-                                    <div
+                                    <TableCell
                                         key={'cel_' + inIndex.toString()}
                                         style={{
-                                            minWidth: minw ? `${minw}px` : undefined,
-                                            maxWidth: maxw ? maxw + 'px' : undefined,
-                                            '&, &>*': {
-                                                flex: 1,
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                            },
+                                            minWidth: minw,
+                                            maxWidth: maxw,
                                         }}
                                     // { inItem?.minWidth ? minWidth : inItem?.minWidth}
                                     >
-                                        {inItem?.cell ? (
+                                        {inItem.cell ? (
                                             <inItem.cell data={item} />
+                                        ) : inItem.selector ? (
+                                            String(item[inItem.selector])
                                         ) : (
-                                            item?.[inItem?.selector]
+                                            ''
                                         )}
-                                    </div>
+                                    </TableCell>
                                 );
                             })}
-                        </FlexRow>
+                        </TableRow>
                     );
                 })}
             </Flex>

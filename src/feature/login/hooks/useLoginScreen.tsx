@@ -1,6 +1,6 @@
 import { LoginType } from '@/data/prisma-client';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 import { useFindExistUserByIdMutation as useFindExistUserByIdMutation } from '@/api/usersApi';
 import * as accountSlice from '@/store/slices/accountSlice';
 import { useTypedSelector } from '@/store';
@@ -16,8 +16,7 @@ interface HookMember {
   loginData: LoginData;
 
   // isWaitLogin: boolean;
-  verifyTargetEmail: string | null;
-  verifyKaKaoCode: string | null;
+  verifyTargetEmail: string | undefined;
 
   onClickLogin: () => void;
   onClickKakaoLogin: () => void;
@@ -29,8 +28,6 @@ interface HookMember {
 export function useLoginScreen(): HookMember {
   const dispatch = useAppDispatch();
   const router = useRouter();
-
-  const searchParams = useSearchParams()
 
   const userType = useTypedSelector((state) => state.account.user?.userType);
 
@@ -45,7 +42,27 @@ export function useLoginScreen(): HookMember {
 
   const [loginType, setLoginType] = useState<LoginType | undefined>();
 
-  const [verifyTargetEmail, setVerifyTargetEmail] = useState<string|null>(null);
+  const [verifyTargetEmail, setVerifyTargetEmail] = useState<string>();
+
+  const vertifyEmailLogin = useCallback(async (loginId: string) => {
+    const result = await findExistUserById({ loginId });
+
+    if (result?.data?.isExist === false) {
+      if (confirm("입력하신 정보로 회원가입하시겠습니까?")) {
+        setVerifyTargetEmail(loginId);
+      } else {
+        dispatch(accountSlice.login({ ...loginData, loginType: 'EMAIL' }));
+        setVerifyTargetEmail(undefined);
+        // setIsWaitLogin(false);
+      }
+    }
+  }, [findExistUserById, loginData, dispatch]);
+
+  const vertifyKakaoLogin = useCallback(async () => {
+    console.log('카카오로그인');
+    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO}&redirect_uri=${redirectUrl}/login&response_type=code`;
+    router.replace(KAKAO_AUTH_URL);
+  }, [router]);
 
   useEffect(() => {
     if (loginType === 'KAKAO') {
@@ -55,16 +72,13 @@ export function useLoginScreen(): HookMember {
       vertifyEmailLogin(loginData.loginId);
     }
 
-  }, [loginType]);
+  }, [loginData.loginId, loginType, vertifyEmailLogin, vertifyKakaoLogin]);
 
   const onChangeLoginData = (type: 'loginId' | 'loginPw', value: string) => {
     const clone = { ...loginData };
     clone[type] = value;
     setLoginData(clone);
   };
-
-  const verifyKaKaoCode = searchParams.get("code")
-
 
   useEffect(() => {
     if (userType === 'ADMIN') {
@@ -78,7 +92,7 @@ export function useLoginScreen(): HookMember {
       setLoginType(undefined);
       return;
     }
-  }, [userType]);
+  }, [loginType, router, userType]);
 
   const onClickKakaoLogin = () => {
     setLoginType('KAKAO');
@@ -92,28 +106,8 @@ export function useLoginScreen(): HookMember {
     setLoginType('EMAIL');
   };
 
-  const vertifyEmailLogin = async (loginId: string) => {
-    const result = await findExistUserById({ loginId });
-
-    if (result?.data?.isExist === false) {
-      if (confirm("입력하신 정보로 회원가입하시겠습니까?")) {
-        setVerifyTargetEmail(loginId);
-      } else {
-        dispatch(accountSlice.login({ ...loginData, loginType: 'EMAIL' }));
-        setVerifyTargetEmail(null);
-        // setIsWaitLogin(false);
-      }
-    }
-  }
-
-  const vertifyKakaoLogin = async () => {
-    console.log('카카오로그인');
-    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO}&redirect_uri=${redirectUrl}/login&response_type=code`;
-    router.replace(KAKAO_AUTH_URL);
-  };
-
   const onEndVerify = (authCode: string) => {
-    setVerifyTargetEmail(null);
+    setVerifyTargetEmail(undefined);
     // setIsWaitLogin(false);
     setLoginType(undefined);
 
@@ -125,7 +119,6 @@ export function useLoginScreen(): HookMember {
 
     // isWaitLogin,
     verifyTargetEmail,
-    verifyKaKaoCode,
 
     onClickKakaoLogin,
     onClickLogin,

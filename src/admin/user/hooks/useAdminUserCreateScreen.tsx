@@ -1,6 +1,6 @@
 import { UserType } from '@/data/prisma-client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useCreateUserByAdminMutation, useFindDuplicateUserDataMutation, UserUpdateInput } from '@/api/usersApi';
 import { useTypedSelector } from '@/store';
 
@@ -34,7 +34,7 @@ interface hookMember {
 
   modalDisplayState: 'flex' | 'none';
   onClickCompleted: () => void;
-  modalContent: unknown;
+  modalContent: React.JSX.Element | string;
 }
 
 export function useAdminUserCreateScreen(): hookMember {
@@ -64,7 +64,7 @@ export function useAdminUserCreateScreen(): hookMember {
     useState<boolean>(false);
 
   const [modalDisplayState, setModalDisplayState] = useState<'flex'|'none'>('none');
-  const [modalContent, setModalContent] = useState<unknown>(<div></div>);
+  const [modalContent, setModalContent] = useState<React.JSX.Element | string>(<div></div>);
 
   const onClickCompleted = () => {
     setModalDisplayState('none');

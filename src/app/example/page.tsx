@@ -1,1 +1,1 @@
-export { default as Page } from '@/feature/example/ExampleScreen';
+export { default } from '@/feature/example/ExampleScreen';

@@ -1,3 +1,5 @@
+
+import styled from '@emotion/styled'
 import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { fenxyBlue } from '@/util/constants/style';
@@ -7,11 +9,17 @@ import { StyledLargeButton } from '../styledAdmin';
 interface AdminConfirmModalProps {
   display: 'flex' | 'none';
   title?: string;
-  content?: any;
+  content?: React.JSX.Element;
   confirmBtn?: () => void;
   confirmBtnName?: string;
   closeBtn?: () => void;
 }
+
+const StyledFlex = styled(FlexRow)({
+  '> *': {
+    flex: 1,
+  }
+})
 
 const AdminConfirmModal = (props: AdminConfirmModalProps) => {
   useEffect(() => {
@@ -67,11 +75,11 @@ const AdminConfirmModal = (props: AdminConfirmModalProps) => {
               cursor: 'pointer',
             }}
             onClick={() => {
-              props?.closeBtn
-                ? props.closeBtn()
-                : alert(
-                    '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                  );
+              if (props.closeBtn !== undefined) {
+                props.closeBtn();
+              } else {
+                alert('닫기 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.')
+              }
             }}>
             <Image
               src={'/image/admin/icon/x-circle-white.svg'}
@@ -100,22 +108,19 @@ const AdminConfirmModal = (props: AdminConfirmModalProps) => {
               <FlexCenter style={{ height: 300 }}>내용이 없습니다.</FlexCenter>
             )}
           </Flex>
-          <FlexRow
+          <StyledFlex
             style={{
               padding: 30,
               paddingTop: 0,
-              '> *': {
-                flex: 1,
-              },
             }}>
             <StyledLargeButton
               style={{ width: 215 }}
               onClick={() => {
-                props?.closeBtn
-                  ? props.closeBtn()
-                  : alert(
-                      '닫기 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                    );
+                if (props.closeBtn !== undefined) {
+                  props.closeBtn();
+                } else {
+                  alert('닫기 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.')
+                }
               }}>
               닫기
             </StyledLargeButton>
@@ -130,17 +135,17 @@ const AdminConfirmModal = (props: AdminConfirmModalProps) => {
                     border: 0,
                   }}
                   onClick={() => {
-                    props?.confirmBtn
-                      ? props.confirmBtn()
-                      : alert(
-                          '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                        );
+                    if (props.confirmBtn !== undefined) {
+                      props.confirmBtn();
+                    } else {
+                      alert('확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.')
+                    }
                   }}>
                   {props?.confirmBtnName ? props.confirmBtnName : '확인'}
                 </StyledLargeButton>
               </>
             )}
-          </FlexRow>
+          </StyledFlex>
         </div>
       </Flex>
     </FlexCenter>

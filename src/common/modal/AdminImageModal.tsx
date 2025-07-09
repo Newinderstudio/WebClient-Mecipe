@@ -5,7 +5,7 @@ import { fenxyBlue } from '@/util/constants/style';
 
 interface AdminImageModalProps {
   display: 'flex' | 'none';
-  content?: any;
+  content?: React.JSX.Element;
   closeBtn?: () => void;
 }
 
@@ -50,11 +50,13 @@ const Modal = (props: AdminImageModalProps) => {
               cursor: 'pointer',
             }}
             onClick={() => {
-              props?.closeBtn
-                ? props.closeBtn()
-                : alert(
-                    '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                  );
+              if (props?.closeBtn) {
+                props.closeBtn();
+              } else {
+                alert(
+                  '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
+                );
+              }
             }}>
             <Image
               src={'/image/admin/icon/x-circle-white.svg'}

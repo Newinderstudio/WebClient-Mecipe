@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 interface Props {
   onSubmit: (code: string) => void
@@ -32,14 +32,17 @@ export function AuthCodeInput({ onSubmit }: Props) {
 
   return (
     <div style={{ display: 'flex', gap: '0.5rem' }}>
-      {values.map((v, i) => (
+      {values.filter((ref) => ref !== null).map((v, i) => (
         <input
           key={i}
           value={v}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           maxLength={1}
-          ref={(el) => (inputRefs.current[i] = el)}
+          ref={(el) => {
+            inputRefs.current[i] = el
+          }}
+
           inputMode="numeric"
           style={{
             width: '2rem',

@@ -36,7 +36,7 @@ export function useAssetCategoryTable(
       setPageGroup(inPageGroup);
       setPageArray(inPageGroup[pageIndex]);
     }
-  }, [totalCount, take]);
+  }, [totalCount, take, pageGroupCount, pageIndex]);
 
   function range(size: number, start: number) {
     return Array(size)

@@ -55,7 +55,7 @@ export function useAdminHeader(): hookMember {
     } else {
       router.push('/login');
     }
-  }, []);
+  }, [dispatch, router]);
 
   return {
     userType,

@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { Flex, FlexCenter, FlexRow } from '../styledComponents';
+import React from 'react';
+import { Flex, FlexCenter } from '../styledComponents';
 
 interface BasicModalProps {
   display: 'flex' | 'none';
-  content?: any;
+  content?: React.JSX.Element | string;
   confirmBtn?: () => void;
 }
 
@@ -39,11 +39,13 @@ const BasicModal = (props: BasicModalProps) => {
             cursor: 'pointer',
           }}
           onClick={() => {
-            props?.confirmBtn
-              ? props.confirmBtn()
-              : alert(
-                  '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
-                );
+            if (props?.confirmBtn) {
+              props.confirmBtn();
+            } else {
+              alert(
+                '확인 버튼에 작성된 함수가 없습니다. 코드를 확인해주세요.',
+              );
+            }
           }}>
           <div style={{ fontSize: 18, color: '#222', fontWeight: 500 }}>확인</div>
         </FlexCenter>
