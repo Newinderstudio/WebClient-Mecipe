@@ -1,0 +1,1 @@
+export { default as Page } from '@/feature/example/ExampleScreen';

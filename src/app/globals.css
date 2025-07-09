@@ -1,26 +1,73 @@
-@import "tailwindcss";
+/* FIXME 여기서 스타일 작성하지 말것 *
+/* FIXME jsx css prop에 인라인 스타일로 직접 작성할 것 */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* NOTE 폰트 추가시 여기 작성 */
+/* @font-face {
+  font-family: 'TmonMonsori';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/TmonMonsori.woff')
+    format('woff');
+  font-weight: normal;
+  font-style: normal;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@font-face {
+  font-family: 'Jost';
+  src: url('/fonts/Jost-Regular.ttf');
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@font-face {
+  font-family: 'S-CoreDream4';
+  src: url('/fonts/SCDream4.otf') format('otf');
+}
+
+@import url(//fonts.googleapis.com/earlyaccess/notosanskr.css); */
+
+html,
+body {
+  padding: 0;
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, Segoe UI,
+    Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
+    sans-serif;
+  /* line-height: 1.6; */
+  font-size: 14px;
+
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0 auto;
+  min-width: 350px;
+  position: relative;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: #098ed3;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+img {
+  /* max-width: 100%; */
+  display: block;
+}
+
+button {
+  background-color: white;
+  border-style: none;
+  transition: all 0.1s ease-out;
+  cursor: pointer;
+}
+button:active {
+  opacity: 0.7;
+}
+
+div.fc.fc-media-screen {
+  width: 100%;
 }
