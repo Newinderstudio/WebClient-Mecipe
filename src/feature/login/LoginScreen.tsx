@@ -3,8 +3,6 @@
 import styled from '@emotion/styled';
 import { Flex, FlexCenter } from '@/common/styledComponents';
 import { useLoginScreen } from './hooks/useLoginScreen';
-import Header from '@/common/header/Header';
-import { MainFooter } from '@/common/footer/MainFooter';
 import WaitLoginModal from '@/common/modal/WaitLoginModal';
 import { use } from 'react';
 
@@ -31,14 +29,6 @@ const LoginScreen = ({searchParams}: { searchParams: SearchParams }) => {
   return (
     <Flex>
       <Flex style={{ minHeight: '100vh' }}>
-        <Header
-          hasBorder
-          CenterComponent={
-            <div style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>
-              로그인
-            </div>
-          }
-        />
         {
           hookMember.verifyTargetEmail !== undefined || verifyKaKaoCode !== undefined ?
             <WaitLoginModal
@@ -175,7 +165,6 @@ const LoginScreen = ({searchParams}: { searchParams: SearchParams }) => {
             {hookMember.debugText}
         </FlexCenter> */}
       </Flex>
-      <MainFooter />
     </Flex>
   );
 };

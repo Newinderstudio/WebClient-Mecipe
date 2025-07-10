@@ -2,11 +2,11 @@
 
 import React, { useEffect } from 'react';
 import { Flex } from '../styledComponents';
-import { appContentWidth } from '@/util/constants/style';
 import * as accountSlice from '@/store/slices/accountSlice';
 import { useRouter } from 'next/navigation';
 import { UserType } from '@/data/prisma-client';
 import { useAppDispatch } from '@/store/hooks';
+import { headerHeight } from '@/util/constants/style';
 
 interface HeaderProps {
   LeftComponent?: React.ReactElement;
@@ -16,6 +16,8 @@ interface HeaderProps {
   transparent?: boolean;
   gray?: boolean;
   userType?:UserType
+  style?:React.CSSProperties;
+  headerStyle?:React.CSSProperties;
 }
 
 const Header = ({
@@ -25,7 +27,9 @@ const Header = ({
   hasBorder = false,
   transparent = false,
   gray = false,
-  userType
+  userType,
+  style ={},
+  headerStyle = {}
 }: HeaderProps) => {
 
   const grayColor = gray ? { backgroundColor: '#ddd' } : {};
@@ -51,16 +55,18 @@ const Header = ({
 
   return (
     <div
-      style={{ ...grayColor }}
+      style={{ ...grayColor, ...style }}
     >
       <Flex
         style={{
-          backgroundColor: transparent ? 'transparent' : 'white',
+          color: 'white',
+          backgroundColor: transparent ? 'transparent' : '#0e0e0e',
           zIndex: transparent ? 10 : 0,
-          maxWidth: appContentWidth,
+          width:'100%',
           margin: '0 auto',
-          position: 'relative',
-          ...grayColor
+          position: 'absolute',
+          ...grayColor,
+          ...headerStyle
         }}>
         <Flex
           style={{
@@ -68,7 +74,7 @@ const Header = ({
             paddingLeft: 20,
             paddingRight: 20,
             justifyContent: 'space-between',
-            height: 50,
+            height: headerHeight,
             alignItems: 'center',
           }}>
           {LeftComponent || <Flex style={{ width: 24, height: 24 }} />}

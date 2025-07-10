@@ -1,3 +1,5 @@
+'use client'
+
 import styled from '@emotion/styled';
 import { appContentWidth, fenxyBlue, fenxyWhite } from '@/util/constants/style';
 
@@ -101,3 +103,7 @@ export const CheckBoxStyleButton = styled.div({
   },
   cursor: 'pointer'
 });
+
+export default function StyledWrapper({ children }: { children: React.ReactNode }) {
+  return <Flex>{children}</Flex> // ✅ children은 그대로 유지됨
+}

@@ -1,6 +1,5 @@
 import './globals.css';
 import ReduxProvider from './store/ReduxProvider';
-import { MainFooter } from '@/common/footer/MainFooter';
 import Head from 'next/head';
 
 function RootLayout({
@@ -24,7 +23,6 @@ function RootLayout({
                     <div>
                         {children}
                     </div>
-                    <MainFooter />
                 </ReduxProvider>
             </body>
         </html >

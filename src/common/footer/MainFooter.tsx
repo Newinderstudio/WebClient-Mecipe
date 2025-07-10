@@ -70,7 +70,7 @@ export function MainFooter() {
               color: 'white',
               fontSize: 28,
             }}>
-            HEALTH
+            Meceipe
           </div>
         </FlexCenter>
       </div>
@@ -81,8 +81,7 @@ export function MainFooter() {
             paddingTop: 0,
             // paddingBottom: 40,
             paddingBottom: 30,
-            margin: '0 auto',
-            maxWidth: appContentWidth,
+            height:100
           }}>
         </Flex>
       </div>

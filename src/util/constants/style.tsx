@@ -9,3 +9,8 @@ export const dividerColor = '#DDDDDD';
 export const kakaoYellow = '#FFEB00';
 export const appContentWidth = 640;
 export const renderContentPcWidth = 1200;
+
+export const fenxyYellow = "#FFBD43";
+export const fenxyYellowTransparency = "#FFBD4388";
+
+export const headerHeight = 72;
