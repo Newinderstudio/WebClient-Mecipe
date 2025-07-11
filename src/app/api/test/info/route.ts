@@ -52,9 +52,9 @@ const cafeDummyData: CafeInfo[] = [
         id: 105,
         createdAt: '2025-07-10T11:00:00',
         isDisable: false,
-        name: '수통골 카페숲',
+        name: '카페 레오',
         regionCategoryId: 19, // 수통골
-        address: '대전 유성구 수통골로 321',
+        address: '대전 유성구 수통골로55번길 52 지상1층',
         directions: '수통골 등산로 입구 근처',
         businessNumber: '509-33-77889',
         ceoName: '장예진',

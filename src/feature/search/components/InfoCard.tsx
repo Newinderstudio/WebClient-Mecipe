@@ -40,7 +40,7 @@ const InfoCard = (props: Props) => {
             style={{
                 flexGrow: 1,
                 justifyContent: 'space-between',
-                padding: '16px 24px',
+                padding: '1.2rem 2rem',
                 alignItems: 'start'
             }}
         >

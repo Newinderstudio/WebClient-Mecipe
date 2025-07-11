@@ -38,6 +38,10 @@ export const Grid = styled.div({
   display: 'grid',
 });
 
+export const Grid_Two = styled(Grid)({
+  gridTemplateColumns: 'repeat(2,1fr)',
+});
+
 export const ShadowBox = styled(FlexCenter)({
   filter: 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.1))',
   borderRadius: 4,

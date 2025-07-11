@@ -38,7 +38,7 @@ const BackSpace = (
 const NavigationButton = (props: { children: React.ReactNode, onClick:()=>void }) => {
     const Button = styled.button({
         color: 'white',
-        fontSize: 20,
+        fontSize: '1.6rem',
         fontWeight: 600,
         backgroundColor: 'transparent'
     });

@@ -29,9 +29,13 @@ body {
     Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
     sans-serif;
   /* line-height: 1.6; */
-  font-size: 14px;
+  font-size: 12px;
 
   overflow-x: hidden;
+
+  @media (max-width: 767px) {
+    font-size: 8px;
+  }
 }
 
 body {
@@ -48,6 +52,7 @@ a {
   color: #098ed3;
   text-decoration: none;
 }
+
 a:hover {
   text-decoration: underline;
   cursor: pointer;
@@ -64,6 +69,7 @@ button {
   transition: all 0.1s ease-out;
   cursor: pointer;
 }
+
 button:active {
   opacity: 0.7;
 }

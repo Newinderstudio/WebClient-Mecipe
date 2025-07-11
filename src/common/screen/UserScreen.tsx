@@ -27,8 +27,8 @@ const UserScreen = ({
         }
     } else {
         marginStyle = {
-            marginLeft: 30,
-            marginRight: 30,
+            marginLeft: '2rem',
+            marginRight: '2rem',
         }
     }
 

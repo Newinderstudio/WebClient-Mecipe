@@ -1,3 +1,5 @@
+"use client"
+
 import styled from "@emotion/styled"
 
 const ThumbnailBox = styled.div`
@@ -14,7 +16,7 @@ const ThumbnailContent = styled.img`
   object-position: center;
 `
 
-interface Props {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
     aspectWidth: number
     aspectHeight:number
     src:string
@@ -31,6 +33,7 @@ const ThubmnailImage = (props: Props) => {
                 width: '100%',
                 aspectRatio: aspectRatio,
                 overflow: 'hidden',
+                ...props.style
             }}
         >
             <ThumbnailContent
