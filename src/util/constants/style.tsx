@@ -14,3 +14,14 @@ export const fenxyYellow = "#FFBD43";
 export const fenxyYellowTransparency = "#FFBD4388";
 
 export const headerHeight = 72;
+
+export const fontSizeTheme = {
+    xs: '12px',
+    sm: '16px',
+    base: '24px',
+    md: '36px',
+    lg: '48px',
+    xl: '64px',
+    xxl: '96px',
+    xxxl: '128px',
+}

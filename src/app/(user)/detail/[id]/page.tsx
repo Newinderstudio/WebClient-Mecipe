@@ -1,0 +1,1 @@
+export { default, generateStaticParams, generateMetadata } from '@/feature/detail/InfoDetailScreen';

@@ -1,7 +1,6 @@
 "use client"
 
 import { FlexCenter, FlexRow } from "@/common/styledComponents";
-import { fenxyYellowTransparency } from "@/util/constants/style";
 import styled from "@emotion/styled";
 import { useState } from "react";
 import Image from "next/image";
@@ -31,6 +30,14 @@ const SearchInput = styled.input`
 
 interface Props {
     onSearchAction: (text: string) => void;
+    height: number,
+    maxWidth: number,
+    backgroundColor: string,
+    borderColor: string,
+    full?: boolean
+    style?: React.CSSProperties,
+    fontColor?: string,
+    iconBlack?: boolean
 }
 
 function MainSearchComponent(props: Props) {
@@ -43,44 +50,60 @@ function MainSearchComponent(props: Props) {
 
     const onClickSearch = () => {
         //
-        props.onSearchAction(searchText);
+        const trim = searchText.trim();
+        setSearchText(trim);
+        props.onSearchAction(trim);
     }
 
+    const borderRadius = props.height * 0.5;
+    const fontSize = Math.floor(props.height * 0.4);
+    const iconSize = Math.floor(props.height * 0.44);
+    const paddingHori = Math.floor(props.height * 0.3);
+    const paddingVert = Math.floor(props.height * 0.13);
+    const borderWidth = Math.floor(props.height * 0.04);
+
     return <FlexCenter
-    style = {{
-        width:'100%',
-        padding:'0 20px',
-        position: 'relative'
-    }}
+        style={{
+            width: props.full === true ? '100%' : undefined,
+            position: 'relative',
+            display: props.full === true ? 'flex' : 'inline-block',
+            ...props.style
+        }}
     >
         <FlexRow
             style={{
-                height: 72,
+                height: props.height,
                 alignItems: 'center',
                 borderBottom: '1px solid #eee',
-                backgroundColor: '#0005',
-                border: '3px solid',
-                borderColor: fenxyYellowTransparency,
-                padding: '10px 24px',
-                maxWidth: 800,
+                backgroundColor: props.backgroundColor,//'#0005',
+                border: `${borderWidth}px solid`,
+                borderColor: props.borderColor,//fenxyYellowTransparency,
+                padding: `${paddingVert}px ${paddingHori}px`,
+                maxWidth: props.maxWidth,
                 width: '100%',
                 justifyContent: 'space-between',
-                borderRadius: 40,
+                borderRadius: borderRadius,
             }}>
             <SearchInput
                 type="text"
                 placeholder="검색어를 입력해주세요."
                 style={{
-                    fontSize: 28,
+                    color: props.fontColor,
+                    fontSize: fontSize,
                 }}
                 value={searchText}
                 onChange={(e) => onChangeSearchText(e.target.value)}
+                onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                        onClickSearch();
+                    }
+                }}
             />
             <Image
-                src="/image/icon/searchIcon.svg"
+                src={`/image/icon/searchIcon${props.iconBlack === true ? '-black' : ''}.svg`}
                 alt="srarch"
-                width={32}
-                height={32}
+                width={iconSize}
+                height={iconSize}
 
                 style={{
                     position: 'relative',

@@ -9,10 +9,12 @@ function RootLayout({
 }) {
 
     return (
-        <html lang="ko">
+        <html lang="ko"
+            suppressHydrationWarning
+        >
             <body
-                data-new-gr-c-s-check-loaded="14.1243.0"
-                data-gr-ext-installed=""
+            // data-new-gr-c-s-check-loaded="14.1243.0"
+            // data-gr-ext-installed=""
             >
                 <ReduxProvider>
                     <Head>

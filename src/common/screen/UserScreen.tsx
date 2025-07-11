@@ -1,12 +1,13 @@
 "use client"
 
-import MainHeader from '@/common/header/MainHeader';
+import MainHeader, { NavigationSimpleData } from '@/common/header/MainHeader';
 import { Flex } from '@/common/styledComponents';
 
 interface Props {
     backSpace?: boolean;
     headerOverlap?: boolean;
     fullScreen?: boolean;
+    navigationList?: NavigationSimpleData[];
     children: React.ReactNode;
 }
 
@@ -14,7 +15,8 @@ const UserScreen = ({
     children,
     headerOverlap,
     backSpace,
-    fullScreen
+    fullScreen,
+    navigationList
 }: Props) => {
 
     let marginStyle = {}
@@ -34,6 +36,7 @@ const UserScreen = ({
         <MainHeader
             backSpace={backSpace}
             isOverlap={headerOverlap}
+            navigationList={navigationList}
         />
         <Flex
             style={{
