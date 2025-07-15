@@ -140,6 +140,8 @@ export type CafeInfo = {
     CafeThumbnailImages?: CafeThumbnailImage[]
     CafeVirtualImages?: CafeVirtualImage[]
     CafeRealImages?: CafeRealImage[]
+
+    RegionCategory?: RegionCategory;
 }
 
 /**
@@ -154,6 +156,7 @@ export type CafeThumbnailImage = {
     height: number
     size: number
     priority: number
+    isDisable: boolean
     cafeInfoId: number
 
     CafeInfo?: CafeInfo
@@ -171,6 +174,7 @@ export type CafeVirtualImage = {
     height: number
     size: number
     priority: number
+    isDisable: boolean
     cafeInfoId: number
 
     CafeInfo?: CafeInfo
@@ -188,6 +192,7 @@ export type CafeRealImage = {
     height: number
     size: number
     priority: number
+    isDisable: boolean
     cafeInfoId: number
 
     CafeInfo?: CafeInfo
@@ -202,6 +207,9 @@ export type CafeVirtualLink = {
     createdAt?: Date | string
     name: string
     url: string
+    type: string
+    isDisable: boolean
+    isAvaliable: boolean
     cafeInfoId: number
 
     CafeInfo?: CafeInfo

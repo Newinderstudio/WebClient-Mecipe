@@ -169,7 +169,8 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
           <div
             style={{
               fontSize: '1.6rem',
-              width: '100%'
+              width: '100%',
+              marginTop: '2rem'
             }}
           >
             <NaverMap
