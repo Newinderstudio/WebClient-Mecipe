@@ -103,8 +103,8 @@ export type RegionCategory = {
     govermentTYpe: GovermentType
 
     CafeInfos?: CafeInfo[]
-    AncestorCategories?: RegionCategory[]
-    DescendantCategories?: RegionCategory[]
+    AncestorCategories?: ClosureRegionCategory[]
+    DescendantCategories?: ClosureRegionCategory[]
 }
 
 /**
@@ -152,6 +152,7 @@ export type CafeThumbnailImage = {
     id?: number
     createdAt?: Date | string
     url: string
+    thumbnailUrl: string
     width: number
     height: number
     size: number

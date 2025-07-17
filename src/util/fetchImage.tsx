@@ -1,23 +1,25 @@
 import { rootUrl } from "./constants/app";
 
 const fetchImage = async (
-  method: 'POST' | 'PATCH',
-  path: string,
   token: string | undefined,
   body: FormData,
-) => {
+): Promise<{
+  url: string;
+  thumbnailUrl?: string;
+}[]> => {
   if (!token) console.error('token is undefined');
   const bodyPayload =
     body instanceof FormData
       ? body
       : typeof body === 'string'
-      ? body
-      : JSON.stringify(body);
+        ? body
+        : JSON.stringify(body);
 
   let res;
+  const path = `${rootUrl}/rawimageupload/upload`;
   try {
-    const raw = await fetch(`${rootUrl}/${path}`, {
-      method: method,
+    const raw = await fetch(`${rootUrl}/rawimageupload/upload`, {
+      method: 'POST',
       headers: {
         Authorization: 'Bearer ' + token,
       },
@@ -28,11 +30,11 @@ const fetchImage = async (
     if (process.env.NODE_ENV === 'development') {
       console.log(
         'fetchCompat status : ' +
-          raw.url +
-          ' ' +
-          raw.status +
-          ' ' +
-          raw.statusText,
+        raw.url +
+        ' ' +
+        raw.status +
+        ' ' +
+        raw.statusText,
         '\n',
         'response body : ',
         json,
@@ -46,25 +48,25 @@ const fetchImage = async (
   } catch (e) {
     console.warn(
       'fetch compat error\n' +
-        'request : ' +
-        JSON.stringify(
-          {
-            path: path,
-            token: token,
-            body: body,
-          },
-          null,
-          2,
-        ) +
-        '\n\n' +
-        'url : ' +
-        res?.url +
-        ' ' +
-        res?.status +
-        ' ' +
-        res?.statusText +
-        '\n\n' +
-        e,
+      'request : ' +
+      JSON.stringify(
+        {
+          path: path,
+          token: token,
+          body: body,
+        },
+        null,
+        2,
+      ) +
+      '\n\n' +
+      'url : ' +
+      res?.url +
+      ' ' +
+      res?.status +
+      ' ' +
+      res?.statusText +
+      '\n\n' +
+      e,
     );
 
     throw e;
@@ -72,3 +74,18 @@ const fetchImage = async (
 };
 
 export default fetchImage;
+
+export const getImageSize = (file: File): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight })
+    }
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+export const getFileSize = (file: File) => {
+  return Math.floor(file.size / 1024);
+}

@@ -32,12 +32,13 @@ const AccountSettingBox = styled.div({
 const AdminHeader = ({
   hidden = false,
   active,
-  activeItem,
+  activeItem
 }: {
   hidden?: boolean;
   active?: string;
-  activeItem?: string
+  activeItem?: string;
 }) => {
+
   const hookMember = useAdminHeader();
 
   const Nav = ({
@@ -177,16 +178,13 @@ const AdminHeader = ({
           관리자
         </FlexCenter>
         {/*  */}
-        {[
-          '헬스장관리',
-          '기구관리',
-          '유저관리',
-        ].map((item, index) => {
+        {navArray.map((item, index) => {
+          const title = item.title;
           return (
             <div key={index.toString()}>
               <Flex
                 onClick={() => {
-                  hookMember.onClickMenu(item);
+                  hookMember.onClickMenu(title);
                 }}
                 style={{
                   marginTop: 10,
@@ -198,13 +196,13 @@ const AdminHeader = ({
                   color: 'white',
                   fontWeight: 500,
                   cursor: 'pointer',
-                  backgroundColor: active === item ? fenxyBlue : undefined,
+                  backgroundColor: active === title ? fenxyBlue : undefined,
                 }}>
-                {item}
+                {title}
               </Flex>
               {/* {active === item ? activeItem : undefined} */}
-              {active === item ? (
-                <Nav parent={item} activeItem={activeItem} />
+              {active === title ? (
+                <Nav parent={title} activeItem={activeItem} />
               ) : undefined}
             </div>
           );

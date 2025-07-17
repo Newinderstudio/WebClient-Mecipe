@@ -10,32 +10,15 @@ import { Flex, FlexRow } from '@/common/styledComponents';
 import AdminTable from '@/common/table/AdminTable';
 import { fenxyBlue } from '@/util/constants/style';
 import {
-    SearchUserTypeArray,
-    useAdminUserScreen,
-} from './hooks/useAdminUserScreen';
+    useAdminCafeInfoScreen,
+} from './hooks/useAdminCafeInfoScreen';
 import GetSeoulTime from '@/common/time/GetSeoulTime';
-import { UserResult } from '@/api/usersApi';
+import { CafeInfoResult } from '@/api/cafeInfosApi';
 
-const btnCheckBoxStyle = {
-    width: 120,
-    marginLeft: -1,
-    lineHeight: '36px',
-    border: '1px solid #eee',
-    display: 'inline-flex',
-    justifyContent: 'center',
-    color: '#999',
-    cursor: 'pointer',
-    '&.active': {
-        background: fenxyBlue,
-        borderColor: fenxyBlue,
-        color: 'white',
-    },
-};
-
-const AdminUserScreen = () => {
-    const hookMember = useAdminUserScreen();
+const AdminCafeInfoScreen = () => {
+    const hookMember = useAdminCafeInfoScreen();
     return (
-        <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+        <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', width:'100%' }}>
             <div style={{ marginLeft: 240, padding: 20, minWidth: 1100 }}>
                 <FlexRow
                     style={{
@@ -51,13 +34,13 @@ const AdminUserScreen = () => {
                             flexGrow: 1,
                             lineHeight: '32px',
                         }}>
-                        회원관리
+                        카페관리
                     </div>
                     <FlexRow>
                         <StyledButton
                             onClick={hookMember.onClickRouteCreate}
                             style={{ background: fenxyBlue }}>
-                            유저 추가
+                            카페 추가
                         </StyledButton>
                         {/* <StyledButton
               onClick={() => hookMember.onClickDeleteChecked()}
@@ -95,9 +78,10 @@ const AdminUserScreen = () => {
                                     hookMember.onChangeSearchType(e.target.value);
                                 }}>
                                 {/* <option value="없음">없음</option> */}
-                                <option value="닉네임">닉네임</option>
-                                <option value="아이디">아이디</option>
                                 <option value="이름">이름</option>
+                                <option value="주소">주소</option>
+                                <option value="사업자번호">사업자번호</option>
+                                <option value="사업자명">사업자명</option>
                             </select>
                             <InputStyle
                                 type="text"
@@ -117,39 +101,6 @@ const AdminUserScreen = () => {
                                 검색
                             </StyledButton>
                         </FlexRow>
-                        <FlexRow
-                            style={{
-                                minHeight: 60,
-                                alignItems: 'center',
-                                borderBottom: '1px solid #eee',
-                            }}>
-                            <div
-                                style={{
-                                    minWidth: 150,
-                                    paddingLeft: 30,
-                                }}>
-                                유형
-                            </div>
-                            {SearchUserTypeArray.map((el, i) => (
-                                <div
-                                    style={btnCheckBoxStyle}
-                                    onClick={() => hookMember.onClickUserType(el)}
-                                    key={i.toString()}
-                                    className={hookMember.userType === el ? 'active' : ''}>
-                                    {el === 'MANAGER'
-                                        ? '매니저'
-                                        : el === 'ADMIN'
-                                            ? '관리자'
-                                            : el === 'GENERAL'
-                                                ? '일반회원'
-                                                : el === 'BUSINESS'
-                                                    ? '관장'
-                                                    : el === '전체'
-                                                        ? '전체'
-                                                        : undefined}
-                                </div>
-                            ))}
-                        </FlexRow>
                     </Flex>
                 </BorderRoundedContent>
 
@@ -168,75 +119,35 @@ const AdminUserScreen = () => {
                                 page={hookMember.page}
                                 setPage={hookMember.setPage}
                                 take={hookMember.take}
-                                categories={[
-                                    { title: '운영 회원' },
-                                    {
-                                        name: '관리자',
-                                        value: hookMember.userTypeCount?.['ADMIN'] || 0,
-                                    },
-                                    {
-                                        name: '매니저',
-                                        value: hookMember.userTypeCount?.['MANAGER'] || 0,
-                                    },
-                                    { title: '/' },
-                                    {
-                                        name: '일반회원',
-                                        value: hookMember.userTypeCount?.['GENERAL'] || 0,
-                                    },
-                                ]}
                                 headers={[
                                     {
-                                        name: '아이디',
-                                        selector: 'loginId',
-                                        cell: ({ data }: { data: UserResult }) => {
-                                            return <>{data.loginId}</>;
-                                        },
-                                    },
-                                    {
-                                        name: '닉네임',
-                                        selector: 'nickname',
-                                        cell: ({ data }: { data: UserResult }) => {
-                                            console.log(data);
-                                            return (
-                                                <div>
-                                                    {data.nickname}
-                                                </div>
-                                            );
-                                        },
-                                    },
-                                    {
                                         name: '이름',
-                                        selector: 'username',
-                                        cell: ({ data }: { data: UserResult }) => {
-                                            return <>{data.username}</>;
-                                        },
+                                        selector: 'name',
                                     },
                                     {
-                                        name: '구분',
-                                        selector: 'userType',
-                                        cell: ({ data }: { data: UserResult }) => {
-                                            let type = '-';
-                                            if (data.userType === 'ADMIN') {
-                                                type = '관리자';
-                                            } else if (data.userType === 'GENERAL') {
-                                                type = '일반회원';
-                                            } else if (data.userType === 'MANAGER') {
-                                                type = '매니저';
-                                            }
-                                            return <>{type}</>;
-                                        },
+                                        name: '주소',
+                                        selector: 'address',
                                     },
+                                    {
+                                        name: '사업자번호',
+                                        selector: 'businessNumber',
+                                    },
+                                    {
+                                        name: '사업자명',
+                                        selector: 'ceoName',
+                                    },
+
                                     {
                                         name: '가입일',
                                         selector: 'createdAt',
                                         minWidth: 200,
-                                        cell: ({ data }: { data: UserResult }) => {
+                                        cell: ({ data }: { data: CafeInfoResult }) => {
                                             return <GetSeoulTime time={data.createdAt} long />;
                                         },
                                     },
                                     {
                                         name: '관리',
-                                        cell: ({ data }: { data: UserResult }) => {
+                                        cell: ({ data }: { data: CafeInfoResult }) => {
                                             return (
                                                 <FlexRow
                                                     style={{
@@ -273,4 +184,4 @@ const AdminUserScreen = () => {
     );
 };
 
-export default AdminUserScreen;
+export default AdminCafeInfoScreen;

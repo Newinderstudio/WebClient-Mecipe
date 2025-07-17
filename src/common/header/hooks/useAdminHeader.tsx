@@ -23,7 +23,7 @@ interface hookMember {
 
 export const navArray = [
   // { title: '결제관리', name: '전체조회', url: '/admin/payment' },
-  { title: '유저관리', name: '유저관리', url: '/admin/user' },
+  { title: '카페관리', name: '카페관리', url: '/admin/cafeinfo' },
 ];
 
 export function useAdminHeader(): hookMember {
@@ -50,10 +50,10 @@ export function useAdminHeader(): hookMember {
       if (userData.user.loginType === 'ADMIN') {
         dispatch(accountSlice.saveUserDataInSession(userData));
       } else {
-        router.push('/login');
+        router.push('/');
       }
     } else {
-      router.push('/login');
+      router.push('/admin/login');
     }
   }, [dispatch, router]);
 
@@ -67,8 +67,8 @@ export function useAdminHeader(): hookMember {
       router.push('/login');
     },
     onClickMenu: (item) => {
-      if (item === '유저관리') {
-        router.push('/admin/user');
+      if (item === '키페관리') {
+        router.push('/admin/cafeinfo');
       }
     },
     onClickSubMenu: (active: string) => {

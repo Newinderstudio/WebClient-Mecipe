@@ -2,7 +2,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { LoginType, User, UserType } from '@/data/prisma-client';
 import fetchCompat from '@/util/fetchCompat';
 import { fetchCompatBaseQuery } from '@/util/fetchCompatBaseQuery';
-import { DeepPartial, FilteredPropertiesOnlyPrimitiveAndEnum, MakePrimitiveRequired } from '@/util/types';
+import { DeepPartial, FilteredPropertiesOnlyPrimitiveAndEnum, MakePrimitiveRequiredWithObject } from '@/util/types';
 
 export const usersApi = createApi({
     reducerPath: 'usersApi',
@@ -241,7 +241,7 @@ export type UserTypeOrNoLogin = UserType | 'NoLogin';
 // NOTE AccessToken에 대한 타입
 export type AccessToken = string;
 
-export type UserResult = MakePrimitiveRequired<User>;
+export type UserResult = MakePrimitiveRequiredWithObject<User>;
 export type UserUpdateInput = Omit<DeepPartial<FilteredPropertiesOnlyPrimitiveAndEnum<User>>,"id">;
 
 export type UserCreateInput = Omit<Omit<Omit<Required<FilteredPropertiesOnlyPrimitiveAndEnum<User>>,"id">, "createdAt">, "isDisable">;

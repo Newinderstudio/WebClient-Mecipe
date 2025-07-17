@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LoginType, User, UserType } from '@/data/prisma-client';
 import { AppThunk } from '@/store';
 import { rootUrl } from '@/util/constants/app';
-import { MakePrimitiveRequired } from '@/util/types';
+import { MakePrimitiveRequiredWithObject } from '@/util/types';
 
 // NOTE slice는 !!앱 공유데이터!! 가 있을때만 사용한다
 
@@ -53,7 +53,7 @@ export const login =
     loginType: LoginType;
   }): AppThunk =>
     (dispatch) => {
-      return fetch(rootUrl + '/auth/login', {
+      return fetch(rootUrl + '/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,15 +66,15 @@ export const login =
             alert(resJson.message);
             return;
           }
-          if (resJson.data.user.loginType === 'ADMIN') {
-            dispatch(setToken(resJson.data.accessToken));
-            dispatch(setUser(resJson.data.user));
-            sessionStorage.setItem('userData', JSON.stringify(resJson.data));
+          if (resJson.user.loginType === 'ADMIN') {
+            dispatch(setToken(resJson.accessToken));
+            dispatch(setUser(resJson.user));
+            sessionStorage.setItem('userData', JSON.stringify(resJson));
             return;
           }
-          dispatch(setToken(resJson.data.accessToken));
-          dispatch(setUser(resJson.data.user));
-          sessionStorage.setItem('userData', JSON.stringify(resJson.data));
+          dispatch(setToken(resJson.accessToken));
+          dispatch(setUser(resJson.user));
+          sessionStorage.setItem('userData', JSON.stringify(resJson));
         })
         .catch((e) => {
           console.log(e);
@@ -101,7 +101,7 @@ export const signup =
     email: string;
   }): AppThunk =>
     async (dispatch) => {
-      return await fetch(rootUrl + '/auth/signup', {
+      return await fetch(rootUrl + '/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,4 +119,4 @@ export const signup =
         });
     };
 
-export type UserResult = MakePrimitiveRequired<User>;
+export type UserResult = MakePrimitiveRequiredWithObject<User>;

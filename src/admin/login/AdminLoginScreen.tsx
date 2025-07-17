@@ -2,9 +2,7 @@
 
 import styled from '@emotion/styled';
 import { Flex, FlexCenter } from '@/common/styledComponents';
-import { useLoginScreen } from './hooks/useLoginScreen';
-import WaitLoginModal from '@/common/modal/WaitLoginModal';
-import { use } from 'react';
+import { useAdminLoginScreen } from './hooks/useAdminLoginScreen';
 
 const InputField = styled.input({
   '::placeholder': { color: '#888' }
@@ -17,27 +15,13 @@ const PasswordInputField = styled(InputField)({
     },
   }
 })
+const LoginScreen = () => {
 
-type SearchParams = Promise<{ code: string }>;
-
-const LoginScreen = ({searchParams}: { searchParams: SearchParams }) => {
-
-  const { code: verifyKaKaoCode } = use(searchParams);
-
-  const hookMember = useLoginScreen();
+  const hookMember = useAdminLoginScreen();
 
   return (
     <Flex>
       <Flex style={{ minHeight: '100vh' }}>
-        {
-          hookMember.verifyTargetEmail !== undefined || verifyKaKaoCode !== undefined ?
-            <WaitLoginModal
-              verifyTargetEmail={hookMember.verifyTargetEmail}
-              verifyKaKaoCode={verifyKaKaoCode}
-              onEndVerify={hookMember.onEndVerify}
-            />
-            :
-            <div>
               <FlexCenter
                 style={{
                   maxWidth: 640,
@@ -132,23 +116,7 @@ const LoginScreen = ({searchParams}: { searchParams: SearchParams }) => {
                     borderRadius: 8,
                   }}>
                   <div style={{ color: 'white', fontSize: 18, lineHeight: '28px' }}>
-                    이메일로 로그인
-                  </div>
-                </FlexCenter>
-                <FlexCenter
-                  onClick={() => {
-                    //
-                    hookMember.onClickKakaoLogin();
-                  }}
-                  style={{
-                    backgroundColor: 'orange',
-                    padding: 11,
-                    marginTop: 16,
-                    cursor: 'pointer',
-                    borderRadius: 8,
-                  }}>
-                  <div style={{ color: 'white', fontSize: 18, lineHeight: '28px' }}>
-                    카카오 로그인
+                    로그인
                   </div>
                 </FlexCenter>
                 <FlexCenter
@@ -158,12 +126,6 @@ const LoginScreen = ({searchParams}: { searchParams: SearchParams }) => {
                   }}>
                 </FlexCenter>
               </Flex>
-            </div>
-        }
-
-        {/* <FlexCenter>
-            {hookMember.debugText}
-        </FlexCenter> */}
       </Flex>
     </Flex>
   );

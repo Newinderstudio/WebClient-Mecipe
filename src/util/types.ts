@@ -13,7 +13,7 @@ export type PrimitiveType = string | number | boolean | bigint | symbol | Date |
 
 export type FilteredPropertiesOnlyPrimitiveAndEnum<T> = {
   [K in keyof T as T[K] extends PrimitiveType ? K :
-  T[K] extends Record<string|number, never> ? K : // enum 타입 처리
+  T[K] extends Record<string | number, never> ? K : // enum 타입 처리
   never
   ]: T[K]
 }
@@ -31,8 +31,11 @@ type IsSimple<T> =
   ? true
   : false
 
-
 export type MakePrimitiveRequired<T> = {
+  [K in keyof T as IsSimple<T[K]> extends true ? K : never]-?: T[K]
+}
+
+export type MakePrimitiveRequiredWithObject<T> = {
   [K in keyof T as IsSimple<T[K]> extends true ? K : never]-?: T[K]
 } & {
   [K in keyof T as IsSimple<T[K]> extends true ? never : K]?: T[K]

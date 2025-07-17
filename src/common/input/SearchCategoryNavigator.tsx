@@ -38,16 +38,20 @@ export default function SearchCategoryNavigator(props: Props) {
     }
 
     useEffect(() => {
-        if (props) props.onSearchAction(selectedIds[selectedIds.length - 1]);
+        if (props) {
+            const target = selectedIds[selectedIds.length - 1];
+            props.onSearchAction(target);
+            console.log("SelectCategoryNavigator Id", target);
+        }
     }, [props, selectedIds])
 
     const maxDepth = 5
 
-    if(props.categoryTree === undefined) return undefined;
+    if (props.categoryTree === undefined) return undefined;
 
     return (
         <div style={{ display: 'flex', gap: '1rem', ...props.style }}>
-            { [...Array(maxDepth)].map((_, depth) => {
+            {[...Array(maxDepth)].map((_, depth) => {
                 const options = getCategoriesAtDepth(props.categoryTree!, depth)
                 if (options.length === 0) return null
 
