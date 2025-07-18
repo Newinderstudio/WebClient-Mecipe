@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { fetchCompatBaseQuery } from '@/util/fetchCompatBaseQuery';
-import { MakePrimitiveRequiredWithObject, FilteredPropertiesOnlyPrimitiveAndEnum, DeepPartial } from '@/util/types';
-import { RegionCategory, ClosureRegionCategory } from '@/data/prisma-client';
+import { MakePrimitiveRequiredWithObject, FilteredPropertiesOnlyPrimitiveAndEnum, DeepPartial, MakePrimitiveRequired } from '@/util/types';
+import { RegionCategory, ClosureRegionCategory, GovermentType } from '@/data/prisma-client';
 
 // NOTE Api 이름은 무조건 복수명으로 한다. (NestJS와 동일)
 export const regionCategoriesApi = createApi({
@@ -21,17 +21,17 @@ export const regionCategoriesApi = createApi({
             }),
             providesTags: [{ type: 'RegionCategories', id: "LIST" }, { type: 'ClosureRegionCategories', id: "LIST" }]
         }),
-        createRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { body: RegionCategoryCreateInput }>({
+        createRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { body: RegionCategoryCreateInput, parentId?:number }>({
             query: (arg) => ({
                 method: 'POST',
-                url: `admin/create`,
+                url: `admin/create?parentId=${arg.parentId}`,
                 body: arg.body
             }),
         }),
-        findChildRegionCategoriesByAdmin: builder.mutation<RegionCategoryResult[], { parentId: number }>({
+        findChildRegionCategoriesByAdmin: builder.mutation<RegionCategoryResult[], { parentId?: number }>({
             query: (arg) => ({
                 method: 'GET',
-                url: `admin/child/${arg.parentId}`
+                url: `admin/child?parentId=${arg.parentId}`
             })
         }),
         updateRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { id: number, body: RegionCategoryUpdateInput, newParentId?:number }>({
@@ -59,12 +59,28 @@ export const {
  } = regionCategoriesApi;
 
 export type RegionCategoryResult = MakePrimitiveRequiredWithObject<RegionCategory>;
+export type RegionCategoryPrimitiveResult = MakePrimitiveRequired<RegionCategory>;
 export type ClosureRegionCategoryResult = MakePrimitiveRequiredWithObject<ClosureRegionCategory>;
 
 export type RegionCategoryUpdateInput = Omit<DeepPartial<FilteredPropertiesOnlyPrimitiveAndEnum<RegionCategory>>, "id">;
 
-export type RegionCategoryCreateInput = Omit<Omit<Omit<Required<FilteredPropertiesOnlyPrimitiveAndEnum<RegionCategory>>, "id">, "createdAt">, "isDisable">;
+export type RegionCategoryCreateInput = Omit<Omit<Omit<Required<FilteredPropertiesOnlyPrimitiveAndEnum<RegionCategory>>, "id">, "createdAt">, "isDisable">
 
 export type RegionCategoryTreeTable = {
     categories: RegionCategoryResult[], closure: ClosureRegionCategoryResult[]
+}
+
+export const GovermentTypeLabel: Record<GovermentType, string> = {
+  SPECIAL_CITY: '특별시',
+  METROPOLITAN_CITY: '광역시',
+  SPECIAL_SELF_GOVERNING_CITY: '특별자치시',
+  PROVINCE: '도',
+  SPECIAL_SELF_GOVERNING_PROVINCE: '특별자치도',
+  DISTRICT: '구',
+  CITY: '시',
+  COUNTY: '군',
+  TOWN: '읍',
+  TOWNSHIP: '면',
+  NEIGHBORHOOD: '동',
+  PLACENAME: '지명',
 }

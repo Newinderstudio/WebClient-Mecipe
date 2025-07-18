@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTypedSelector } from '@/store';
 import * as accountSlice from '@/store/slices/accountSlice';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ interface hookMember {
   confirmModal: 'flex' | 'none';
 
   onClickLogout: () => void;
-  onClickMenu: (item: string) => void;
+  onClickMenu: (item: { title: string, name: string, url: string }) => void;
   onClickSubMenu: (active: string) => void;
   onClickAdminMain: () => void;
   onClickCloseConfirmModal: () => void;
@@ -24,6 +24,7 @@ interface hookMember {
 export const navArray = [
   // { title: '결제관리', name: '전체조회', url: '/admin/payment' },
   { title: '카페관리', name: '카페관리', url: '/admin/cafeinfo' },
+  { title: '지역카테고리관리', name: '지역카테고리관리', url: '/admin/region' },
 ];
 
 export function useAdminHeader(): hookMember {
@@ -35,28 +36,6 @@ export function useAdminHeader(): hookMember {
 
   const [confirmModal, setConfirmModal] = useState<'flex' | 'none'>('none');
 
-  useEffect(() => {
-    const sessionUserData = sessionStorage.getItem('userData');
-    if (sessionUserData) {
-      const userData: { user: accountSlice.UserResult; accessToken: string } =
-        JSON.parse(sessionUserData);
-      // if (userData.user.userType === 'ADMIN') {
-      //   dispatch(accountSlice.saveUserDataInSession(userData));
-      // } else if (userData.user.userType === 'HAPPYCALL') {
-      //   dispatch(accountSlice.saveUserDataInSession(userData));
-      // } else {
-      //   router.push('/admin/login');
-      // }
-      if (userData.user.loginType === 'ADMIN') {
-        dispatch(accountSlice.saveUserDataInSession(userData));
-      } else {
-        router.push('/');
-      }
-    } else {
-      router.push('/admin/login');
-    }
-  }, [dispatch, router]);
-
   return {
     userType,
     adminName: user?.nickname || '',
@@ -67,9 +46,7 @@ export function useAdminHeader(): hookMember {
       router.push('/login');
     },
     onClickMenu: (item) => {
-      if (item === '키페관리') {
-        router.push('/admin/cafeinfo');
-      }
+      router.push(item.url);
     },
     onClickSubMenu: (active: string) => {
       navArray.map((item) => {

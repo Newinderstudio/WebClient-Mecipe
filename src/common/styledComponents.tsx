@@ -226,17 +226,3 @@ export const SelectDropDown = (props: React.SelectHTMLAttributes<HTMLSelectEleme
 export default function StyledWrapper({ children }: { children: React.ReactNode }) {
   return <Flex>{children}</Flex> // ✅ children은 그대로 유지됨
 }
-
-export const AdminPageContinaer = styled(Flex)({
-  " > div + div": {
-    margin: '0 auto',
-    textAlign: 'left',
-    fontSize: 30,
-    color: '#333',
-    fontWeight: 400,
-    paddingTop: 20,
-    paddingRight: 20,
-    paddingLeft: 20,
-    width: '100%',
-  }
-})

@@ -15,6 +15,7 @@ export const fetchCompatBaseQuery =
       const baseUrl = `${rootUrl}/${resourceName}/`;
       // TODO token 받는곳 커스텀해야 사용가능..
       const token = (api.getState() as AppState).account.accessToken;
+
       const result = await fetchBaseQuery({
         baseUrl,
         prepareHeaders: (headers: Headers) => {

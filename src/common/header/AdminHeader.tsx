@@ -184,7 +184,7 @@ const AdminHeader = ({
             <div key={index.toString()}>
               <Flex
                 onClick={() => {
-                  hookMember.onClickMenu(title);
+                  hookMember.onClickMenu(item);
                 }}
                 style={{
                   marginTop: 10,

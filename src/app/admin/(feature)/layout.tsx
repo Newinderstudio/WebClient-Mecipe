@@ -1,4 +1,5 @@
-import { AdminPageContinaer, Flex } from '@/common/styledComponents';
+import { Flex } from '@/common/styledComponents';
+import AdminPageContainer from '@/common/admin/AdminPageContainer';
 
 function AdminLayout({
     children,
@@ -8,9 +9,9 @@ function AdminLayout({
 
     return (
         <Flex style={{ minHeight: '100vh' }}>
-            <AdminPageContinaer>
+            <AdminPageContainer>
                 {children}
-            </AdminPageContinaer>
+            </AdminPageContainer>
         </Flex>
     );
 }

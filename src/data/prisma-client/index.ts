@@ -100,7 +100,7 @@ export type RegionCategory = {
     name: string
     isDisable: boolean
 
-    govermentTYpe: GovermentType
+    govermentType: GovermentType
 
     CafeInfos?: CafeInfo[]
     AncestorCategories?: ClosureRegionCategory[]
