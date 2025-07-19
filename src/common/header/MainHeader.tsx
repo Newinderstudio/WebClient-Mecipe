@@ -7,7 +7,7 @@ import Image from 'next/image';
 import styled from "@emotion/styled";
 import React from "react";
 
-export interface NavigationSimpleData { name: string, routerUrl?: string }
+export interface NavigationSimpleData { name: string, routerUrl?: string, isPulse?: boolean }
 
 interface Props {
     backSpace?: boolean;
@@ -35,7 +35,7 @@ const BackSpace = (
     />
 </div>)
 
-const NavigationButton = (props: { children: React.ReactNode, onClick:()=>void }) => {
+const NavigationButton = (props: { children: React.ReactNode, onClick: () => void }) => {
     const Button = styled.button({
         color: 'white',
         fontSize: '1.6rem',
@@ -73,9 +73,19 @@ const MainHeader = (props: Props) => {
                     props.navigationList?.map((item, index) => (
                         <NavigationButton
                             key={index}
-                            onClick={() => item.routerUrl? hookMember.onClickNavigation(item.routerUrl): undefined}
+                            onClick={() => item.routerUrl ? hookMember.onClickNavigation(item.routerUrl) : undefined}
                         >
-                            {item.name}
+                            {
+                                item.isPulse ?
+                                    <div className="pulse-wrapper">
+                                        <div className="pulse-circle pulse"></div>
+                                        <div className="pulse-circle pulse2"></div>
+                                        <div className="pulse-text">{item.name}</div>
+                                    </div>
+                                    : item.name
+                            }
+
+
                         </NavigationButton>
                     )) ?? undefined
                 }

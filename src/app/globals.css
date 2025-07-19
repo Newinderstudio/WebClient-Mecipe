@@ -77,3 +77,37 @@ button:active {
 div.fc.fc-media-screen {
   width: 100%;
 }
+
+.pulse {
+  animation: pulse-animation 3s infinite;
+}
+
+.pulse2 {
+  animation: pulse-animation 3s infinite;
+  animation-delay: 1.5s;
+}
+
+@keyframes pulse-animation {
+  0% {
+    box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.2);
+  }
+
+  100% {
+    box-shadow: 0 0 0 60px rgba(255, 255, 255, 0);
+  }
+}
+
+.pulse-wrapper {
+  position: relative;
+}
+
+.pulse-circle {
+  border-radius: 200%;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0px 0px 1px 1px #0000001a;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}

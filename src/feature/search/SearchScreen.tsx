@@ -54,7 +54,7 @@ function SearchScreen() {
                                 borderRadius:20
                             }}
                         >
-                            {hookMember.searchCount}
+                            검색결과:&nbsp;{hookMember.searchCount}
                         </span>
                     </FlexRow>
 
@@ -66,6 +66,7 @@ function SearchScreen() {
                         borderColor="#005"
                         iconBlack={true}
                         fontColor="#222"
+                        initialSearchText={hookMember.initialSearchText}
                     />
                 </ResponsiveWrapper>
             </FlexCenter>

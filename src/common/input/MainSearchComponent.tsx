@@ -37,12 +37,14 @@ interface Props {
     full?: boolean
     style?: React.CSSProperties,
     fontColor?: string,
-    iconBlack?: boolean
+    iconBlack?: boolean,
+    initialSearchText?: string,
+    fontWeight?: string| number
 }
 
 function MainSearchComponent(props: Props) {
 
-    const [searchText, setSearchText] = useState('');
+    const [searchText, setSearchText] = useState(props.initialSearchText?? '');
 
     const onChangeSearchText = (text: string) => {
         setSearchText(text);
@@ -90,6 +92,7 @@ function MainSearchComponent(props: Props) {
                 style={{
                     color: props.fontColor,
                     fontSize: fontSize,
+                    fontWeight: props.fontWeight
                 }}
                 value={searchText}
                 onChange={(e) => onChangeSearchText(e.target.value)}

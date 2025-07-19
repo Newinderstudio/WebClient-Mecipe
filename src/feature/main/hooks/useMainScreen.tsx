@@ -9,7 +9,7 @@ interface HookMember {
     user: UserResult | undefined;
     onClickSignin(): void;
     onClickLogout(): void;
-    onClickMyPage(): void;
+    onSearchText(text:string): void;
 }
 
 export function useMainScreen(): HookMember {
@@ -32,8 +32,8 @@ export function useMainScreen(): HookMember {
         router.push('/login');
     };
 
-    const onClickMyPage = () => {
-
+    const onSearchText = (text:string) => {
+        router.push('/search?searchText='+text);
     };
 
     const onClickLogout = () => {
@@ -47,6 +47,6 @@ export function useMainScreen(): HookMember {
         user,
         onClickSignin,
         onClickLogout,
-        onClickMyPage,
+        onSearchText,
     };
 }

@@ -201,7 +201,7 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
 
                 let thumbnailFile: File | undefined = undefined;
                 if (props.isThumbnail === true) {
-                    thumbnailFile = await imageResizer(file, { maxSizeMB: 1, maxWidthOrHeight: 360 });
+                    thumbnailFile = await imageResizer(file, { maxSizeMB: 1.5, maxWidthOrHeight: 720 });
                 }
 
                 const size = Math.floor(compressedFile.size / 1024);

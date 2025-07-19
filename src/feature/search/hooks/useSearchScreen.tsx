@@ -1,35 +1,41 @@
 import { CafeInfo } from "@/data/prisma-client";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useFindAllPlacesBySearchMutation } from "@/api/cafeInfosApi";
 import { getShortRegionCategoryNameByTree, useFindAllRegionCategoriesQuery } from "@/api/regionCategoriesApi";
 interface HookMember {
     cafeInfos: CafeInfo[] | undefined;
     searchCount: number;
+    initialSearchText: string;
     onChangeCategory: (id: number | undefined) => void;
     onSetSearchText: (text: string) => void;
     onClickDetail: (id: number) => void;
 
-    getShortRegionCategoryNameById: (regionCategoryId:number) => string;
+    getShortRegionCategoryNameById: (regionCategoryId: number) => string;
+
 }
 
 export function useSearchScreen(): HookMember {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const searchTextQuery = searchParams.get('searchText') ?? '';
+    const regionCategoryIdQuery = Number(searchParams.get('regionCategoryId'));
 
     const [findSearch] = useFindAllPlacesBySearchMutation();
 
     const { data: categoryTree } = useFindAllRegionCategoriesQuery();
 
-    const [curCategory, setCurCategory] = useState<number>();
+    const [curCategory, setCurCategory] = useState<number | undefined>(isNaN(regionCategoryIdQuery) ? regionCategoryIdQuery : undefined);
     const [cafeInfos, setCafeInfos] = useState<CafeInfo[]>();
-    const [searchText, setSearchText] = useState<string>('');
+    const [searchText, setSearchText] = useState<string>(searchTextQuery);
 
     const [searchCount, setSearchCount] = useState<number>(0);
 
-    const getShortRegionCategoryNameById = useCallback((regionCategoryId:number):string=>{
-        if(!categoryTree) return "";
+    const getShortRegionCategoryNameById = useCallback((regionCategoryId: number): string => {
+        if (!categoryTree) return "";
         return getShortRegionCategoryNameByTree(regionCategoryId, categoryTree.categories, categoryTree.closure);
-    },[categoryTree])
+    }, [categoryTree])
 
     const searchCafeInfos = useCallback(async (_searchText: string, _regionCategoryId: number | undefined) => {
         try {
@@ -69,6 +75,7 @@ export function useSearchScreen(): HookMember {
     return {
         cafeInfos,
         searchCount,
+        initialSearchText: searchTextQuery,
         onChangeCategory,
         onSetSearchText,
         onClickDetail,
