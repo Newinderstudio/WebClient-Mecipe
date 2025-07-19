@@ -75,8 +75,7 @@ export default function SearchCategoryNavigator({
 
     useEffect(() => {
         const target = selectedIds[selectedIds.length - 1]
-        onSearchAction(target)
-        console.log('SelectCategoryNavigator Id', target)
+        onSearchAction(target >= 0 ? target : undefined)
     }, [selectedIds, onSearchAction])
 
     return (
@@ -87,13 +86,15 @@ export default function SearchCategoryNavigator({
 
                 const selected = selectedIds[depth] || ''
 
+                const parentId = selectedIds[depth - 1] ?? -1;
+
                 return (
                     <SelectDropDown
                         key={depth}
                         value={selected}
                         onChange={(e) => handleChange(depth, Number(e.target.value))}
                     >
-                        <option value="">선택</option>
+                        <option value={parentId}>선택</option>
                         {options.map((opt) => (
                             <option key={opt.id} value={opt.id}>
                                 {opt.name}

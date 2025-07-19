@@ -3,6 +3,7 @@
 import ThubmnailImage from "@/common/image/ThumbnailImage";
 import { FlexRow } from "@/common/styledComponents";
 import { CafeInfo } from "@/data/prisma-client";
+import { getServerImage } from "@/util/fetchImage";
 import styled from "@emotion/styled";
 
 export const CardWrapper = styled.button`
@@ -22,7 +23,8 @@ export const CardWrapper = styled.button`
 `
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    data: CafeInfo
+    data: CafeInfo,
+    shortRegionAddress: string
 }
 
 const InfoCard = (props: Props) => {
@@ -31,11 +33,15 @@ const InfoCard = (props: Props) => {
         onClick={props.onClick}
         style={props.style}
     >
-        <ThubmnailImage
-            aspectWidth={160}
-            aspectHeight={90}
-            src="https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"
-        />
+        {
+            props.data.CafeThumbnailImages?.[0]?.thumbnailUrl ?
+                <ThubmnailImage
+                    aspectWidth={160}
+                    aspectHeight={90}
+                    src={getServerImage(props.data.CafeThumbnailImages[0].thumbnailUrl)}
+                /> : undefined
+        }
+
         <FlexRow
             style={{
                 flexGrow: 1,
@@ -53,7 +59,7 @@ const InfoCard = (props: Props) => {
                 }}
             >
                 <span>
-                    {props.data.address}
+                    {props.shortRegionAddress}
                 </span>
             </FlexRow>
             <div

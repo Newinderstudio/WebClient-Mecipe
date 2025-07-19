@@ -3,7 +3,7 @@
 import MainSearchComponent from "@/common/input/MainSearchComponent";
 import SearchCategoryNavigator from "@/common/input/SearchCategoryNavigator";
 import UserScreen from "@/common/screen/UserScreen";
-import { FlexCenter, ResponsiveWrapper } from "@/common/styledComponents";
+import { FlexCenter, FlexRow, ResponsiveWrapper } from "@/common/styledComponents";
 import { useSearchScreen } from "./hooks/useSearchScreen";
 import styled from "@emotion/styled";
 import InfoCard from "./components/InfoCard";
@@ -41,10 +41,23 @@ function SearchScreen() {
                 <ResponsiveWrapper
                     style={{ marginTop: 24 }}
                 >
-                    <SearchCategoryNavigator
-                        onSearchAction={hookMember.onChangeCategory}
-                        categoryTree={hookMember.categoryTree}
-                    />
+                    <FlexRow>
+                        <SearchCategoryNavigator
+                            onSearchAction={hookMember.onChangeCategory}
+                        />
+                        <span
+                            style={{
+                                marginLeft: 20,
+                                fontSize:'1.2rem',
+                                padding:'0 1rem',
+                                backgroundColor: '#ddd',
+                                borderRadius:20
+                            }}
+                        >
+                            {hookMember.searchCount}
+                        </span>
+                    </FlexRow>
+
                     <MainSearchComponent
                         onSearchAction={hookMember.onSetSearchText}
                         height={32}
@@ -57,8 +70,8 @@ function SearchScreen() {
                 </ResponsiveWrapper>
             </FlexCenter>
             <ResponsiveGrid
-                style = {{
-                    marginTop:24,
+                style={{
+                    marginTop: 24,
                     marginBottom: 80
                 }}
             >
@@ -67,7 +80,8 @@ function SearchScreen() {
                         return <InfoCard
                             key={index}
                             data={item}
-                            onClick = {()=>{if(item.id !== undefined) hookMember.onClickDetail(item.id)}}
+                            shortRegionAddress={hookMember.getShortRegionCategoryNameById(item.regionCategoryId)}
+                            onClick={() => { if (item.id !== undefined) hookMember.onClickDetail(item.id) }}
                         />
                     }) ?? undefined
                 }

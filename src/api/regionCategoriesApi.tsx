@@ -21,7 +21,7 @@ export const regionCategoriesApi = createApi({
             }),
             providesTags: [{ type: 'RegionCategories', id: "LIST" }, { type: 'ClosureRegionCategories', id: "LIST" }]
         }),
-        createRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { body: RegionCategoryCreateInput, parentId?:number }>({
+        createRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { body: RegionCategoryCreateInput, parentId?: number }>({
             query: (arg) => ({
                 method: 'POST',
                 url: `admin/create?parentId=${arg.parentId}`,
@@ -34,10 +34,10 @@ export const regionCategoriesApi = createApi({
                 url: `admin/child?parentId=${arg.parentId}`
             })
         }),
-        updateRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { id: number, body: RegionCategoryUpdateInput, newParentId?:number }>({
+        updateRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { id: number, body: RegionCategoryUpdateInput, newParentId?: number }>({
             query: (arg) => ({
                 method: 'PATCH',
-                url: `admin/update/${arg.id}?newParentId=${arg.newParentId?? ''}`,
+                url: `admin/update/${arg.id}?newParentId=${arg.newParentId ?? ''}`,
                 body: arg.body
             }),
         }),
@@ -50,37 +50,54 @@ export const regionCategoriesApi = createApi({
     }),
 });
 
-export const { 
+export const {
     useCreateRegionCategoryByAdminMutation,
     useDisbleRegionCategoryByAdminMutation,
     useFindAllRegionCategoriesQuery,
     useFindChildRegionCategoriesByAdminMutation,
     useUpdateRegionCategoryByAdminMutation,
- } = regionCategoriesApi;
+} = regionCategoriesApi;
 
 export type RegionCategoryResult = MakePrimitiveRequiredWithObject<RegionCategory>;
 export type RegionCategoryPrimitiveResult = MakePrimitiveRequired<RegionCategory>;
 export type ClosureRegionCategoryResult = MakePrimitiveRequiredWithObject<ClosureRegionCategory>;
+export type ClosureRegionCategoryPrimitiveResult = MakePrimitiveRequired<ClosureRegionCategory>;
 
 export type RegionCategoryUpdateInput = Omit<DeepPartial<FilteredPropertiesOnlyPrimitiveAndEnum<RegionCategory>>, "id">;
 
 export type RegionCategoryCreateInput = Omit<Omit<Omit<Required<FilteredPropertiesOnlyPrimitiveAndEnum<RegionCategory>>, "id">, "createdAt">, "isDisable">
 
 export type RegionCategoryTreeTable = {
-    categories: RegionCategoryResult[], closure: ClosureRegionCategoryResult[]
+    categories: RegionCategoryPrimitiveResult[], closure: ClosureRegionCategoryPrimitiveResult[]
 }
 
 export const GovermentTypeLabel: Record<GovermentType, string> = {
-  SPECIAL_CITY: '특별시',
-  METROPOLITAN_CITY: '광역시',
-  SPECIAL_SELF_GOVERNING_CITY: '특별자치시',
-  PROVINCE: '도',
-  SPECIAL_SELF_GOVERNING_PROVINCE: '특별자치도',
-  DISTRICT: '구',
-  CITY: '시',
-  COUNTY: '군',
-  TOWN: '읍',
-  TOWNSHIP: '면',
-  NEIGHBORHOOD: '동',
-  PLACENAME: '지명',
+    SPECIAL_CITY: '특별시',
+    METROPOLITAN_CITY: '광역시',
+    SPECIAL_SELF_GOVERNING_CITY: '특별자치시',
+    PROVINCE: '도',
+    SPECIAL_SELF_GOVERNING_PROVINCE: '특별자치도',
+    DISTRICT: '구',
+    CITY: '시',
+    COUNTY: '군',
+    TOWN: '읍',
+    TOWNSHIP: '면',
+    NEIGHBORHOOD: '동',
+    PLACENAME: '지명',
+}
+
+export const getShortRegionCategoryName = (regionCategoryId: number, categories: RegionCategoryPrimitiveResult[], closure: ClosureRegionCategoryPrimitiveResult[]) => {
+    const categoryNames: string[] = [];
+    closure.filter((rel) => rel.descendant === regionCategoryId).sort((a, b) => b.depth - a.depth).forEach((rel) => {
+        const category = categories.find((cat) => cat.id === rel.ancestor);
+        if (category && isExposureType(category.govermentType)) {
+            categoryNames.push(category.name);
+        }
+    })
+
+    return categoryNames.join(' ');
+}
+
+const isExposureType = (type: GovermentType) => {
+    return type !== 'DISTRICT' && type !== 'COUNTY';
 }

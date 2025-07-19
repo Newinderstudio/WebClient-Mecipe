@@ -1,37 +1,59 @@
-import { Category } from "@/common/input/SearchCategoryNavigator";
-import { categoryTreeDummyData } from "./searchDummyData";
 import { CafeInfo } from "@/data/prisma-client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { redirectUrl } from "@/util/constants/app";
+import { useFindAllPlacesBySearchMutation } from "@/api/cafeInfosApi";
+import { getShortRegionCategoryName, useFindAllRegionCategoriesQuery } from "@/api/regionCategoriesApi";
 interface HookMember {
-    categoryTree: Category[] | undefined
-    cafeInfos: CafeInfo[] | undefined
-    onChangeCategory: (id: number) => void;
+    cafeInfos: CafeInfo[] | undefined;
+    searchCount: number;
+    onChangeCategory: (id: number | undefined) => void;
     onSetSearchText: (text: string) => void;
     onClickDetail: (id: number) => void;
+
+    getShortRegionCategoryNameById: (regionCategoryId:number) => string;
 }
 
 export function useSearchScreen(): HookMember {
     const router = useRouter();
 
-    const categoryTree = categoryTreeDummyData;
+    const [findSearch] = useFindAllPlacesBySearchMutation();
 
+    const { data: categoryTree } = useFindAllRegionCategoriesQuery();
 
     const [curCategory, setCurCategory] = useState<number>();
     const [cafeInfos, setCafeInfos] = useState<CafeInfo[]>();
     const [searchText, setSearchText] = useState<string>('');
 
+    const [searchCount, setSearchCount] = useState<number>(0);
+
+    const getShortRegionCategoryNameById = useCallback((regionCategoryId:number):string=>{
+        if(!categoryTree) return "";
+        return getShortRegionCategoryName(regionCategoryId, categoryTree.categories, categoryTree.closure);
+    },[categoryTree])
+
+    const searchCafeInfos = useCallback(async (_searchText: string, _regionCategoryId: number | undefined) => {
+        try {
+            const result = await findSearch({
+                skip: 0,
+                take: 30,
+                searchText: _searchText,
+                regionCategoryId: _regionCategoryId
+            }).unwrap();
+
+            setSearchCount(result.count);
+            setCafeInfos(result.data);
+        } catch {
+
+        }
+
+    }, [findSearch])
+
     useEffect(() => {
-        fetch(`${redirectUrl}/api/test/info?category=${curCategory}&search=${searchText}`).then(
-            (res) => res.json()
-        ).then((data) => {
-            setCafeInfos(data);
-        });
-    }, [categoryTree, curCategory, searchText])
+        searchCafeInfos(searchText, curCategory);
+    }, [curCategory, searchCafeInfos, searchText])
 
 
-    const onChangeCategory = useCallback((id: number) => {
+    const onChangeCategory = useCallback((id: number | undefined) => {
         console.log(id);
         setCurCategory(id);
     }, [])
@@ -45,10 +67,12 @@ export function useSearchScreen(): HookMember {
     }
 
     return {
-        categoryTree,
         cafeInfos,
+        searchCount,
         onChangeCategory,
         onSetSearchText,
-        onClickDetail
+        onClickDetail,
+
+        getShortRegionCategoryNameById
     }
 }

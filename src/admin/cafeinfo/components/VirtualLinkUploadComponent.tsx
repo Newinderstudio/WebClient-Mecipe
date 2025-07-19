@@ -195,8 +195,12 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }
 
     const getLinkDataList = useCallback(async (token: string): Promise<CreateCafeVirtualLinkWithImageListDto> => {
+        if(linkDataList.length === 0) return ({
+            create:[]
+        })
+
         const rawDataList: CreateRawLinkData[] = (await Promise.all(linkDataList.map(async (data) => {
-            if (data.isDisable == true) return undefined;
+            if (data.isDisable === true) return undefined;
             if (!data.file) return undefined;
             const result = await getCafeVirtualLinkThumbnailImage(data.file);
             if (!result) return undefined;
@@ -248,6 +252,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
 
     const onChangeDisableLinkData = async (data: CafeVirtualLinkDataProp, index: number) => {
         let finalData: CafeVirtualLinkDataProp = data;
+        let targetIndex = index;
         if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.token) {
             try {
                 finalData = await updateVirtualLink({
@@ -256,13 +261,16 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                         isDisable: data.isDisable
                     }
                 }).unwrap();
+
+                targetIndex= linkDataList.findIndex(data => data.id === finalData.id);
+
             } catch (e) {
                 alert(e);
             }
         }
 
         setLinkDataList(prev => {
-            prev[index] = finalData;
+            prev[targetIndex] = finalData;
             return [...prev]
         });
     }
