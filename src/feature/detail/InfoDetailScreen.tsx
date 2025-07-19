@@ -17,6 +17,11 @@ type PageParams = Awaited<ReturnType<typeof generateStaticParams>>[number]
 
 export async function generateStaticParams() {
   const res = await fetch(rootUrl + "/places/ids");
+
+  if(res.ok === false) {
+    return [];
+  }
+
   const infoIds: {id:number}[] = await res.json();
 
   const paths = infoIds.map(({id}) => ({ id: id.toString() }))
