@@ -3,7 +3,7 @@ import { FlexCenter, Grid_Two } from "@/common/styledComponents";
 import { CafeInfo } from "@/data/prisma-client";
 import { Metadata } from "next";
 
-import { rootUrl } from "@/util/constants/app";
+import { redirectUrl, rootUrl } from "@/util/constants/app";
 import Carousel from "@/common/image/Carousel";
 import { fenxyYellowTransparency } from "@/util/constants/style";
 import LinkCard from "./components/LinkCard";
@@ -34,7 +34,21 @@ export async function generateMetadata({ params }: { params: Promise<PageParams>
     return { title: 'Info Not Found' }
   }
 
-  return { title: cafeInfo.name }
+  return { 
+    title: "메시피 가상현실 투어: "+ cafeInfo.name, 
+    description: `장소명: ${cafeInfo.name}, 주소: ${cafeInfo.address}, 오시는길: ${cafeInfo.directions}, 가상현실 카페 투어, 메시피`, 
+    openGraph: {
+      title: "메시피 가상현실 투어: "+ cafeInfo.name,
+      description: `매력적인 ${cafeInfo.name}(으)로!`,
+      url: redirectUrl + `/detail/${cafeInfo.id}`,
+      images: {
+        url: cafeInfo.CafeThumbnailImages && cafeInfo.CafeThumbnailImages?.length > 0? new URL(getServerImage(cafeInfo.CafeThumbnailImages[0].url)) : "",
+        width: 1200,
+        height: 630,
+        alt: cafeInfo.name
+      }
+    }
+  }
 }
 
 async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
