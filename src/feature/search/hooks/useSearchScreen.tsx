@@ -2,7 +2,7 @@ import { CafeInfo } from "@/data/prisma-client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFindAllPlacesBySearchMutation } from "@/api/cafeInfosApi";
-import { getShortRegionCategoryName, useFindAllRegionCategoriesQuery } from "@/api/regionCategoriesApi";
+import { getShortRegionCategoryNameByTree, useFindAllRegionCategoriesQuery } from "@/api/regionCategoriesApi";
 interface HookMember {
     cafeInfos: CafeInfo[] | undefined;
     searchCount: number;
@@ -28,7 +28,7 @@ export function useSearchScreen(): HookMember {
 
     const getShortRegionCategoryNameById = useCallback((regionCategoryId:number):string=>{
         if(!categoryTree) return "";
-        return getShortRegionCategoryName(regionCategoryId, categoryTree.categories, categoryTree.closure);
+        return getShortRegionCategoryNameByTree(regionCategoryId, categoryTree.categories, categoryTree.closure);
     },[categoryTree])
 
     const searchCafeInfos = useCallback(async (_searchText: string, _regionCategoryId: number | undefined) => {

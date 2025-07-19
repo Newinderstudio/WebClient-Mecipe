@@ -3,18 +3,20 @@ import { FlexCenter, Grid_Two } from "@/common/styledComponents";
 import { CafeInfo } from "@/data/prisma-client";
 import { Metadata } from "next";
 
-import { redirectUrl } from "@/util/constants/app";
+import { rootUrl } from "@/util/constants/app";
 import Carousel from "@/common/image/Carousel";
 import { fenxyYellowTransparency } from "@/util/constants/style";
 import LinkCard from "./components/LinkCard";
 import ThubmnailImage from "@/common/image/ThumbnailImage";
 import NaverMap from "./components/NaverMap";
+import { getServerImage } from "@/util/fetchImage";
+import { getShortRegionCategoryNameById } from "@/api/regionCategoriesApi";
 
 type PageParams = Awaited<ReturnType<typeof generateStaticParams>>[number]
 
 
 export async function generateStaticParams() {
-  const res = await fetch(redirectUrl + "/api/test/info/ids");
+  const res = await fetch(rootUrl + "/places/ids");
   const infoIds: number[] = await res.json();
 
   const paths = infoIds.map((id) => ({ id: id.toString() }))
@@ -25,7 +27,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<PageParams> }): Promise<Metadata> {
   const { id } = await params
-  const res = await fetch(redirectUrl + `/api/test/info/${id}`)
+  const res = await fetch(rootUrl + `/places/${id}`);
   const cafeInfo: CafeInfo = await res.json()
 
   if (!cafeInfo) {
@@ -39,10 +41,13 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
 
   const { id } = await props.params;
 
-  const res = await fetch(`${redirectUrl}/api/test/info/${id}`)
+  const res = await fetch(rootUrl + `/places/${id}`);
   const cafeInfo: CafeInfo = await res.json();
 
-  console.log(id);
+  const ancestorCategoriesRes = await fetch(rootUrl + `/regioncategories/ancestor/${cafeInfo.regionCategoryId}`);
+  const ancestorCategories = await ancestorCategoriesRes.json();
+
+  const shortCategoriesName = getShortRegionCategoryNameById(cafeInfo.regionCategoryId, ancestorCategories);
 
   return (
     <UserScreen
@@ -59,12 +64,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
         }}
       >
         <Carousel
-          images={[
-            "https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png",
-            "https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png",
-            "https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png",
-            "https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"
-          ]}
+          images={cafeInfo.CafeThumbnailImages?.map((image) => getServerImage(image.url)) ?? []}
           interval={5000}
           aspectWidth={16}
           aspectHeight={6}
@@ -88,7 +88,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
               paddingTop: '1rem'
             }}
           >
-            {cafeInfo.address}
+            {shortCategoriesName}
           </span>
 
         </FlexCenter>
@@ -115,8 +115,16 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
                 marginTop: '2rem'
               }}
             >
-              <LinkCard link={""} name={"제페토 월드"} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-              <LinkCard link={""} name={"제페토 월드"} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
+              {
+                cafeInfo.CafeVirtualLinks?.filter((link) => link.type === 'ZEPETO' || link.type === 'WEB_VIEWER').map((link, index) => {
+                  return <LinkCard
+                    key={index}
+                    link={link.url}
+                    name={link.name}
+                    src={link.CafeVirtualLinkThumbnailImage?.url ? getServerImage(link.CafeVirtualLinkThumbnailImage.url) : ""}
+                  />
+                })
+              }
             </Grid_Two>
             <Grid_Two
               style={{
@@ -125,10 +133,16 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
                 marginTop: '3rem'
               }}
             >
-              <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-              <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-              <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-              <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
+              {
+                cafeInfo.CafeVirtualImages?.map((image, index) => (
+                  <ThubmnailImage
+                    key={index}
+                    aspectHeight={300}
+                    aspectWidth={400}
+                    src={getServerImage(image.url)}
+                  />
+                ))
+              }
             </Grid_Two>
 
           </FlexCenter>
@@ -150,10 +164,16 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
               marginTop: '2rem'
             }}
           >
-            <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-            <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-            <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
-            <ThubmnailImage aspectHeight={300} aspectWidth={400} src={"https://cdn.imweb.me/upload/S2024101325b121e1a5b5b/22360f5d72cf1.png"} />
+            {
+              cafeInfo.CafeRealImages?.map((image, index) => (
+                <ThubmnailImage
+                  key={index}
+                  aspectHeight={300}
+                  aspectWidth={400}
+                  src={getServerImage(image.url)}
+                />
+              ))
+            }
           </Grid_Two>
         </FlexCenter>
         <FlexCenter

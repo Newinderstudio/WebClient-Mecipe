@@ -4,7 +4,7 @@ import ThubmnailImage from "@/common/image/ThumbnailImage";
 import { FlexCenter } from "@/common/styledComponents";
 import { fenxyYellow } from "@/util/constants/style";
 import styled from "@emotion/styled";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
     src: string;
 }
 
-const LinkButton = styled.button({
+const LinkButton = styled(Link)({
     backgroundColor: fenxyYellow,
     fontSize: '2rem',
     fontWeight: 600,
@@ -25,7 +25,6 @@ const LinkButton = styled.button({
 })
 
 const LinkCard = (props: Props) => {
-    const router = useRouter();
 
     return (
         <FlexCenter
@@ -36,8 +35,8 @@ const LinkCard = (props: Props) => {
                     width: '16rem',
                     height: '16rem',
                     borderRadius: '3rem',
-                    marginBottom:'1rem',
-                    overflow:'hidden'
+                    marginBottom: '1rem',
+                    overflow: 'hidden'
                 }}
             >
                 <ThubmnailImage
@@ -47,7 +46,8 @@ const LinkCard = (props: Props) => {
                 />
             </FlexCenter>
             <LinkButton
-                onClick={() => router.push(props.link)}
+                href={props.link}
+                target="_blank"
             >
                 {props.name}
             </LinkButton>

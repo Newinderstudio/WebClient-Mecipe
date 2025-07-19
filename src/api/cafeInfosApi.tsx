@@ -91,10 +91,18 @@ export const cafeInfosApi = createApi({
                 url: `admin?page=${arg.page}&take=${arg.take}&searchType=${arg.searchType}&searchText=${arg.searchText}&regionCategoryId=${arg.regionCategoryId}&isDisable=${arg.isDisable}`,
             })
         }),
+
+        findPlaceIds: builder.query<number[], void>({
+            query: () => ({
+                method: 'GET',
+                url: `ids`
+            })
+        }),
+
         deletePlaceByAdmin: builder.mutation<CafeInfoResult, { id: number }>({
-            query:(arg) => ({
-                method:'DELETE',
-                url:`admin/delete/${arg.id}`
+            query: (arg) => ({
+                method: 'DELETE',
+                url: `admin/delete/${arg.id}`
             })
         })
     }),
@@ -108,6 +116,7 @@ export const {
     useUpdateDisablePlaceByAdminMutation,
     useUpdatePlaceByAdminMutation,
     useFindOnePlaceQuery,
+    useFindPlaceIdsQuery,
     useDeletePlaceByAdminMutation
 } = cafeInfosApi;
 

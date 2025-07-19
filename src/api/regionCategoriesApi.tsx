@@ -46,7 +46,13 @@ export const regionCategoriesApi = createApi({
                 method: 'PATCH',
                 url: `admin/disable/${arg.id}?isDisable=${arg.isDisable ? 'true' : 'false'}`
             }),
-        })
+        }),
+        findAncestorCategories: builder.query<RegionCategoryResult[], { categoryId: number }>({
+            query: (arg) => ({
+                method: 'GET',
+                url: `ancestor/${arg.categoryId}`
+            })
+        }),
     }),
 });
 
@@ -56,6 +62,7 @@ export const {
     useFindAllRegionCategoriesQuery,
     useFindChildRegionCategoriesByAdminMutation,
     useUpdateRegionCategoryByAdminMutation,
+    useFindAncestorCategoriesQuery
 } = regionCategoriesApi;
 
 export type RegionCategoryResult = MakePrimitiveRequiredWithObject<RegionCategory>;
@@ -86,7 +93,7 @@ export const GovermentTypeLabel: Record<GovermentType, string> = {
     PLACENAME: '지명',
 }
 
-export const getShortRegionCategoryName = (regionCategoryId: number, categories: RegionCategoryPrimitiveResult[], closure: ClosureRegionCategoryPrimitiveResult[]) => {
+export const getShortRegionCategoryNameByTree = (regionCategoryId: number, categories: RegionCategoryPrimitiveResult[], closure: ClosureRegionCategoryPrimitiveResult[]) => {
     const categoryNames: string[] = [];
     closure.filter((rel) => rel.descendant === regionCategoryId).sort((a, b) => b.depth - a.depth).forEach((rel) => {
         const category = categories.find((cat) => cat.id === rel.ancestor);
@@ -94,6 +101,15 @@ export const getShortRegionCategoryName = (regionCategoryId: number, categories:
             categoryNames.push(category.name);
         }
     })
+
+    return categoryNames.join(' ');
+}
+
+export const getShortRegionCategoryNameById = (categoryId:number, ancestorCategories:RegionCategoryPrimitiveResult[]):string => {
+    const categoryNames: string[] = [];
+    ancestorCategories.forEach(category=>{
+        if(isExposureType(category.govermentType)) categoryNames.push(category.name);
+    });
 
     return categoryNames.join(' ');
 }

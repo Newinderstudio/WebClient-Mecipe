@@ -1,7 +1,4 @@
-"use client"
-
 import MainHeader, { NavigationSimpleData } from '@/common/header/MainHeader';
-import { Flex } from '@/common/styledComponents';
 
 interface Props {
     backSpace?: boolean;
@@ -32,24 +29,30 @@ const UserScreen = ({
         }
     }
 
-    return <Flex style={{ minHeight: '100vh' }}>
+    return <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+    }}>
         <MainHeader
             backSpace={backSpace}
             isOverlap={headerOverlap}
             navigationList={navigationList}
         />
-        <Flex
+        <div
             style={{
                 textAlign: 'left',
                 fontSize: 40,
                 color: '#333',
                 height: '100%',
                 flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
                 ...marginStyle
             }}>
             {children}
-        </Flex>
-    </Flex>
+        </div>
+    </div>
 }
 
 export default UserScreen;
