@@ -2,34 +2,70 @@
 
 import { useEffect, useState } from 'react'
 import { SelectDropDown } from '../styledComponents'
-
-export interface Category {
-    id: number
-    name: string
-    children?: Category[]
-}
+import { RegionCategoryResult, useFindAllRegionCategoriesQuery } from '@/api/regionCategoriesApi'
 
 interface Props {
-    onSearchAction: (text: number) => void;
+    onSearchAction: (selectedId: number | undefined) => void
     style?: React.CSSProperties
-    categoryTree: Category[] | undefined
+    curRegionCategoryId?: number
 }
 
-export default function SearchCategoryNavigator(props: Props) {
+export default function SearchCategoryNavigator({
+    onSearchAction,
+    style,
+    curRegionCategoryId
+}: Props) {
+
+    const { data: categoryTree } = useFindAllRegionCategoriesQuery();
+
+    const [categories, setCategories] = useState<RegionCategoryResult[]>([])
+    const [closure, setClosure] = useState<{ ancestor: number, descendant: number, depth: number }[]>([])
+
+    const [maxDepth, setMaxDepth] = useState<number>(0);
+
+    useEffect(() => {
+        if (categoryTree) {
+            setCategories(categoryTree.categories)
+            setClosure(categoryTree.closure)
+            setMaxDepth(categoryTree.closure.reduce((max, rel) => Math.max(max, rel.depth), 0) + 1);
+        }
+    }, [categoryTree])
+
+    useEffect(() => {
+        if (curRegionCategoryId && closure.length > 0) {
+            const path: number[] = [];
+            let current = curRegionCategoryId
+            while (true) {
+                path.unshift(current)
+                const parentRel = closure.find(
+                    (rel) => rel.descendant === current && rel.depth === 1
+                )
+                if (!parentRel || parentRel.ancestor === current) break
+                current = parentRel.ancestor
+            }
+            console.log("Cur Category Path", path);
+            setSelectedIds(path)
+        }
+    }, [closure, curRegionCategoryId])
+
     const [selectedIds, setSelectedIds] = useState<number[]>([])
 
-    // 현재 depth 기준으로 보여줄 카테고리 목록 추출
-    const getCategoriesAtDepth = (categoryTree: Category[], depth: number): Category[] => {
-        let current: Category[] = categoryTree
-        for (let i = 0; i < depth; i++) {
-            const found = current.find((cat) => cat.id === selectedIds[i])
-            if (found && found.children) {
-                current = found.children
-            } else {
-                return []
-            }
+    const getCategoriesAtDepth = (depth: number): RegionCategoryResult[] => {
+        if (depth === 0) {
+            const allDescendants = new Set(
+                closure.filter((rel) => rel.depth > 0).map((rel) => rel.descendant)
+            )
+            return categories.filter((cat) => !allDescendants.has(cat.id))
         }
-        return current
+
+        const parentId = selectedIds[depth - 1]
+        if (!parentId) return []
+
+        const childIds = closure
+            .filter((rel) => rel.depth === 1 && rel.ancestor === parentId)
+            .map((rel) => rel.descendant)
+
+        return categories.filter((cat) => childIds.includes(cat.id))
     }
 
     const handleChange = (depth: number, id: number) => {
@@ -38,21 +74,15 @@ export default function SearchCategoryNavigator(props: Props) {
     }
 
     useEffect(() => {
-        if (props) {
-            const target = selectedIds[selectedIds.length - 1];
-            props.onSearchAction(target);
-            console.log("SelectCategoryNavigator Id", target);
-        }
-    }, [props, selectedIds])
-
-    const maxDepth = 5
-
-    if (props.categoryTree === undefined) return undefined;
+        const target = selectedIds[selectedIds.length - 1]
+        onSearchAction(target)
+        console.log('SelectCategoryNavigator Id', target)
+    }, [selectedIds, onSearchAction])
 
     return (
-        <div style={{ display: 'flex', gap: '1rem', ...props.style }}>
+        <div style={{ display: 'flex', gap: '1rem', ...style }}>
             {[...Array(maxDepth)].map((_, depth) => {
-                const options = getCategoriesAtDepth(props.categoryTree!, depth)
+                const options = getCategoriesAtDepth(depth)
                 if (options.length === 0) return null
 
                 const selected = selectedIds[depth] || ''

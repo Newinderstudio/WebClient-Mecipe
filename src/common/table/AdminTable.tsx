@@ -154,7 +154,7 @@ const AdminTable = <T,>({
           const tableCssTheme = tableCss?.(item) ?? {}
 
           return (
-            <TableRow key={`row_${index}`} style={tableCssTheme}>
+            <TableRow key={`row_${index}`} style={{...tableCssTheme, flexDirection:'row'}}>
               {headers.map((inItem, inIndex) => {
                 const minw = inItem.minWidth ?? 0
                 const maxw = inItem.maxWidth

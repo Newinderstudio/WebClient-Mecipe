@@ -17,6 +17,7 @@ export const cafeThumbnailImagesApi = createApi({
             query: (arg) => ({
                 method: 'POST',
                 url: `admin/upload/${arg.cafeId}`,
+                body: arg.body
             }),
         }),
         findAllCafeThumbnailImagesByAdmin: builder.query<CafeThumbnailImagePrimitiveResult[], void>({

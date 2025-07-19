@@ -3,6 +3,7 @@ import { rootUrl } from "./constants/app";
 const fetchImage = async (
   token: string | undefined,
   body: FormData,
+  category: string
 ): Promise<{
   url: string;
   thumbnailUrl?: string;
@@ -16,9 +17,9 @@ const fetchImage = async (
         : JSON.stringify(body);
 
   let res;
-  const path = `${rootUrl}/rawimageupload/upload`;
+  const path = `${rootUrl}/rawimageupload/upload?category=${category}`;
   try {
-    const raw = await fetch(`${rootUrl}/rawimageupload/upload`, {
+    const raw = await fetch(path, {
       method: 'POST',
       headers: {
         Authorization: 'Bearer ' + token,
@@ -89,3 +90,5 @@ export const getImageSize = (file: File): Promise<{ width: number; height: numbe
 export const getFileSize = (file: File) => {
   return Math.floor(file.size / 1024);
 }
+
+export const getServerImage = (rawUrl: string) => rootUrl + "/" + rawUrl;

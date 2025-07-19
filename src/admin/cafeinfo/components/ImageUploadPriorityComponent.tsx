@@ -2,7 +2,7 @@
 
 import { imageResizer } from "@/common/image/imageResizer";
 import { FlexCenter, FlexRow } from "@/common/styledComponents";
-import fetchImage, { getImageSize } from "@/util/fetchImage";
+import fetchImage, { getImageSize, getServerImage } from "@/util/fetchImage";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import ImageUploadCard from "./ImageUploadCard";
 import { default as NextIamge } from 'next/image';
@@ -44,7 +44,7 @@ interface Props {
     maxWidthOrHeight?: number;
     maxSizeMB?: number;
     dispalyId: string;
-    updateAction?: (datFunc: (token: string, cafeInfoId: number) => Promise<UpsertCafeImageListDto>) => void;
+    updateAction?: () => void;
 }
 
 type UpsertCafeImageListDto = {
@@ -70,8 +70,8 @@ export interface ImageUploadPriorityComponentHandler {
 
 const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHandler, Props>(function ImageUploadPriorityComponent(props: Props, ref) {
 
-    const maxWidthOrHeight = props.maxWidthOrHeight ?? 1920;
-    const maxSizeMB = props.maxSizeMB ?? 5;
+    const maxWidthOrHeight = props.maxWidthOrHeight ?? 1280;
+    const maxSizeMB = props.maxSizeMB ?? 4;
 
     const [thumbnails, setThumbnails] = useState<ThumbnailImagePreview[]>([])
 
@@ -101,6 +101,8 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
         }[] = [];
         try {
 
+            console.log("ImageUpload getImageData", thumbnails);
+
             if (thumbnails.length === 0) throw new Error("no image")
 
             thumbnails.forEach((data, index) => {
@@ -125,12 +127,14 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
 
             const form = new FormData();
 
-            createThumbnails.forEach(data => {
-                if (data.imageFile) form.append("images", data.imageFile)
-                if (data.thumbnailFile) form.append("thumbnails", data.thumbnailFile);
-            });
+            if (createThumbnails.length > 0) {
+                createThumbnails.forEach(data => {
+                    if (data.imageFile) form.append("image", data.imageFile)
+                    if (data.thumbnailFile) form.append("thumbnail", data.thumbnailFile);
+                });
+                imageResults = await fetchImage(token, form, props.dispalyId.toLowerCase());
+            }
 
-            imageResults = await fetchImage(token, form);
         } catch (e) {
             throw e;
         }
@@ -153,13 +157,15 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
         })
 
 
-    }, [thumbnails]);
+    }, [props.dispalyId, thumbnails]);
 
     useEffect(() => {
         if (props.data) {
-            setThumbnails(props.data.map(data => ({
+            console.log(props.dispalyId, "curData", props.data)
+
+            setThumbnails([...props.data].sort((a, b) => a.priority - b.priority).map(data => ({
                 id: data.id,
-                previewUrl: data.url,
+                previewUrl: getServerImage(data.url),
                 isDisable: data.isDisable,
                 width: data.width,
                 height: data.height,
@@ -324,9 +330,9 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
             {
                 props.updateAction != undefined ? <StyledButton
                     style={{ background: '#4A5864', margin: 0, marginTop: 10, display: 'inline-block' }}
-                    onClick={() => { if (props.updateAction) props.updateAction(getImageData) }}
+                    onClick={() => { if (props.updateAction) props.updateAction() }}
                 >
-                    수정
+                    이미지 변경사항 적용
                 </StyledButton>
                     : undefined
             }

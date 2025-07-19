@@ -1,7 +1,6 @@
 "use client"
 
 import React, { use } from 'react';
-import AdminHeader from '@/common/header/AdminHeader';
 import BasicModal from '@/common/modal/BasicModal';
 import {
     BorderRoundedContent,
@@ -10,20 +9,20 @@ import {
     TheadSmall,
 } from '@/common/styledAdmin';
 import { Flex, FlexRow } from '@/common/styledComponents';
-import GetSeoulTime from '@/common/time/GetSeoulTime';
 import { fenxyBlue } from '@/util/constants/style';
-import { useAdminUserDetailScreen } from './hooks/useAdminCafeInfoDetailScreen';
+import useAdminUserDetailScreen from './hooks/useAdminCafeInfoDetailScreen';
 import ImageUploadPriorityComponent from './components/ImageUploadPriorityComponent';
+import VirtualLinkUploadComponent from './components/VirtualLinkUploadComponent';
+import SearchCategoryNavigator from '@/common/input/SearchCategoryNavigator';
 
 type Params = Promise<{ id: string }>;
 
-function AdminUserDetailScreen(props: { params: Params }) {
+function AdminCafeInfoDetailScreen(props: { params: Params }) {
     const { id } = use(props.params);
 
     const hookMember = useAdminUserDetailScreen({ id: Number(id) });
     return (
         <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-            <AdminHeader active={'회원관리'} activeItem={'회원관리'} />
             <div style={{ marginLeft: 240, padding: 20, minWidth: 1100 }}>
                 <FlexRow
                     style={{
@@ -39,24 +38,13 @@ function AdminUserDetailScreen(props: { params: Params }) {
                             flexGrow: 1,
                             lineHeight: '32px',
                         }}>
-                        회원관리
+                        카페 추가
                     </div>
                     <FlexRow>
-                        {/* {hookMember.user?.userType === 'BUSINESS' ? (
-              <>
-                <StyledButton style={{ background: yoksuriBlue }}>
-                  승인
-                </StyledButton>
-                <StyledButton style={{ background: yoksuriBlue }}>
-                  반려
-                </StyledButton>
-              </>
-            ) : undefined} */}
-
                         <StyledButton
-                            onClick={hookMember.onClickUpdateUser}
-                            style={{ background: fenxyBlue }}>
-                            수정
+                            style={{ background: fenxyBlue }}
+                            onClick={hookMember.handleSubmit}>
+                            저장
                         </StyledButton>
                         <StyledButton
                             style={{ backgroundColor: '#4A5864' }}
@@ -67,44 +55,9 @@ function AdminUserDetailScreen(props: { params: Params }) {
                 </FlexRow>
 
                 <BorderRoundedContent style={{ padding: 30 }}>
-                    <Flex style={{ gap: 20 }}>
-                        <FlexRow style={{ gap: 20 }}>
-                            <Flex style={{ flex: 1 }}>
-                                <TheadSmall>회원번호</TheadSmall>
-                                <Flex style={{ color: '#999' }}>{hookMember.user?.id}</Flex>
-                            </Flex>
-                            <Flex style={{ flex: 1 }}>
-                                <TheadSmall>가입일</TheadSmall>
-                                <Flex style={{ color: '#999' }}>
-                                    {hookMember.user?.createdAt && (
-                                        <GetSeoulTime time={hookMember.user.createdAt} long />
-                                    )}
-                                </Flex>
-                            </Flex>
-                        </FlexRow>
-                        {/* <FlexRow style={{ gap: 20 }}>
-              <Flex style={{ flex: 1 }}>
-                <TheadSmall>포인트</TheadSmall>
-                <Flex style={{ color: '#999' }}>?????</Flex>
-              </Flex>
-              <Flex style={{ flex: 1 }}>
-                <TheadSmall>충전금액</TheadSmall>
-                <Flex style={{ color: '#999' }}>??????</Flex>
-              </Flex>
-            </FlexRow> */}
-                    </Flex>
-                </BorderRoundedContent>
-
-                <BorderRoundedContent style={{ padding: 30 }}>
                     <Flex style={{ gap: 20, flexFlow: 'wrap' }}>
-                        <Flex style={{ width: 'calc(50% - 15px)' }}>
-                            <TheadSmall>
-                                아이디<span>*</span>
-                            </TheadSmall>
-                            <Flex style={{ color: '#999', lineHeight: '28px' }}>
-                                {hookMember.user?.loginId}
-                            </Flex>
-                        </Flex>
+                        {/* {hookMember.userType === 'GENERAL' && (
+              <> */}
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
                             <TheadSmall>
                                 이름<span>*</span>
@@ -112,80 +65,143 @@ function AdminUserDetailScreen(props: { params: Params }) {
                             <Flex style={{ color: '#999' }}>
                                 <InputStyle
                                     type="text"
-                                    value={hookMember.username}
-                                    onChange={(e) => hookMember.onChangeUsername(e.target.value)}
+                                    placeholder="이름"
+                                    value={hookMember.name}
+                                    onChange={(e) => {
+                                        hookMember.onChangeName(e.target.value)
+                                        // hookMember.onChangeUserData('username', e.target.value);
+                                    }}
                                 />
                             </Flex>
                         </Flex>
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
                             <TheadSmall>
-                                별명<span>*</span>
+                                주소<span>*</span>
                             </TheadSmall>
-                            <Flex style={{ color: '#999', lineHeight: '28px' }}>
-                                {hookMember.user?.nickname}
-                            </Flex>
+                            <FlexRow style={{ color: '#999', lineHeight: '28px' }}>
+                                <InputStyle
+                                    style={{
+                                        flexGrow: 1,
+                                    }}
+                                    type="text"
+                                    value={hookMember.address}
+                                    placeholder="주소"
+                                    onChange={(e) => {
+                                        hookMember.onChangeAddress(e.target.value)
+                                        // hookMember.onChangeUserData('nickname', e.target.value);
+                                    }}
+                                />
+                            </FlexRow>
                         </Flex>
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
-                            <TheadSmall>비밀번호(변경 시 기입)</TheadSmall>
+                            <TheadSmall>
+                                사업자번호<span>*</span>
+                            </TheadSmall>
                             <Flex style={{ color: '#999' }}>
                                 <InputStyle
-                                    type="password"
-                                    value={hookMember.password}
-                                    onChange={(e) => hookMember.onChangePw(e.target.value)}
+                                    type="text"
+                                    placeholder="사업자번호"
+                                    value={hookMember.businessNumber}
+                                    onChange={(e) => {
+                                        const text = e.target.value;
+                                        hookMember.onChangeBusinessNumber(text)
+                                    }}
                                 />
                             </Flex>
                         </Flex>
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
-                            <TheadSmall>비밀번호 확인</TheadSmall>
+                            <TheadSmall>
+                                사업자명<span>*</span>
+                            </TheadSmall>
                             <Flex style={{ color: '#999' }}>
                                 <InputStyle
-                                    type="password"
-                                    value={hookMember.repassword}
-                                    onChange={(e) => hookMember.onChangeRePw(e.target.value)}
+                                    type="text"
+                                    placeholder="사업자명"
+                                    value={hookMember.ceoName}
+                                    onChange={(e) => {
+                                        hookMember.onChangeCeoName(e.target.value)
+                                    }}
                                 />
                             </Flex>
                         </Flex>
-
-                        <Flex style={{ width: 'calc(100% - 30px)' }}>
+                        <Flex style={{ width: 'calc(50% - 15px)' }}>
+                            <TheadSmall>
+                                오시는길<span>*</span>
+                            </TheadSmall>
+                            <Flex style={{ color: '#999' }}>
+                                <InputStyle
+                                    type="text"
+                                    placeholder="오시는길"
+                                    value={hookMember.directions}
+                                    onChange={(e) => {
+                                        hookMember.onChangeDirections(e.target.value)
+                                    }}
+                                />
+                            </Flex>
+                        </Flex>
+                        <Flex style={{ width: 'calc(50% - 15px)' }}>
+                            <TheadSmall>
+                                지역 카테고리<span>*</span>
+                            </TheadSmall>
+                            <Flex style={{ color: '#999' }}>
+                                <SearchCategoryNavigator
+                                    curRegionCategoryId={hookMember.regionCategoryId}
+                                    onSearchAction={hookMember.onChangeRegionCategoryId}
+                                />
+                            </Flex>
+                        </Flex>
+                        <Flex style={{ width: 'calc(100% - 15px)' }}>
                             <TheadSmall>
                                 카페 썸네일 이미지<span>*</span>
                             </TheadSmall>
                             <ImageUploadPriorityComponent
-                                data={[]}
+                                key={0}
+                                ref={hookMember.thumbnailImageHandlerRef}
+                                dispalyId='ThumbnailImage'
+                                isThumbnail={true}
+                                data={hookMember.thumbnailImages}
+                                updateAction={hookMember.updateThumbnailImagesAction}
                             />
                         </Flex>
-
+                        <Flex style={{ width: 'calc(100% - 15px)' }}>
+                            <TheadSmall>
+                                카페 가상 이미지<span>*</span>
+                            </TheadSmall>
+                            <ImageUploadPriorityComponent
+                                key={1}
+                                ref={hookMember.virtualImageHandlerRef}
+                                dispalyId='VirtualImage'
+                                data={hookMember.virtualImages}
+                                updateAction={hookMember.updateVirtualImagesAction}
+                            />
+                        </Flex>
+                        <Flex style={{ width: 'calc(100% - 15px)' }}>
+                            <TheadSmall>
+                                카페 실제 이미지<span>*</span>
+                            </TheadSmall>
+                            <ImageUploadPriorityComponent
+                                key={2}
+                                ref={hookMember.realImageHandlerRef}
+                                dispalyId='RealImage'
+                                data={hookMember.realImages}
+                                updateAction={hookMember.updateRealImagesAction}
+                            />
+                        </Flex>
+                        <Flex style={{ width: 'calc(100% - 15px)' }}>
+                            <TheadSmall>
+                                카페 가상 링크<span>*</span>
+                            </TheadSmall>
+                            <VirtualLinkUploadComponent
+                                key={2}
+                                ref={hookMember.virtualLinkHandlerRef}
+                                datas={hookMember.virtualLinks}
+                                token={hookMember.token}
+                            />
+                        </Flex>
+                        {/* </>
+            )} */}
                     </Flex>
                 </BorderRoundedContent>
-
-                {/* <BorderRoundedContent style={{ padding: 30 }}>
-          <Flex style={{ gap: 20 }}>
-
-            <FlexRow style={{ gap: 20 }}>
-              <Flex style={{ flex: 1 }}>
-                <TheadSmall>탈퇴일자</TheadSmall>
-                <Flex style={{ color: '#999' }}>
-                  {hookMember.user?.EscapeUser?.[0]?.createdAt ? (
-                    <GetSeoulTime
-                      time={hookMember.user?.EscapeUser?.[0]?.createdAt}
-                      long
-                    />
-                  ) : (
-                    '-'
-                  )}
-                </Flex>
-              </Flex>
-              <Flex style={{ flex: 1 }}>
-                <TheadSmall>탈퇴사유</TheadSmall>
-                <Flex style={{ color: '#999' }}>
-                  {hookMember.user?.EscapeUser?.[0]?.content
-                    ? hookMember.user.EscapeUser[0].content
-                    : '-'}
-                </Flex>
-              </Flex>
-            </FlexRow>
-          </Flex>
-        </BorderRoundedContent> */}
             </div>
             <BasicModal
                 display={hookMember.modalDisplayState}
@@ -196,4 +212,4 @@ function AdminUserDetailScreen(props: { params: Params }) {
     );
 };
 
-export default AdminUserDetailScreen;
+export default AdminCafeInfoDetailScreen;

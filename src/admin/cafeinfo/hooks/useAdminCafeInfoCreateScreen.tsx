@@ -3,13 +3,11 @@ import React, { useRef, useState } from 'react';
 import { CafeInfoResult, useCreatePlaceByAdminMutation, useDeletePlaceByAdminMutation } from '@/api/cafeInfosApi';
 import { ImageUploadPriorityComponentHandler } from '../components/ImageUploadPriorityComponent';
 import { useTypedSelector } from '@/store';
-import { categoryTreeDummyData } from '@/feature/search/hooks/searchDummyData';
-import { Category } from '@/common/input/SearchCategoryNavigator';
 import { VirtualLinkUploadComponentHandler } from '../components/VirtualLinkUploadComponent';
-import { useCreateCafeVirtualLinkByAdminMutation } from '@/api/cafeVirtualLinksApi';
+import { useCreateCafeVirtualLinkListByAdminMutation } from '@/api/cafeVirtualLinksApi';
 import { useUploadCafeRealImagesByAdminMutation } from '@/api/cafeRealImagesApi';
 import { useUploadCafeVirtualImagesByAdminMutation } from '@/api/cafeVirtualImagesApi';
-import { UpsertCafethumbnailImageListDto, useUploadCafeThumbnailImagesByAdminMutation } from '@/api/cafeThumbnailImagesApi';
+import { useUploadCafeThumbnailImagesByAdminMutation } from '@/api/cafeThumbnailImagesApi';
 
 interface hookMember {
 
@@ -22,7 +20,7 @@ interface hookMember {
   // input
   name: string;
   address: string;
-  regionCategoryId: number;
+  regionCategoryId: number|undefined;
   businessNumber: string;
   ceoName: string;
   directions: string;
@@ -30,7 +28,7 @@ interface hookMember {
 
   onChangeName: (txt: string) => void,
   onChangeAddress: (txt: string) => void,
-  onChangeRegionCategoryId: (num: number) => void,
+  onChangeRegionCategoryId: (num: number|undefined) => void,
   onChangeBusinessNumber: (txt: string) => void,
   onChangeCeoName: (txt: string) => void,
   onChangeDirections: (txt: string) => void,
@@ -41,8 +39,6 @@ interface hookMember {
   virtualImageHandlerRef: React.RefObject<ImageUploadPriorityComponentHandler | null>;
   realImageHandlerRef: React.RefObject<ImageUploadPriorityComponentHandler | null>;
   virtualLinkHandlerRef: React.RefObject<VirtualLinkUploadComponentHandler | null>;
-
-  categoryTree: Category[]
 }
 
 export function useAdminUserCreateScreen(): hookMember {
@@ -53,19 +49,17 @@ export function useAdminUserCreateScreen(): hookMember {
   const [createPlace] = useCreatePlaceByAdminMutation();
   const [deletePlace] = useDeletePlaceByAdminMutation();
 
-  const [createVirtualLink] = useCreateCafeVirtualLinkByAdminMutation();
+  const [createVirtualLinkList] = useCreateCafeVirtualLinkListByAdminMutation();
   const [uploadCafeRealImage] = useUploadCafeRealImagesByAdminMutation();
   const [uploadCafeVirtualImage] = useUploadCafeVirtualImagesByAdminMutation();
   const [uploadCafeThumbnailImage] = useUploadCafeThumbnailImagesByAdminMutation();
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
-  const [regionCategoryId, setRegionCategoryId] = useState<number>(1)
+  const [regionCategoryId, setRegionCategoryId] = useState<number>()
   const [businessNumber, setBusinessNumber] = useState('')
   const [ceoName, setCeoName] = useState('')
   const [directions, setDirections] = useState('')
-
-  const categoryTree = categoryTreeDummyData;
 
   const thumbnailImageHandlerRef = useRef<ImageUploadPriorityComponentHandler>(null);
   const virtualImageHandlerRef = useRef<ImageUploadPriorityComponentHandler>(null);
@@ -141,7 +135,7 @@ export function useAdminUserCreateScreen(): hookMember {
       return;
     }
 
-    if (regionCategoryId == 0) {
+    if (regionCategoryId === undefined || regionCategoryId === 0) {
       setModalContent(
         <div style={{ textAlign: 'center' }}>
           <span style={{ fontWeight: 'bold' }}>이름</span>
@@ -165,6 +159,8 @@ export function useAdminUserCreateScreen(): hookMember {
       return;
     }
 
+
+
     const body = {
       name,
       address,
@@ -177,7 +173,7 @@ export function useAdminUserCreateScreen(): hookMember {
 
     let cafeInfo: CafeInfoResult | undefined;
     try {
-      cafeInfo = (await createPlace({ body })).data;
+      cafeInfo = await createPlace({ body }).unwrap();
       if (!cafeInfo) throw new Error("카페 생성 에러");
 
       {
@@ -186,16 +182,22 @@ export function useAdminUserCreateScreen(): hookMember {
 
         if (thumbnailImages.create.find(data => data.thumbnailUrl == undefined)) throw new Error("썸네일 이미지 오류가 있습니다.");
 
-        uploadCafeThumbnailImage({
+        await uploadCafeThumbnailImage({
           cafeId: cafeInfo.id,
-          body: thumbnailImages as UpsertCafethumbnailImageListDto
+          body: {
+            create: thumbnailImages.create.map(data => ({
+              ...data,
+              thumbnailUrl: data.thumbnailUrl!
+            })),
+            update: thumbnailImages.update
+          }
         })
       }
 
       {
         const virtualImages = await virtualImageHandlerRef.current.getImageData(token, cafeInfo.id);
         if (virtualImages.create.length == 0 && virtualImages.update.length == 0) throw new Error("가상 이미지가 없습니다.");
-        uploadCafeVirtualImage({
+        await uploadCafeVirtualImage({
           cafeId: cafeInfo.id,
           body: virtualImages
         })
@@ -204,15 +206,15 @@ export function useAdminUserCreateScreen(): hookMember {
       {
         const realImages = await realImageHandlerRef.current.getImageData(token, cafeInfo.id);
         if (realImages.create.length == 0 && realImages.update.length == 0) throw new Error("실제 이미지가 없습니다.");
-        uploadCafeRealImage({
+        await uploadCafeRealImage({
           cafeId: cafeInfo.id,
           body: realImages
         })
       }
 
       {
-        const virtualLinks = await virtualLinkHandlerRef.current.getLinkData(token);
-        createVirtualLink({
+        const virtualLinks = await virtualLinkHandlerRef.current.getLinkDataList(token);
+        await createVirtualLinkList({
           cafeId: cafeInfo.id,
           body: virtualLinks
         })
@@ -222,7 +224,7 @@ export function useAdminUserCreateScreen(): hookMember {
       router.back();
     } catch (err) {
       console.error(err)
-      if(cafeInfo) deletePlace({ id: cafeInfo.id });
+      if(cafeInfo) await deletePlace({ id: cafeInfo.id });
       alert('생성 중 오류가 발생했습니다.')
     }
   }
@@ -257,7 +259,7 @@ export function useAdminUserCreateScreen(): hookMember {
 
     onChangeName: (txt: string) => { setName(txt) },
     onChangeAddress: (txt: string) => { setAddress(txt); },
-    onChangeRegionCategoryId: (num: number) => { setRegionCategoryId(num); },
+    onChangeRegionCategoryId: (num: number|undefined) => { setRegionCategoryId(num); },
     onChangeBusinessNumber: (txt: string) => { setBusinessNumber(txt); },
     onChangeCeoName: (txt: string) => { setCeoName(txt); },
     onChangeDirections: (txt: string) => { setDirections(txt); },
@@ -267,7 +269,5 @@ export function useAdminUserCreateScreen(): hookMember {
     virtualImageHandlerRef,
     realImageHandlerRef,
     virtualLinkHandlerRef,
-
-    categoryTree
   };
 }

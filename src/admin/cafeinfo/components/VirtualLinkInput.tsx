@@ -129,7 +129,7 @@ const VirtualLinkInput = (props: Props) => {
                         return;
                     }
 
-                    const pattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/
+                    const pattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-./?%&=:@]*)?$/
                     if(!pattern.test(inputData.url)) {
                         alert("유효하지 않은 URL입니다.")
                         return;

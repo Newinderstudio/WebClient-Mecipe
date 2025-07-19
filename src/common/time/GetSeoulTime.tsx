@@ -20,8 +20,9 @@ const GetSeoulTime = ({
   }
   return (
     <div >
-      <p >{dayjsWithTimezone().month() + 1}월</p>
-      <p >{dayjsWithTimezone().date()}일</p>
+      <span >{dayjsWithTimezone().year()}년</span>
+      <span style ={{marginLeft:'0.3rem'}}>{dayjsWithTimezone().month() + 1}월</span>
+      <span style ={{marginLeft:'0.3rem'}}>{dayjsWithTimezone().date()}일</span>
     </div>
   );
 };

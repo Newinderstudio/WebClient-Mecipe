@@ -127,6 +127,10 @@ const AdminCafeInfoScreen = () => {
                                     {
                                         name: '주소',
                                         selector: 'address',
+                                        minWidth: 300,
+                                        cell: ({ data }: { data: CafeInfoResult }) => {
+                                            return <div style={{whiteSpace:'break-spaces', overflow:'visible'}}>{data.address}</div>
+                                        },
                                     },
                                     {
                                         name: '사업자번호',

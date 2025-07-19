@@ -20,7 +20,19 @@ export const cafeVirtualLinksApi = createApi({
             }),
             providesTags: [{ type: 'VirtualLinks', id: 'LIST' }]
         }),
-        createCafeVirtualLinkByAdmin: builder.mutation<CafeVirtualLinkResult[], { cafeId: number, body: CreateCafeVirtualLinkWithImageListDto }>({
+        createCafeVirtualLinkListByAdmin: builder.mutation<CafeVirtualLinkResult[], { cafeId: number, body: CreateCafeVirtualLinkWithImageListDto }>({
+            query: (arg) => ({
+                method: 'POST',
+                url: `admin/create/list/${arg.cafeId}`,
+                body: arg.body
+            })
+        }),
+        createCafeVirtualLinkByAdmin: builder.mutation<CafeVirtualLinkWithThumnailImageResult, {
+            cafeId: number, body: {
+                link: CafeVirtualLinkCreateInput,
+                thumbnailImage: CafeVirtualLinkThumbnailImageCreateInput
+            }
+        }>({
             query: (arg) => ({
                 method: 'POST',
                 url: `admin/create/${arg.cafeId}`,
@@ -45,6 +57,7 @@ export const cafeVirtualLinksApi = createApi({
 });
 
 export const {
+    useCreateCafeVirtualLinkListByAdminMutation,
     useCreateCafeVirtualLinkByAdminMutation,
     useFindAllCafeVirtualLinksByAdminQuery,
     useUpdateCafeVirtualLinkByAdminMutation,
@@ -69,3 +82,7 @@ export type CreateCafeVirtualLinkWithImageListDto = {
         thumbnailImage: CafeVirtualLinkThumbnailImageCreateInput
     }[]
 }
+
+export type CafeVirtualLinkWithThumnailImageResult = CafeVirtualLinkPrimitiveResult & {
+    CafeVirtualLinkThumbnailImage: CafeVirtualLinkThumbnailImagePrimitiveResult
+};

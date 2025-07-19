@@ -1,3 +1,5 @@
+'use client'
+
 import { Flex, FlexRow } from "@/common/styledComponents"
 import ImageUploadCard from "./ImageUploadCard";
 import { StyledButton } from "@/common/styledAdmin";

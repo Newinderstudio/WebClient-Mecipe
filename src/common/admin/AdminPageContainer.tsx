@@ -29,7 +29,6 @@ const AdminPageContainer = ({children}:{children:React.ReactNode}) => {
 
     const verifyHeader = useCallback(() => {
         const sessionUserData = sessionStorage.getItem('userData');
-        console.log("=====AdminHeader", sessionUserData)
         if (sessionUserData) {
             const userData: { user: accountSlice.UserResult; accessToken: string } =
                 JSON.parse(sessionUserData);

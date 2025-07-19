@@ -33,16 +33,10 @@ interface hookMember {
 export function useAdminCafeInfoScreen(): hookMember {
   const router = useRouter();
 
-  // const { data: userData, refetch: userRefetch } = useFindAllUserQuery();
   const [findAllBySearch] = useFindAllPlacesByAdminMutation();
   const [removeByAdmin] = useUpdateDisablePlaceByAdminMutation();
 
   const [resultData, setResultData] = useState<CafeInfoResult[]>([]);
-
-  // const { data: generalData } = useFindUserByTypeQuery({ userType: 'GENERAL' });
-  // const { data: businessData } = useFindUserByTypeQuery({
-  //   userType: 'BUSINESS',
-  // });
 
 
   //***  페이징?? */

@@ -17,6 +17,7 @@ export const cafeVirtualImagesApi = createApi({
             query: (arg) => ({
                 method: 'POST',
                 url: `admin/upload/${arg.cafeId}`,
+                body: arg.body
             }),
         }),
         findAllCafeVirtualImagesByAdmin: builder.query<CafeVirtualImagePrimitiveResult[], void>({

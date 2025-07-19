@@ -1,11 +1,11 @@
 'use client'
 
-import { CafeVirtualLinkPrimitiveResult, CafeVirtualLinkResult, CafeVirtualLinkThumbnailImageCreateInput, CafeVirtualLinkThumbnailImagePrimitiveResult, CreateCafeVirtualLinkWithImageListDto } from "@/api/cafeVirtualLinksApi";
+import { CafeVirtualLinkPrimitiveResult, CafeVirtualLinkResult, CafeVirtualLinkThumbnailImageCreateInput, CreateCafeVirtualLinkWithImageListDto, useCreateCafeVirtualLinkByAdminMutation, useUpdateCafeVirtualLinkByAdminMutation, useUpdateCafeVirtualLinkThumbnailImageByAdminMutation } from "@/api/cafeVirtualLinksApi";
 import { Flex, FlexCenter, FlexRow } from "@/common/styledComponents";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import VirtualLinkCard, { CafeVirtualLinkDataProp } from "./VirtualLinkCard";
 import { imageResizer } from "@/common/image/imageResizer";
-import fetchImage, { getFileSize, getImageSize } from "@/util/fetchImage";
+import fetchImage, { getFileSize, getImageSize, getServerImage } from "@/util/fetchImage";
 import VirtualLinkInput, { VirtualLinkInputData } from "./VirtualLinkInput";
 import { StyledButton } from "@/common/styledAdmin";
 import Image from "next/image";
@@ -15,17 +15,26 @@ interface WrittingImage {
     CafeVirtualLinkThumbnailImage: CafeVirtualLinkThumbnailImageCreateInput
 }
 
+interface CreateRawLinkData extends Omit<CafeVirtualLinkPrimitiveResult, "cafeInfoId" | "id" | "createdAt"> {
+    CafeVirtualLinkThumbnailImage: {
+        imageFile: File
+        width: number,
+        height: number,
+        size: number
+    }
+}
+
 interface Props {
     datas?: CafeVirtualLinkResult[],
-    onUpdateImage?: (token: string, thumbanilId: number) => Promise<CafeVirtualLinkThumbnailImagePrimitiveResult>,
-    onUpdateInput?: (linkId: number) => Promise<CafeVirtualLinkPrimitiveResult>,
+    // onUpdateImage?: (token: string, thumbanilId: number) => Promise<CafeVirtualLinkThumbnailImagePrimitiveResult>,
+    // onUpdateInput?: (linkId: number) => Promise<CafeVirtualLinkPrimitiveResult>,
     token?: string
     // onClickRegister: (link: CafeVirtualLinkCreateInput,
     //     thumbnailImage: CafeVirtualLinkThumbnailImageCreateInput) => void;
 }
 
 export interface VirtualLinkUploadComponentHandler {
-    getLinkData: (token: string) => Promise<CreateCafeVirtualLinkWithImageListDto>
+    getLinkDataList: (token: string) => Promise<CreateCafeVirtualLinkWithImageListDto>
 }
 
 
@@ -36,13 +45,34 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
 
     const [linkDataList, setLinkDataList] = useState<CafeVirtualLinkDataProp[]>([]);
 
+    const [updateVirtualLink] = useUpdateCafeVirtualLinkByAdminMutation();
+    const [updateVirtualLinkThumbnailImage] = useUpdateCafeVirtualLinkThumbnailImageByAdminMutation();
+    const [createVirtualLink] = useCreateCafeVirtualLinkByAdminMutation();
+
+    const [cafeId, setCafeId] = useState<number>();
+
     useEffect(() => {
         console.log("링크데이터: ", linkDataList);
     }, [linkDataList])
 
     useEffect(() => {
-        const initionalData = props.datas?.filter(data => data.CafeVirtualLinkThumbnailImage != undefined) ?? [];
-        setLinkDataList(initionalData);
+        if (props.datas) {
+            const initialData = props.datas.filter(data => data.CafeVirtualLinkThumbnailImage != undefined);
+            setLinkDataList(initialData.map(data => ({
+                ...data,
+                CafeVirtualLinkThumbnailImage: {
+                    ...data.CafeVirtualLinkThumbnailImage!, // Add non-null assertion here
+                    url: getServerImage(data.CafeVirtualLinkThumbnailImage!.url)
+                }
+            })));
+
+            const cafeIdCandidates = new Set(props.datas.map(data => data.cafeInfoId) ?? []);
+            if (cafeIdCandidates.size === 1) {
+                setCafeId(Array.from(cafeIdCandidates)[0]);
+            } else {
+                alert("[가상 링크 업로드] 잘못된 데이터가 포함되었습니다.");
+            }
+        }
     }, [props.datas])
 
     const onChangeWrittenImage = async (files: File[]) => {
@@ -81,7 +111,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
 
     }
 
-    const onClickAddLinkByInput = (inputData: VirtualLinkInputData) => {
+    const onClickAddLinkByInput = async (inputData: VirtualLinkInputData) => {
         if (!writtingImageData) {
             alert("썸네일 이미지를 업데이트하세요");
             return;
@@ -100,30 +130,72 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
         });
         setWritingImageData(undefined);
 
-        setLinkDataList(prev => {
-            return [
+        let newLinkDataList: CafeVirtualLinkDataProp[];
+        if (props.token && cafeId) {
+            try {
+                const result = await getCafeVirtualLinkThumbnailImage(writtingImageData.file);
+
+                if (!result) throw new Error("이미지 변환 실패");
+
+                const form = new FormData();
+                form.append("image", result.compressedFile);
+                const imageResults = await fetchImage(props.token, form, "virtuallinkimage");
+
+                if (imageResults.length === 0) throw new Error("이미지 업로드 실패");
+
+                const imageResult = imageResults[0];
+
+
+                const resultData = await createVirtualLink({
+                    body: {
+                        link: {
+                            name: inputData.name,
+                            type: inputData.type,
+                            url: inputData.url,
+                            isAvaliable: inputData.isAvaliable
+                        },
+                        thumbnailImage: {
+                            url: getServerImage(imageResult.url),
+                            width: result.compressedFileData.width,
+                            height: result.compressedFileData.height,
+                            size: result.compressedFileData.size
+                        }
+                    },
+                    cafeId: cafeId
+                }).unwrap();
+
+                newLinkDataList = [
+                    {
+                        ...resultData,
+                        isDisable: false
+                    },
+                    ...linkDataList
+                ];
+
+
+            } catch (e) {
+                newLinkDataList = linkDataList;
+                alert(e);
+            }
+
+        } else {
+            newLinkDataList = [
                 {
                     file: writtingImageData.file,
                     CafeVirtualLinkThumbnailImage: writtingImageData.CafeVirtualLinkThumbnailImage,
                     ...inputData,
                     isDisable: false
                 },
-                ...prev
+                ...linkDataList
             ]
-        });
+        }
+
+        setLinkDataList(newLinkDataList);
 
     }
 
-    const getLinkData = useCallback(async (token: string): Promise<CreateCafeVirtualLinkWithImageListDto> => {
-        interface CreatePreviewData extends Omit<CafeVirtualLinkPrimitiveResult, "cafeInfoId" | "id" | "createdAt"> {
-            CafeVirtualLinkThumbnailImage: {
-                imageFile: File
-                width: number,
-                height: number,
-                size: number
-            }
-        }
-        const prevDataList: CreatePreviewData[] = (await Promise.all(linkDataList.map(async (data) => {
+    const getLinkDataList = useCallback(async (token: string): Promise<CreateCafeVirtualLinkWithImageListDto> => {
+        const rawDataList: CreateRawLinkData[] = (await Promise.all(linkDataList.map(async (data) => {
             if (data.isDisable == true) return undefined;
             if (!data.file) return undefined;
             const result = await getCafeVirtualLinkThumbnailImage(data.file);
@@ -146,13 +218,13 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
         }))).filter(data => data !== undefined);
 
         const form = new FormData();
-        prevDataList.forEach(data => {
-            form.append("images", data.CafeVirtualLinkThumbnailImage.imageFile);
+        rawDataList.forEach(data => {
+            form.append("image", data.CafeVirtualLinkThumbnailImage.imageFile);
         })
-        const imageResults = await fetchImage(token, form);
+        const imageResults = await fetchImage(token, form, "virtuallinkimage");
 
         return {
-            create: prevDataList.map((data, index) => ({
+            create: rawDataList.map((data, index) => ({
                 link: {
                     name: data.name,
                     type: data.type,
@@ -170,18 +242,20 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }, [linkDataList])
 
     useImperativeHandle(ref, () => ({
-        getLinkData: getLinkData,
+        getLinkDataList: getLinkDataList,
         // 추가 메서드...
-    }), [getLinkData]);
+    }), [getLinkDataList]);
 
     const onChangeDisableLinkData = async (data: CafeVirtualLinkDataProp, index: number) => {
         let finalData: CafeVirtualLinkDataProp = data;
-        if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.onUpdateImage && props.onUpdateInput) {
+        if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.token) {
             try {
-                finalData = {
-                    ...finalData,
-                    ...(await props.onUpdateInput(data.id))
-                }
+                finalData = await updateVirtualLink({
+                    id: data.id,
+                    body: {
+                        isDisable: data.isDisable
+                    }
+                }).unwrap();
             } catch (e) {
                 alert(e);
             }
@@ -195,39 +269,68 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
 
     const onChangeLinkData = async (data: CafeVirtualLinkDataProp, index: number) => {
         let finalData: CafeVirtualLinkDataProp = data;
-        if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.onUpdateImage && props.onUpdateInput && props.token) {
-            if (data.file) {
-                try {
-                    const result = await getCafeVirtualLinkThumbnailImage(data.file);
-                    if (result) {
+        if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.token) {
+            try {
+                if (data.file) {
+                    try {
+                        const result = await getCafeVirtualLinkThumbnailImage(data.file);
+                        if (!result) throw new Error("이미지 변환 실패");
                         const form = new FormData();
-                        form.append("images", data.file);
-                        const imageResults = await fetchImage(props.token, form);
+                        form.append("image", data.file);
+                        const imageResults = await fetchImage(props.token, form, "virtuallinkimage");
 
-                        if (imageResults.length > 0) {
-                            finalData.file = undefined;
-                            finalData.CafeVirtualLinkThumbnailImage = await props.onUpdateImage(props.token, data.CafeVirtualLinkThumbnailImage.id);
-                        }
+                        if (imageResults.length === 0) throw new Error("이미지 업로드 실패");
+
+                        const imageResult = imageResults[0];
+                        finalData.file = undefined;
+                        finalData.CafeVirtualLinkThumbnailImage = await updateVirtualLinkThumbnailImage({
+                            imageId: data.CafeVirtualLinkThumbnailImage.id,
+                            body: {
+                                url: imageResult.url,
+                                width: data.CafeVirtualLinkThumbnailImage.width,
+                                height: data.CafeVirtualLinkThumbnailImage.height,
+                                size: data.CafeVirtualLinkThumbnailImage.size
+                            }
+                        }).unwrap();
+
+                        finalData.CafeVirtualLinkThumbnailImage.url = getServerImage(finalData.CafeVirtualLinkThumbnailImage.url);
+
+                    } catch (e) {
+                        throw (e);
                     }
-                } catch (e) {
-                    alert(e);
-                }
-            } else {
-                try {
-                    finalData = {
-                        ...finalData,
-                        ...(await props.onUpdateInput(data.id))
+                } else {
+                    try {
+                        finalData = await updateVirtualLink({
+                            id: data.id,
+                            body: {
+                                name: data.name,
+                                type: data.type,
+                                url: data.url,
+                                isAvaliable: data.isAvaliable
+                            }
+                        }).unwrap();
+                    } catch (e) {
+                        throw (e);
                     }
-                } catch (e) {
-                    alert(e);
                 }
+
+                const findIndex = linkDataList.findIndex(data => data.id === finalData.id);
+                if (findIndex !== -1) {
+                    linkDataList[findIndex] = finalData;
+                    setLinkDataList([...linkDataList]);
+                }
+
+            } catch (e) {
+                alert(e);
             }
+
+        } else {
+            setLinkDataList(prev => {
+                prev[index] = finalData;
+                return [...prev]
+            });
         }
 
-        setLinkDataList(prev => {
-            prev[index] = finalData;
-            return [...prev]
-        });
     }
 
     return (

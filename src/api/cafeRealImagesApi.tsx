@@ -17,6 +17,7 @@ export const cafeRealImagesApi = createApi({
             query: (arg) => ({
                 method: 'POST',
                 url: `admin/upload/${arg.cafeId}`,
+                body: arg.body
             }),
         }),
         findAllCafeRealImagesByAdmin: builder.query<CafeRealImagePrimitiveResult[], void>({

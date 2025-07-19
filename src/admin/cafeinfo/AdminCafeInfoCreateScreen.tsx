@@ -113,9 +113,9 @@ const AdminUserCreateScreen = () => {
                                 <InputStyle
                                     type="text"
                                     placeholder="사업자명"
-                                    value={hookMember.businessNumber}
+                                    value={hookMember.ceoName}
                                     onChange={(e) => {
-                                        hookMember.onChangeBusinessNumber(e.target.value)
+                                        hookMember.onChangeCeoName(e.target.value)
                                     }}
                                 />
                             </Flex>
@@ -137,11 +137,11 @@ const AdminUserCreateScreen = () => {
                         </Flex>
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
                             <TheadSmall>
-                                오시는길<span>*</span>
+                                지역 카테고리<span>*</span>
                             </TheadSmall>
                             <Flex style={{ color: '#999' }}>
                                 <SearchCategoryNavigator
-                                    categoryTree={hookMember.categoryTree}
+                                    curRegionCategoryId={hookMember.regionCategoryId}
                                     onSearchAction={hookMember.onChangeRegionCategoryId}
                                 />
                             </Flex>
@@ -154,6 +154,7 @@ const AdminUserCreateScreen = () => {
                                 key={0}
                                 ref={hookMember.thumbnailImageHandlerRef}
                                 dispalyId='ThumbnailImage'
+                                isThumbnail={true}
                             />
                         </Flex>
                         <Flex style={{ width: 'calc(100% - 15px)' }}>
