@@ -161,7 +161,6 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
 
     useEffect(() => {
         if (props.data) {
-            console.log(props.dispalyId, "curData", props.data)
 
             setThumbnails([...props.data].sort((a, b) => a.priority - b.priority).map(data => ({
                 id: data.id,
@@ -172,7 +171,7 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
                 size: data.size,
             })))
         }
-    }, [props.data])
+    }, [props.data, props.dispalyId])
 
     useImperativeHandle(ref, () => ({
         getImageData: getImageData,

@@ -2,11 +2,11 @@
 
 import MainSearchComponent from "@/common/input/MainSearchComponent";
 import SearchCategoryNavigator from "@/common/input/SearchCategoryNavigator";
-import UserScreen from "@/common/screen/UserScreen";
 import { FlexCenter, FlexRow, ResponsiveWrapper } from "@/common/styledComponents";
 import { useSearchScreen } from "./hooks/useSearchScreen";
 import styled from "@emotion/styled";
 import InfoCard from "./components/InfoCard";
+import { useSearchParams } from "next/navigation";
 
 const ResponsiveGrid = styled.div`
   display: grid;
@@ -27,16 +27,17 @@ const ResponsiveGrid = styled.div`
 
 
 function SearchScreen() {
-    const hookMember = useSearchScreen();
+
+    const searchParams = useSearchParams();
+
+    const searchTextQuery = searchParams.get('searchText') ?? '';
+    const regionCategoryIdQuery = Number(searchParams.get('regionCategoryId'));
+
+    const hookMember = useSearchScreen({ searchTextQuery, regionCategoryIdQuery });
 
 
     return (
-        <UserScreen
-            headerOverlap={false}
-            backSpace={true}
-            fullScreen={false}
-            navigationList={[{ name: "카페탐색", routerUrl: "/search" }]}
-        >
+        <>
             <FlexCenter>
                 <ResponsiveWrapper
                     style={{ marginTop: 24 }}
@@ -48,10 +49,10 @@ function SearchScreen() {
                         <span
                             style={{
                                 marginLeft: 20,
-                                fontSize:'1.2rem',
-                                padding:'0 1rem',
+                                fontSize: '1.2rem',
+                                padding: '0 1rem',
                                 backgroundColor: '#ddd',
-                                borderRadius:20
+                                borderRadius: 20
                             }}
                         >
                             검색결과:&nbsp;{hookMember.searchCount}
@@ -66,7 +67,7 @@ function SearchScreen() {
                         borderColor="#005"
                         iconBlack={true}
                         fontColor="#222"
-                        initialSearchText={hookMember.initialSearchText}
+                        initialSearchText={searchTextQuery}
                     />
                 </ResponsiveWrapper>
             </FlexCenter>
@@ -87,7 +88,7 @@ function SearchScreen() {
                     }) ?? undefined
                 }
             </ResponsiveGrid>
-        </UserScreen>
+        </>
     )
 }
 

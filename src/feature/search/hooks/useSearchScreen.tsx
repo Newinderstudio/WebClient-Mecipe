@@ -1,12 +1,11 @@
 import { CafeInfo } from "@/data/prisma-client";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useFindAllPlacesBySearchMutation } from "@/api/cafeInfosApi";
 import { getShortRegionCategoryNameByTree, useFindAllRegionCategoriesQuery } from "@/api/regionCategoriesApi";
 interface HookMember {
     cafeInfos: CafeInfo[] | undefined;
     searchCount: number;
-    initialSearchText: string;
     onChangeCategory: (id: number | undefined) => void;
     onSetSearchText: (text: string) => void;
     onClickDetail: (id: number) => void;
@@ -15,12 +14,8 @@ interface HookMember {
 
 }
 
-export function useSearchScreen(): HookMember {
+export function useSearchScreen({searchTextQuery, regionCategoryIdQuery}:{searchTextQuery:string, regionCategoryIdQuery:number}): HookMember {
     const router = useRouter();
-    const searchParams = useSearchParams();
-
-    const searchTextQuery = searchParams.get('searchText') ?? '';
-    const regionCategoryIdQuery = Number(searchParams.get('regionCategoryId'));
 
     const [findSearch] = useFindAllPlacesBySearchMutation();
 
@@ -75,7 +70,6 @@ export function useSearchScreen(): HookMember {
     return {
         cafeInfos,
         searchCount,
-        initialSearchText: searchTextQuery,
         onChangeCategory,
         onSetSearchText,
         onClickDetail,

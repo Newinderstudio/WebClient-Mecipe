@@ -1,1 +1,1 @@
-export { default } from '@/feature/search/SearchScreen';
+export { default } from '@/feature/search/SearchScreenWrapper';
