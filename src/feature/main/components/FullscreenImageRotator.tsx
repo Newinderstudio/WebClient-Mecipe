@@ -3,11 +3,12 @@ import styled from '@emotion/styled'
 
 const ImageContainer = styled.div`
   top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 120vw;
+  height: 120vh;
   overflow: hidden;
   z-index: -1;
   position: absolute;
+  margin: -10vw
 `;
 
 const CoverImage = styled.img`

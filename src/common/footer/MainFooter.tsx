@@ -3,6 +3,7 @@
 import { appContentWidth } from '@/util/constants/style';
 import { Flex, FlexCenter } from '../styledComponents';
 import { useMainFooter } from './hooks/useMainFooter';
+import Image from 'next/image';
 
 // const titleCss = {
 //   color: '#2d2d2d',
@@ -51,10 +52,11 @@ export function MainFooter() {
     <div
       style={{
         marginTop: hookMember.marginTop,
+        background: 'linear-gradient(#555, #333)'
         // '-webkit-font-smoothing': 'antialiased',
       }}
       ref={hookMember.disEle}>
-      <div style={{ backgroundColor: '#616161' }}>
+      <div>
         <FlexCenter
           style={{
             padding: 20,
@@ -66,25 +68,27 @@ export function MainFooter() {
           }}>
           <div
             style={{
-              fontFamily: 'TmonMonsori',
-              color: 'white',
-              fontSize: 28,
+              position: 'relative', width: '200px', height: '50px'
             }}>
-            Meceipe
+            <Image
+              src="/image/logo/logo-mecipe-text.svg"
+              alt="logo"
+              fill
+            />
           </div>
         </FlexCenter>
-      </div>
-      <div style={{ backgroundColor: '#616161' }}>
+      </div >
+      <div >
         <Flex
           style={{
             padding: 20,
             paddingTop: 0,
             // paddingBottom: 40,
             paddingBottom: 30,
-            height:100
+            height: 100
           }}>
         </Flex>
       </div>
-    </div>
+    </div >
   );
 };

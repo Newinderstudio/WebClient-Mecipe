@@ -30,12 +30,16 @@ function MainScreen() {
                     onSearchAction={(text: string) => {
                         hookMember.onSearchText(text);
                     }}
-                    height={72}
+                    height={6}
+                    unit="rem"
                     maxWidth={800}
                     backgroundColor='#0009'
                     borderColor={fenxyYellowTransparency}
                     full={true}
-                    style={{ padding: '0 20px' }}
+                    style={{
+                        padding: '0 20px',
+                        
+                    }}
                     fontColor='#fff'
                     fontWeight={600}
                 />

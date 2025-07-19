@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<PageParams>
   }
 
   return { 
-    title: "메시피 가상현실 투어: "+ cafeInfo.name, 
+    title: `${cafeInfo.name}: 메시피 가상현실 투어`, 
     description: `장소명: ${cafeInfo.name}, 주소: ${cafeInfo.address}, 오시는길: ${cafeInfo.directions}, 가상현실 카페 투어, 메시피`, 
     openGraph: {
       title: "메시피 가상현실 투어: "+ cafeInfo.name,

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_로고" data-name="로고" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 720 720">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #df6a6a;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#_무제_그라디언트_294);
+      }
+
+      .cls-3 {
+        fill: #f5ae7a;
+      }
+    </style>
+    <radialGradient id="_무제_그라디언트_294" data-name="무제 그라디언트 294" cx="362.2" cy="514.62" fx="362.2" fy="514.62" r="613.61" gradientTransform="translate(-1004.77 838.66) rotate(-90) scale(1.02 2.66)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f08d8d"/>
+      <stop offset=".48" stop-color="#f19049"/>
+    </radialGradient>
+  </defs>
+  <g id="_01_로고" data-name="01_로고">
+    <polygon class="cls-3" points="5.36 117.65 5.36 501.79 183.18 583.38 183.18 199.24 5.36 117.65"/>
+    <path class="cls-2" d="M361,117.65h0c-113.08-51.89-242.55-51.89-355.63,0h0s177.82,81.59,177.82,81.59l177.82,81.59,177.82-81.59,177.82-81.59h0c-113.08-51.89-242.55-51.89-355.63,0h0Z"/>
+    <path class="cls-1" d="M688.2,161.29l-298.77,138.13c-15.7,7.26-28.43,26.12-28.43,42.13v281.02c0,16.01,12.73,23.1,28.43,15.84l279.2-129.09,48,26.4V177.13c0-16.01-12.73-23.1-28.43-15.84ZM546.15,460.02l-68.32-38.06,34.16-50.62,34.16,19.03,34.16-50.62,34.16,19.03-68.32,101.24Z"/>
+  </g>
+</svg>
