@@ -23,6 +23,7 @@ interface hookMember {
   onClickCompleted: () => void;
   modalContent: React.JSX.Element | string;
 
+  cafeId: number | undefined;
   // input
   name: string;
   address: string;
@@ -71,6 +72,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
   const [uploadCafeVirtualImage] = useUploadCafeVirtualImagesByAdminMutation();
   const [uploadCafeThumbnailImage] = useUploadCafeThumbnailImagesByAdminMutation();
 
+  const [cafeId, setCafeId] = useState<number>()
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [regionCategoryId, setRegionCategoryId] = useState<number>()
@@ -91,6 +93,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
 
   useEffect(() => {
     if (!initialData) return;
+    setCafeId(initialData.id);
     setName(initialData.name);
     setAddress(initialData.address);
     setRegionCategoryId(initialData.regionCategoryId);
@@ -310,6 +313,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
     },
     onClickCompleted,
 
+    cafeId,
     // data
     name,
     address,

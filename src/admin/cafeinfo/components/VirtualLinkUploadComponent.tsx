@@ -28,7 +28,8 @@ interface Props {
     datas?: CafeVirtualLinkResult[],
     // onUpdateImage?: (token: string, thumbanilId: number) => Promise<CafeVirtualLinkThumbnailImagePrimitiveResult>,
     // onUpdateInput?: (linkId: number) => Promise<CafeVirtualLinkPrimitiveResult>,
-    token?: string
+    token?: string,
+    cafeId?:number
     // onClickRegister: (link: CafeVirtualLinkCreateInput,
     //     thumbnailImage: CafeVirtualLinkThumbnailImageCreateInput) => void;
 }
@@ -49,8 +50,6 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     const [updateVirtualLinkThumbnailImage] = useUpdateCafeVirtualLinkThumbnailImageByAdminMutation();
     const [createVirtualLink] = useCreateCafeVirtualLinkByAdminMutation();
 
-    const [cafeId, setCafeId] = useState<number>();
-
     useEffect(() => {
         console.log("링크데이터: ", linkDataList);
     }, [linkDataList])
@@ -69,8 +68,6 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
             const cafeIdCandidates = new Set(props.datas.map(data => data.cafeInfoId) ?? []);
             if (cafeIdCandidates.size > 1) {
                 alert("[가상 링크 업로드] 잘못된 데이터가 포함되었습니다.");
-            } else {
-                setCafeId(Array.from(cafeIdCandidates)[0]);
             }
         }
     }, [props.datas])
@@ -131,7 +128,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
         setWritingImageData(undefined);
 
         let newLinkDataList: CafeVirtualLinkDataProp[];
-        if (props.token && cafeId) {
+        if (props.token && props.cafeId) {
             try {
                 const result = await getCafeVirtualLinkThumbnailImage(writtingImageData.file);
 
@@ -161,7 +158,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                             size: result.compressedFileData.size
                         }
                     },
-                    cafeId: cafeId
+                    cafeId: props.cafeId
                 }).unwrap();
 
                 newLinkDataList = [
