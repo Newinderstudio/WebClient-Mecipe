@@ -67,10 +67,10 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
             })));
 
             const cafeIdCandidates = new Set(props.datas.map(data => data.cafeInfoId) ?? []);
-            if (cafeIdCandidates.size === 1) {
-                setCafeId(Array.from(cafeIdCandidates)[0]);
-            } else {
+            if (cafeIdCandidates.size > 1) {
                 alert("[가상 링크 업로드] 잘못된 데이터가 포함되었습니다.");
+            } else {
+                setCafeId(Array.from(cafeIdCandidates)[0]);
             }
         }
     }, [props.datas])
@@ -195,8 +195,8 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }
 
     const getLinkDataList = useCallback(async (token: string): Promise<CreateCafeVirtualLinkWithImageListDto> => {
-        if(linkDataList.length === 0) return ({
-            create:[]
+        if (linkDataList.length === 0) return ({
+            create: []
         })
 
         const rawDataList: CreateRawLinkData[] = (await Promise.all(linkDataList.map(async (data) => {
@@ -262,7 +262,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                     }
                 }).unwrap();
 
-                targetIndex= linkDataList.findIndex(data => data.id === finalData.id);
+                targetIndex = linkDataList.findIndex(data => data.id === finalData.id);
 
             } catch (e) {
                 alert(e);
