@@ -11,6 +11,7 @@ interface Props {
     link: string;
     name: string;
     src: string;
+    isAvaliable: boolean;
 }
 
 const LinkButton = styled(Link)({
@@ -21,7 +22,24 @@ const LinkButton = styled(Link)({
     display: 'inline-block',
     borderRadius: '5rem',
     padding: '.8rem 2rem',
-    boxShadow: '0 0 5px 2px #0004'
+    boxShadow: '0 0 5px 2px #0004',
+    '&.disable-lnk': {
+        opacity: 0.5,
+        cursor: 'default'
+    }
+});
+
+const DisableLinkbutton = styled.div({
+    backgroundColor: fenxyYellow,
+    fontSize: '2rem',
+    fontWeight: 600,
+    color: 'white',
+    display: 'inline-block',
+    borderRadius: '5rem',
+    padding: '.8rem 2rem',
+    boxShadow: '0 0 5px 2px #0004',
+    opacity: 0.5,
+    cursor: 'default'
 })
 
 const LinkCard = (props: Props) => {
@@ -36,7 +54,8 @@ const LinkCard = (props: Props) => {
                     height: '16rem',
                     borderRadius: '3rem',
                     marginBottom: '1rem',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    position: 'relative'
                 }}
             >
                 <ThubmnailImage
@@ -44,13 +63,36 @@ const LinkCard = (props: Props) => {
                     aspectHeight={100}
                     src={props.src}
                 />
+                {
+                    props.isAvaliable === false &&
+                    <div
+                        style={{
+                            backgroundColor: '#0006',
+                            position: 'absolute',
+                            fontSize: '1.2rem',
+                            color: 'white',
+                            width:'100%',
+                            height:'100%',
+                            textAlign:'center',
+                            alignContent:'center'
+                        }}
+                    >
+                        준비중입니다
+                    </div>
+                }
             </FlexCenter>
-            <LinkButton
-                href={props.link}
-                target="_blank"
-            >
-                {props.name}
-            </LinkButton>
+            {
+                props.isAvaliable ?
+                    <LinkButton
+                        href={props.link}
+                        target="_blank"
+                    >
+                        {props.name}
+                    </LinkButton> :
+                    <DisableLinkbutton>
+                        {props.name}
+                    </DisableLinkbutton>
+            }
 
 
         </FlexCenter>

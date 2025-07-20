@@ -140,6 +140,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
                     key={index}
                     link={link.url}
                     name={link.name}
+                    isAvaliable={link.isAvaliable}
                     src={link.CafeVirtualLinkThumbnailImage?.url ? getServerImage(link.CafeVirtualLinkThumbnailImage.url) : ""}
                   />
                 })
