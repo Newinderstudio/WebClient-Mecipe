@@ -164,7 +164,11 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                 newLinkDataList = [
                     {
                         ...resultData,
-                        isDisable: false
+                        CafeVirtualLinkThumbnailImage:{
+                            ...resultData.CafeVirtualLinkThumbnailImage,
+                            url: getServerImage(resultData.CafeVirtualLinkThumbnailImage.url)
+                        },
+                        isDisable: resultData.isDisable
                     },
                     ...linkDataList
                 ];
