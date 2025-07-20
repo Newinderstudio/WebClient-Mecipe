@@ -38,13 +38,13 @@ function AdminCafeInfoDetailScreen(props: { params: Params }) {
                             flexGrow: 1,
                             lineHeight: '32px',
                         }}>
-                        카페 추가
+                        카페 수정
                     </div>
                     <FlexRow>
                         <StyledButton
                             style={{ background: fenxyBlue }}
                             onClick={hookMember.handleSubmit}>
-                            저장
+                            수정
                         </StyledButton>
                         <StyledButton
                             style={{ backgroundColor: '#4A5864' }}

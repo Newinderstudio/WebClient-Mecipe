@@ -172,7 +172,8 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
 
             } catch (e) {
                 newLinkDataList = linkDataList;
-                alert(e);
+                alert("VirtualLinkUplaad Create Error");
+                console.log("VirtualLinkUplaad Create Error",e);
             }
 
         } else {
