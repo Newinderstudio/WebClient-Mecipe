@@ -152,7 +152,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                             isAvaliable: inputData.isAvaliable
                         },
                         thumbnailImage: {
-                            url: getServerImage(imageResult.url),
+                            url: imageResult.url,
                             width: result.compressedFileData.width,
                             height: result.compressedFileData.height,
                             size: result.compressedFileData.size
