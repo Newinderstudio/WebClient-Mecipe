@@ -5,6 +5,7 @@ async function fetchCompat(
   path: string,
   token: string | undefined,
   body?: string | Record<string, unknown> | FormData,
+  local_api?: boolean
 ) {
   if (!token) console.error('token is undefined');
   const bodyPayload =
@@ -16,7 +17,7 @@ async function fetchCompat(
 
   let res;
   try {
-    const raw = await fetch(`${rootUrl}/${path}`, {
+    const raw = await fetch(`${(local_api === true ? "/api" : rootUrl)}/${path}`, {
       method: method,
       headers: token
         ? bodyPayload instanceof FormData
