@@ -1,9 +1,9 @@
-import { rootUrl } from "./constants/app";
+
 
 const fetchImage = async (
   token: string | undefined,
   body: FormData,
-  category: string
+  category: string,
 ): Promise<{
   url: string;
   thumbnailUrl?: string;
@@ -17,7 +17,7 @@ const fetchImage = async (
         : JSON.stringify(body);
 
   let res;
-  const path = `${rootUrl}/rawimageupload/upload?category=${category}`;
+  const path = `/api/uploadImage?prefix=${category}`;
   try {
     const raw = await fetch(path, {
       method: 'POST',
@@ -91,4 +91,3 @@ export const getFileSize = (file: File) => {
   return Math.floor(file.size / 1024);
 }
 
-export const getServerImage = (rawUrl: string) => rootUrl + "/" + rawUrl;

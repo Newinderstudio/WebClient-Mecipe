@@ -5,7 +5,7 @@ import { Flex, FlexCenter, FlexRow } from "@/common/styledComponents";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import VirtualLinkCard, { CafeVirtualLinkDataProp } from "./VirtualLinkCard";
 import { imageResizer } from "@/common/image/imageResizer";
-import fetchImage, { getFileSize, getImageSize, getServerImage } from "@/util/fetchImage";
+import fetchImage, { getFileSize, getImageSize } from "@/util/fetchImage";
 import VirtualLinkInput, { VirtualLinkInputData } from "./VirtualLinkInput";
 import { StyledButton } from "@/common/styledAdmin";
 import Image from "next/image";
@@ -26,10 +26,10 @@ interface CreateRawLinkData extends Omit<CafeVirtualLinkPrimitiveResult, "cafeIn
 
 interface Props {
     datas?: CafeVirtualLinkResult[],
+    cafeId?: number,
     // onUpdateImage?: (token: string, thumbanilId: number) => Promise<CafeVirtualLinkThumbnailImagePrimitiveResult>,
     // onUpdateInput?: (linkId: number) => Promise<CafeVirtualLinkPrimitiveResult>,
     token?: string,
-    cafeId?:number
     // onClickRegister: (link: CafeVirtualLinkCreateInput,
     //     thumbnailImage: CafeVirtualLinkThumbnailImageCreateInput) => void;
 }
@@ -55,22 +55,22 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }, [linkDataList])
 
     useEffect(() => {
-        if (props.datas) {
+        if (props.datas !== undefined && props.cafeId !== undefined) {
             const initialData = props.datas.filter(data => data.CafeVirtualLinkThumbnailImage != undefined);
             setLinkDataList(initialData.map(data => ({
                 ...data,
                 CafeVirtualLinkThumbnailImage: {
                     ...data.CafeVirtualLinkThumbnailImage!, // Add non-null assertion here
-                    url: getServerImage(data.CafeVirtualLinkThumbnailImage!.url)
+                    url: data.CafeVirtualLinkThumbnailImage!.url
                 }
             })));
 
             const cafeIdCandidates = new Set(props.datas.map(data => data.cafeInfoId) ?? []);
-            if (cafeIdCandidates.size > 1) {
+            if (cafeIdCandidates.size > 1 || (cafeIdCandidates.size === 1 && !cafeIdCandidates.has(props.cafeId ?? 0))) {
                 alert("[가상 링크 업로드] 잘못된 데이터가 포함되었습니다.");
             }
         }
-    }, [props.datas])
+    }, [props.cafeId, props.datas])
 
     const onChangeWrittenImage = async (files: File[]) => {
         if (files.length > 0) {
@@ -166,7 +166,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                         ...resultData,
                         CafeVirtualLinkThumbnailImage:{
                             ...resultData.CafeVirtualLinkThumbnailImage,
-                            url: getServerImage(resultData.CafeVirtualLinkThumbnailImage.url)
+                            url: resultData.CafeVirtualLinkThumbnailImage.url
                         },
                         isDisable: resultData.isDisable
                     },
@@ -202,10 +202,10 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
         })
 
         const rawDataList: CreateRawLinkData[] = (await Promise.all(linkDataList.map(async (data) => {
-            if (data.isDisable === true) return undefined;
-            if (!data.file) return undefined;
+            if (data.isDisable === true) return null;
+            if (!data.file) return null;
             const result = await getCafeVirtualLinkThumbnailImage(data.file);
-            if (!result) return undefined;
+            if (!result) return null;
             const { compressedFile, compressedFileData } = result;
             const size = getFileSize(data.file!);
             return {
@@ -221,7 +221,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                     size: size
                 }
             }
-        }))).filter(data => data !== undefined);
+        }))).filter((data): data is NonNullable<typeof data> => data !== null);
 
         const form = new FormData();
         rawDataList.forEach(data => {
@@ -303,7 +303,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                             }
                         }).unwrap();
 
-                        finalData.CafeVirtualLinkThumbnailImage.url = getServerImage(finalData.CafeVirtualLinkThumbnailImage.url);
+                        finalData.CafeVirtualLinkThumbnailImage.url = imageResult.url;
 
                     } catch (e) {
                         throw (e);

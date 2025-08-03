@@ -2,7 +2,7 @@
 
 import { imageResizer } from "@/common/image/imageResizer";
 import { FlexCenter, FlexRow } from "@/common/styledComponents";
-import fetchImage, { getImageSize, getServerImage } from "@/util/fetchImage";
+import fetchImage, { getImageSize } from "@/util/fetchImage";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import ImageUploadCard from "./ImageUploadCard";
 import { default as NextIamge } from 'next/image';
@@ -164,7 +164,7 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
 
             setThumbnails([...props.data].sort((a, b) => a.priority - b.priority).map(data => ({
                 id: data.id,
-                previewUrl: getServerImage(data.url),
+                previewUrl: data.url,
                 isDisable: data.isDisable,
                 width: data.width,
                 height: data.height,
@@ -194,9 +194,9 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
 
     const onChangeImage = async (files: File[]) => {
         if (files.length > 0) {
-            const newThumbnails: (ThumbnailImagePreview)[] = (await Promise.all(files.map(async (file) => {
+            const newThumbnails: ThumbnailImagePreview[] = (await Promise.all(files.map(async (file) => {
                 const compressedFile = await imageResizer(file, { maxSizeMB, maxWidthOrHeight });
-                if (!compressedFile) return;
+                if (!compressedFile) return null;
 
                 let thumbnailFile: File | undefined = undefined;
                 if (props.isThumbnail === true) {
@@ -207,18 +207,16 @@ const ImageUploadPriorityComponent = forwardRef<ImageUploadPriorityComponentHand
 
                 const { height, width } = await getImageSize(compressedFile);
 
-                return (
-                    {
-                        file: compressedFile,
-                        thumbnailFile: thumbnailFile,
-                        previewUrl: URL.createObjectURL(compressedFile),
-                        isDisable: false,
-                        width,
-                        height,
-                        size
-                    }
-                )
-            }))).filter(data => data !== undefined)
+                return {
+                    file: compressedFile,
+                    thumbnailFile: thumbnailFile,
+                    previewUrl: URL.createObjectURL(compressedFile),
+                    isDisable: false,
+                    width,
+                    height,
+                    size
+                };
+            }))).filter((data): data is NonNullable<typeof data> => data !== null)
 
 
 

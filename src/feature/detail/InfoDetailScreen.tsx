@@ -9,7 +9,6 @@ import { fenxyYellowTransparency } from "@/util/constants/style";
 import LinkCard from "./components/LinkCard";
 import ThubmnailImage from "@/common/image/ThumbnailImage";
 import NaverMap from "./components/NaverMap";
-import { getServerImage } from "@/util/fetchImage";
 import { getShortRegionCategoryNameById } from "@/api/regionCategoriesApi";
 
 type PageParams = Awaited<ReturnType<typeof generateStaticParams>>[number]
@@ -47,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<PageParams>
       description: `매력적인 ${cafeInfo.name}(으)로!`,
       url: redirectUrl + `/detail/${cafeInfo.id}`,
       images: {
-        url: cafeInfo.CafeThumbnailImages && cafeInfo.CafeThumbnailImages?.length > 0? new URL(getServerImage(cafeInfo.CafeThumbnailImages[0].url)) : "",
+        url: cafeInfo.CafeThumbnailImages && cafeInfo.CafeThumbnailImages?.length > 0? new URL(cafeInfo.CafeThumbnailImages[0].url) : "",
         width: 1200,
         height: 630,
         alt: cafeInfo.name
@@ -83,7 +82,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
         }}
       >
         <Carousel
-          images={cafeInfo.CafeThumbnailImages?.map((image) => getServerImage(image.url)) ?? []}
+          images={cafeInfo.CafeThumbnailImages?.map((image) => image.url) ?? []}
           interval={5000}
           aspectWidth={16}
           aspectHeight={6}
@@ -141,7 +140,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
                     link={link.url}
                     name={link.name}
                     isAvaliable={link.isAvaliable}
-                    src={link.CafeVirtualLinkThumbnailImage?.url ? getServerImage(link.CafeVirtualLinkThumbnailImage.url) : ""}
+                    src={link.CafeVirtualLinkThumbnailImage?.url ? link.CafeVirtualLinkThumbnailImage.url : ""}
                   />
                 })
               }
@@ -159,7 +158,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
                     key={index}
                     aspectHeight={300}
                     aspectWidth={400}
-                    src={getServerImage(image.url)}
+                    src={image.url}
                   />
                 ))
               }
@@ -190,7 +189,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
                   key={index}
                   aspectHeight={300}
                   aspectWidth={400}
-                  src={getServerImage(image.url)}
+                  src={image.url}
                 />
               ))
             }
