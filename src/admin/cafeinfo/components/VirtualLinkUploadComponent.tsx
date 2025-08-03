@@ -29,7 +29,7 @@ interface Props {
     cafeId?: number,
     // onUpdateImage?: (token: string, thumbanilId: number) => Promise<CafeVirtualLinkThumbnailImagePrimitiveResult>,
     // onUpdateInput?: (linkId: number) => Promise<CafeVirtualLinkPrimitiveResult>,
-    token?: string
+    token?: string,
     // onClickRegister: (link: CafeVirtualLinkCreateInput,
     //     thumbnailImage: CafeVirtualLinkThumbnailImageCreateInput) => void;
 }
@@ -55,7 +55,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }, [linkDataList])
 
     useEffect(() => {
-        if (props.datas) {
+        if (props.datas !== undefined && props.cafeId !== undefined) {
             const initialData = props.datas.filter(data => data.CafeVirtualLinkThumbnailImage != undefined);
             setLinkDataList(initialData.map(data => ({
                 ...data,
@@ -70,7 +70,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                 alert("[가상 링크 업로드] 잘못된 데이터가 포함되었습니다.");
             }
         }
-    }, [props.datas])
+    }, [props.cafeId, props.datas])
 
     const onChangeWrittenImage = async (files: File[]) => {
         if (files.length > 0) {
@@ -164,7 +164,11 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                 newLinkDataList = [
                     {
                         ...resultData,
-                        isDisable: false
+                        CafeVirtualLinkThumbnailImage:{
+                            ...resultData.CafeVirtualLinkThumbnailImage,
+                            url: resultData.CafeVirtualLinkThumbnailImage.url
+                        },
+                        isDisable: resultData.isDisable
                     },
                     ...linkDataList
                 ];
@@ -172,7 +176,8 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
 
             } catch (e) {
                 newLinkDataList = linkDataList;
-                alert(e);
+                alert("VirtualLinkUplaad Create Error");
+                console.log("VirtualLinkUplaad Create Error",e);
             }
 
         } else {
@@ -192,8 +197,8 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }
 
     const getLinkDataList = useCallback(async (token: string): Promise<CreateCafeVirtualLinkWithImageListDto> => {
-        if(linkDataList.length === 0) return ({
-            create:[]
+        if (linkDataList.length === 0) return ({
+            create: []
         })
 
         const rawDataList: CreateRawLinkData[] = (await Promise.all(linkDataList.map(async (data) => {
@@ -259,7 +264,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                     }
                 }).unwrap();
 
-                targetIndex= linkDataList.findIndex(data => data.id === finalData.id);
+                targetIndex = linkDataList.findIndex(data => data.id === finalData.id);
 
             } catch (e) {
                 alert(e);
