@@ -1,0 +1,1 @@
+export { POST, config } from "@/api/routes/uploadImageRoute";
