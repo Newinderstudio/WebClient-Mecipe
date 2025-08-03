@@ -3,7 +3,6 @@
 import ThubmnailImage from "@/common/image/ThumbnailImage";
 import { FlexRow } from "@/common/styledComponents";
 import { CafeInfo } from "@/data/prisma-client";
-import { getServerImage } from "@/util/fetchImage";
 import styled from "@emotion/styled";
 
 export const CardWrapper = styled.button`
@@ -38,7 +37,7 @@ const InfoCard = (props: Props) => {
                 <ThubmnailImage
                     aspectWidth={160}
                     aspectHeight={90}
-                    src={getServerImage(props.data.CafeThumbnailImages[0].thumbnailUrl)}
+                    src={props.data.CafeThumbnailImages[0].thumbnailUrl}
                 /> : undefined
         }
 

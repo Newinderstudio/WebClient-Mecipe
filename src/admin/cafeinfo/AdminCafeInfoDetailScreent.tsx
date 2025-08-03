@@ -196,6 +196,7 @@ function AdminCafeInfoDetailScreen(props: { params: Params }) {
                                 ref={hookMember.virtualLinkHandlerRef}
                                 datas={hookMember.virtualLinks}
                                 token={hookMember.token}
+                                cafeId={Number(id)}
                             />
                         </Flex>
                         {/* </>
