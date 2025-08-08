@@ -6,6 +6,13 @@ export async function GET(request: Request): Promise<NextResponse> {
     const referer = request.headers.get('referer');
     const origin = request.headers.get('origin');
     const host = request.headers.get('host');
+    const userAgent = request.headers.get('user-agent');
+    
+    // 모든 헤더 정보를 로깅하여 디버깅
+    const allHeaders: Record<string, string | null> = {};
+    request.headers.forEach((value, key) => {
+      allHeaders[key] = value;
+    });
     
     // Referer URL 파싱 (클라이언트가 요청을 보낸 페이지 URL)
     let clientUrl = null;
@@ -59,6 +66,32 @@ export async function GET(request: Request): Promise<NextResponse> {
       }
     }
     
+    // 대안적인 방법: Host 헤더를 기반으로 정보 추출
+    let hostInfo = null;
+    if (host) {
+      try {
+        // Host 헤더는 보통 "hostname:port" 형태
+        const [hostname, port] = host.split(':');
+        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        
+        hostInfo = {
+          hostname: hostname,
+          protocol: `${protocol}:`,
+          port: port || 'default',
+          fullUrl: `${protocol}://${host}`,
+          isLocalhost: hostname === 'localhost' || 
+                      hostname === '127.0.0.1' || 
+                      hostname.startsWith('192.168.') ||
+                      hostname.startsWith('10.') ||
+                      hostname.startsWith('172.'),
+          isHttp: protocol === 'http',
+          isHttps: protocol === 'https'
+        };
+      } catch (error) {
+        console.warn('Host 정보 파싱 실패:', error);
+      }
+    }
+    
     const clientInfo = {
       referer: referer,
       origin: origin,
@@ -66,10 +99,15 @@ export async function GET(request: Request): Promise<NextResponse> {
       clientUrl: clientUrl,
       clientUrlInfo: clientUrlInfo,
       originUrlInfo: originUrlInfo,
-      headers: {
-        referer: referer,
-        origin: origin,
-        host: host,
+      hostInfo: hostInfo,
+      allHeaders: allHeaders,
+      debug: {
+        hasReferer: !!referer,
+        hasOrigin: !!origin,
+        hasHost: !!host,
+        refererLength: referer ? referer.length : 0,
+        originLength: origin ? origin.length : 0,
+        userAgent: userAgent
       }
     };
     
