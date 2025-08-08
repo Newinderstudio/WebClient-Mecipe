@@ -1,0 +1,1 @@
+export { GET } from '@/api/routes/getServerUrlRoute';
