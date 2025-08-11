@@ -6,16 +6,12 @@ import { FlexCenter } from '@/common/styledComponents';
 import { fenxyYellowTransparency } from '@/util/constants/style';
 import FullscreenImageRotator from './components/FullscreenImageRotator';
 import { useMainScreen } from './hooks/useMainScreen';
-import ContactUsPopUp from '@/common/popup/ContactUsPopUp';
-import { useSearchParams } from 'next/navigation';
+import HideUrlPopUpWrapper from '@/common/popup/HideUrlPopUpWrapper';
 import { Suspense } from 'react';
 
 function MainScreen() {
 
-    const searchParams = useSearchParams();
-    const isContactUs = searchParams.get('contact') ? true : false;
-
-    const hookMember = useMainScreen({ isContactUs });
+    const hookMember = useMainScreen();
 
     return (
         <UserScreen
@@ -52,14 +48,7 @@ function MainScreen() {
                 />
             </FlexCenter>
             <Suspense>
-                {hookMember.popUpOn && (
-                    <ContactUsPopUp
-                        isOpen={hookMember.popUpOn}
-                        onClose={hookMember.onPopUpClose}
-                        linkUrl="https://newinderstudio.com/contect"
-                        scale={0.5}
-                    />
-                )}
+                <HideUrlPopUpWrapper queryName="contact"/>
             </Suspense>
 
         </UserScreen>
