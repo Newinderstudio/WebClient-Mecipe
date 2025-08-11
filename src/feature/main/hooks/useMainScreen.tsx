@@ -1,5 +1,5 @@
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import * as accountSlice from '@/store/slices/accountSlice';
 import { UserResult } from '@/store/slices/accountSlice';
 import { useTypedSelector } from '@/store';
@@ -9,14 +9,29 @@ interface HookMember {
     user: UserResult | undefined;
     onClickSignin(): void;
     onClickLogout(): void;
-    onSearchText(text:string): void;
+    onSearchText(text: string): void;
+    popUpOn: boolean;
+    onPopUpClose(): void;
 }
 
 export function useMainScreen(): HookMember {
     const user = useTypedSelector((state) => state.account.user);
     const router = useRouter();
 
+    const searchParams = useSearchParams();
+
+    const isContactUs = searchParams.get('contact') ? true : false;
+    const [popUpOn, setPopUpOn] = useState<boolean>(false);
+
     const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        setPopUpOn(isContactUs);
+    }, [isContactUs]);
+
+    const onPopUpClose = () => {
+        setPopUpOn(false);
+    };
 
     useEffect(() => {
         const sessionUserData = sessionStorage.getItem('userData');
@@ -32,8 +47,8 @@ export function useMainScreen(): HookMember {
         router.push('/login');
     };
 
-    const onSearchText = (text:string) => {
-        router.push('/search?searchText='+text);
+    const onSearchText = (text: string) => {
+        router.push('/search?searchText=' + text);
     };
 
     const onClickLogout = () => {
@@ -48,5 +63,7 @@ export function useMainScreen(): HookMember {
         onClickSignin,
         onClickLogout,
         onSearchText,
+        popUpOn,
+        onPopUpClose,
     };
 }

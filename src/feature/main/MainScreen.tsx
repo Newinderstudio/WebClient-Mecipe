@@ -6,6 +6,7 @@ import { FlexCenter } from '@/common/styledComponents';
 import { fenxyYellowTransparency } from '@/util/constants/style';
 import FullscreenImageRotator from './components/FullscreenImageRotator';
 import { useMainScreen } from './hooks/useMainScreen';
+import ContactUsPopUp from '@/common/popup/ContactUsPopUp';
 
 function MainScreen() {
     const hookMember = useMainScreen();
@@ -44,6 +45,14 @@ function MainScreen() {
                     fontWeight={600}
                 />
             </FlexCenter>
+            {hookMember.popUpOn && (
+            <ContactUsPopUp
+                isOpen={hookMember.popUpOn}
+                onClose={hookMember.onPopUpClose}
+                linkUrl="https://newinderstudio.com/contect"
+                scale={0.5}
+            />
+            )}
         </UserScreen>
     );
 };
