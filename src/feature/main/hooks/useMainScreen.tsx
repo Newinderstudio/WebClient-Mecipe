@@ -1,5 +1,5 @@
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import * as accountSlice from '@/store/slices/accountSlice';
 import { UserResult } from '@/store/slices/accountSlice';
 import { useTypedSelector } from '@/store';
@@ -10,26 +10,15 @@ interface HookMember {
     onClickSignin(): void;
     onClickLogout(): void;
     onSearchText(text: string): void;
-    popUpOn: boolean;
-    onPopUpClose(): void;
 }
 
-export function useMainScreen({isContactUs}: {isContactUs: boolean}): HookMember {
+export function useMainScreen(): HookMember {
     const user = useTypedSelector((state) => state.account.user);
     const router = useRouter();
 
 
-    const [popUpOn, setPopUpOn] = useState<boolean>(false);
-
     const dispatch = useAppDispatch();
 
-    useEffect(() => {
-        setPopUpOn(isContactUs);
-    }, [isContactUs]);
-
-    const onPopUpClose = () => {
-        setPopUpOn(false);
-    };
 
     useEffect(() => {
         const sessionUserData = sessionStorage.getItem('userData');
@@ -61,7 +50,5 @@ export function useMainScreen({isContactUs}: {isContactUs: boolean}): HookMember
         onClickSignin,
         onClickLogout,
         onSearchText,
-        popUpOn,
-        onPopUpClose,
     };
 }
