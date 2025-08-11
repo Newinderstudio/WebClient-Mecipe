@@ -1,4 +1,4 @@
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import * as accountSlice from '@/store/slices/accountSlice';
 import { UserResult } from '@/store/slices/accountSlice';
@@ -14,13 +14,11 @@ interface HookMember {
     onPopUpClose(): void;
 }
 
-export function useMainScreen(): HookMember {
+export function useMainScreen({isContactUs}: {isContactUs: boolean}): HookMember {
     const user = useTypedSelector((state) => state.account.user);
     const router = useRouter();
 
-    const searchParams = useSearchParams();
 
-    const isContactUs = searchParams.get('contact') ? true : false;
     const [popUpOn, setPopUpOn] = useState<boolean>(false);
 
     const dispatch = useAppDispatch();
