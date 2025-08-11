@@ -150,7 +150,7 @@ const _SelectBox = styled.div`
   }
   .icoArrow {
     position: absolute; 
-    top: 0.5rem; 
+    top: 50%; 
     right: 0.8rem; 
     z-index: 1; 
     width: 1rem; 
@@ -158,6 +158,7 @@ const _SelectBox = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
+    transform: translateY(-50%);
   }
   .icoArrow img {
     width: 50%;

@@ -46,17 +46,23 @@ function SearchScreen() {
                         <SearchCategoryNavigator
                             onSearchAction={hookMember.onChangeCategory}
                         />
-                        <span
+                        <div
                             style={{
                                 marginLeft: 20,
                                 fontSize: '1.2rem',
                                 padding: '0 1rem',
                                 backgroundColor: '#ddd',
-                                borderRadius: 20
+                                borderRadius: 20,
+                                alignContent: 'center',
                             }}
                         >
-                            검색결과:&nbsp;{hookMember.searchCount}
-                        </span>
+                            <span
+
+                            >
+                                검색결과:&nbsp;{hookMember.searchCount}
+                            </span>
+                        </div>
+
                     </FlexRow>
 
                     <MainSearchComponent
