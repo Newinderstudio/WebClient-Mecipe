@@ -7,9 +7,15 @@ import { fenxyYellowTransparency } from '@/util/constants/style';
 import FullscreenImageRotator from './components/FullscreenImageRotator';
 import { useMainScreen } from './hooks/useMainScreen';
 import ContactUsPopUp from '@/common/popup/ContactUsPopUp';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 function MainScreen() {
-    const hookMember = useMainScreen();
+
+    const searchParams = useSearchParams();
+    const isContactUs = searchParams.get('contact') ? true : false;
+
+    const hookMember = useMainScreen({ isContactUs });
 
     return (
         <UserScreen
@@ -39,20 +45,23 @@ function MainScreen() {
                     full={true}
                     style={{
                         padding: '0 20px',
-                        
+
                     }}
                     fontColor='#fff'
                     fontWeight={600}
                 />
             </FlexCenter>
-            {hookMember.popUpOn && (
-            <ContactUsPopUp
-                isOpen={hookMember.popUpOn}
-                onClose={hookMember.onPopUpClose}
-                linkUrl="https://newinderstudio.com/contect"
-                scale={0.5}
-            />
-            )}
+            <Suspense>
+                {hookMember.popUpOn && (
+                    <ContactUsPopUp
+                        isOpen={hookMember.popUpOn}
+                        onClose={hookMember.onPopUpClose}
+                        linkUrl="https://newinderstudio.com/contect"
+                        scale={0.5}
+                    />
+                )}
+            </Suspense>
+
         </UserScreen>
     );
 };
