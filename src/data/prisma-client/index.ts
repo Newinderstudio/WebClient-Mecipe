@@ -13,6 +13,8 @@ export type User = {
     Boards?: Board[]
     BoardReplies?: BoardReply[]
     Notices?: Notice[]
+    ProxyUsers?: ProxyUser[]
+    CafeCouponHistories?: CafeCouponHistory[]
 }
 
 /**
@@ -136,10 +138,10 @@ export type CafeInfo = {
     ceoName: string
 
     CafeVirtualLinks?: CafeVirtualLink[]
-
     CafeThumbnailImages?: CafeThumbnailImage[]
     CafeVirtualImages?: CafeVirtualImage[]
     CafeRealImages?: CafeRealImage[]
+    CafeCouponGoupPartners?: CafeCouponGoupPartner[]
 
     RegionCategory?: RegionCategory;
 }
@@ -233,6 +235,111 @@ export type CafeVirtualLinkThumbnailImage = {
     CafeVirtualLink?: CafeVirtualLink
 }
 
+/**
+ * Model CafeCouponGroup
+ * 
+ */
+export type CafeCouponGroup = {
+    id?: number
+    createdAt?: Date
+    code: string
+    name: string
+    tag: string
+    description: string
+    isDisable: boolean
+    startDay: Date
+    endDay: Date
+    issuanceStartDay: Date
+    issuanceEndDay: Date
+
+    CafeCoupons?: CafeCoupon[]
+    CafeCouponGoupPartners?: CafeCouponGoupPartner[]
+}
+  
+/**
+ * Model CafeCouponGoupPartner
+ * 
+ */
+export type CafeCouponGoupPartner = {
+    cafeCouponGroupId: number
+    cafeInfoId: number
+
+    CafeCouponGroup?: CafeCouponGroup
+    CafeInfo?: CafeInfo
+}
+  
+/**
+ * Model ProxyUser
+ * 
+ */
+export type ProxyUser = {
+    id?: number
+    memberId: string
+    createdAt?: Date
+    proxyUserType: ProxyUserType
+    name: string
+    token: string
+    userId: number | null
+
+    User?: User
+    CafeCoupons?: CafeCoupon[]
+}
+  
+/**
+ * Model CafeCoupon
+ * 
+ */
+export type CafeCoupon = {
+    id?: number
+    createdAt?: Date
+    name: string
+    content: string
+    serialNumber: string
+    startDay: Date
+    endDay: Date | null
+    isDisable: boolean
+    proxyUserId: number
+    cafeCouponGroupId: number
+
+    ProxyUser?: ProxyUser
+    CafeCouponGroup?: CafeCouponGroup
+    CafeCouponQRCodes?: CafeCouponQRCode[]
+    CafeCouponHistories?: CafeCouponHistory[]
+}
+  
+/**
+ * Model CafeCouponHistory
+ * 
+ */
+export type CafeCouponHistory = {
+    id?: number
+    createdAt?: Date
+    cafeCouponId: number
+    eventType: CafeCouponEventType
+    description: string
+    actorId: number
+    statusBefore: CafeCouponStatus | null
+    statusAfter: CafeCouponStatus | null
+
+    CafeCoupon?: CafeCoupon
+    Actor?: User
+}
+  
+/**
+ * Model CafeCouponQRCode
+ * 
+ */
+export type CafeCouponQRCode = {
+    serialNumber: string
+    createdAt?: Date
+    isDisable: boolean
+    cafeCouponId: number | null
+    size: number
+    base64Data: string
+
+    CafeCoupon?: CafeCoupon
+}
+
 
 /**
  * Enums
@@ -243,7 +350,12 @@ export type CafeVirtualLinkThumbnailImage = {
 
 export const LoginType = {
     LOCAL: 'LOCAL',
-    ADMIN: 'ADMIN'
+    ADMIN: 'ADMIN',
+    KAKAO: 'KAKAO',
+    NAVER: 'NAVER',
+    GOOGLE: 'GOOGLE',
+    APPLE: 'APPLE',
+    ZEPETO: 'ZEPETO'
 };
 
 export type LoginType = (typeof LoginType)[keyof typeof LoginType]
@@ -282,3 +394,32 @@ export const GovermentType = {
 };
 
 export type GovermentType = (typeof GovermentType)[keyof typeof GovermentType]
+
+export const ProxyUserType = {
+    ETC: 'ETC',
+    WEB: 'WEB',
+    ZEPETO: 'ZEPETO',
+    WEV_VIEWER: 'WEV_VIEWER'
+  };
+  
+  export type ProxyUserType = (typeof ProxyUserType)[keyof typeof ProxyUserType]
+
+  export const CafeCouponEventType = {
+    CREATED: 'CREATED',
+    USED: 'USED',
+    REVOKED: 'REVOKED',
+    EXPIRED: 'EXPIRED',
+    UPDATE: 'UPDATE'
+  };
+  
+  export type CafeCouponEventType = (typeof CafeCouponEventType)[keyof typeof CafeCouponEventType]
+  
+  
+  export const CafeCouponStatus = {
+    ACTIVE: 'ACTIVE',
+    USED: 'USED',
+    REVOKED: 'REVOKED',
+    EXPIRED: 'EXPIRED'
+  };
+  
+  export type CafeCouponStatus = (typeof CafeCouponStatus)[keyof typeof CafeCouponStatus]
