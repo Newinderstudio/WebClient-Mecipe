@@ -51,6 +51,8 @@ export type Board = {
     User?: User
     BoardImages?: BoardImage[]
     BoardReplies?: BoardReply[]
+
+    CafeBoards?: CafeBoard[]
 }
 
 /**
@@ -61,6 +63,7 @@ export type BoardImage = {
     id?: number
     createdAt?: Date | string
     url: string
+    thumbnailUrl: string
     width: number
     height: number
     size: number
@@ -83,7 +86,6 @@ export type BoardReply = {
     userId: number
     boardId: number
     boardReplyId?: number
-    boardType: BoardType
 
     Board?: Board
     User?: User
@@ -91,6 +93,12 @@ export type BoardReply = {
     BoardReply?: BoardReply
     BoardNestedReplies?: BoardReply[]
 }
+
+export type CafeBoard = {
+    boardId: number
+    cafeInfoId: number
+    createdAt: Date
+  }
 
 /**
  * Model RegionCategory
@@ -144,6 +152,8 @@ export type CafeInfo = {
     CafeCouponGoupPartners?: CafeCouponGoupPartner[]
 
     RegionCategory?: RegionCategory;
+
+    CafeBoards?: CafeBoard[]
 }
 
 /**
