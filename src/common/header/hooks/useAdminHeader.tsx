@@ -26,6 +26,7 @@ export const navArray = [
   { title: '카페관리', name: '카페관리', url: '/admin/cafeinfo' },
   { title: '지역카테고리관리', name: '지역카테고리관리', url: '/admin/region' },
   { title: '쿠폰관리', name: '쿠폰관리', url: '/admin/coupons' },
+  { title: '게시판관리', name: '게시판관리', url: '/admin/board' },
 ];
 
 export function useAdminHeader(): hookMember {

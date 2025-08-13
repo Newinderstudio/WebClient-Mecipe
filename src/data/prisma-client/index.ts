@@ -42,11 +42,12 @@ export type Board = {
     title: string
     content: string | null
     link: string | null
-    startDay: Date
-    endDay: Date
+    startDay: Date | string
+    endDay: Date | string
     isDisable: boolean
     userId: number
     boardType: BoardType
+    isReplyAvaliable: boolean
 
     User?: User
     BoardImages?: BoardImage[]
@@ -68,6 +69,7 @@ export type BoardImage = {
     height: number
     size: number
     isThumb: boolean
+    isDisable: boolean
     boardId: number
 
     Board?: Board
@@ -383,7 +385,8 @@ export type UserType = (typeof UserType)[keyof typeof UserType]
 export const BoardType = {
     BTALK: 'BTALK',
     BINFORM: 'BINFORM',
-    BQUESTION: 'BQUESTION'
+    BQUESTION: 'BQUESTION',
+    BEVENT: 'BEVENT'
 };
 
 export type BoardType = (typeof BoardType)[keyof typeof BoardType]

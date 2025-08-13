@@ -1,13 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { fetchCompatBaseQuery } from '@/util/fetchCompatBaseQuery';
 import { MakePrimitiveRequiredWithObject, FilteredPropertiesOnlyPrimitiveAndEnum, DeepPartial } from '@/util/types';
-import { 
-  CreateBoardDto, 
-  CreateBoardImageDto, 
-  CreateBoardReplyDto, 
-  UpdateBoardDto, 
-  UpdateBoardImageDto, 
-  UpdateBoardReplyDto, 
+import {
+  CreateBoardDto,
+  CreateBoardImageDto,
+  CreateBoardReplyDto,
+  UpdateBoardDto,
+  UpdateBoardImageDto,
+  UpdateBoardReplyDto,
   SearchBoardDto,
   BoardWithUser,
   Board,
@@ -25,7 +25,7 @@ export const boardsApi = createApi({
   tagTypes: ['Boards', 'Board', 'BoardImage', 'BoardReply'],
   endpoints: (builder) => ({
     // NOTE endpoint 함수의 이름은 find, create, update, remove 로 무조건 시작한다
-    
+
     // Board 생성
     createBoard: builder.mutation<BoardResult, { body: CreateBoardDto }>({
       query: (arg) => ({
@@ -40,7 +40,7 @@ export const boardsApi = createApi({
     findAllBoards: builder.mutation<BoardListResponse, SearchBoardDto>({
       query: (searchDto = {}) => {
         const queryParams = new URLSearchParams();
-        
+
         if (searchDto.boardType) queryParams.append('boardType', searchDto.boardType);
         if (searchDto.startDay) queryParams.append('startDay', searchDto.startDay);
         if (searchDto.endDay) queryParams.append('endDay', searchDto.endDay);
@@ -51,6 +51,28 @@ export const boardsApi = createApi({
         if (searchDto.cafeInfoId) queryParams.append('cafeInfoId', searchDto.cafeInfoId.toString());
 
         const url = queryParams.toString() ? `?${queryParams.toString()}` : '';
+        return {
+          method: 'GET',
+          url,
+        };
+      },
+    }),
+
+    // Board 조회 (검색 및 페이징)
+    findAllBoardsByAdmin: builder.mutation<BoardListResponse, SearchBoardDto>({
+      query: (searchDto = {}) => {
+        const queryParams = new URLSearchParams();
+
+        if (searchDto.boardType) queryParams.append('boardType', searchDto.boardType);
+        if (searchDto.startDay) queryParams.append('startDay', searchDto.startDay);
+        if (searchDto.endDay) queryParams.append('endDay', searchDto.endDay);
+        if (searchDto.title) queryParams.append('title', searchDto.title);
+        if (searchDto.content) queryParams.append('content', searchDto.content);
+        if (searchDto.page) queryParams.append('page', searchDto.page.toString());
+        if (searchDto.limit) queryParams.append('limit', searchDto.limit.toString());
+        if (searchDto.cafeInfoId) queryParams.append('cafeInfoId', searchDto.cafeInfoId.toString());
+
+        const url = "admin" + (queryParams.toString() ? `?${queryParams.toString()}` : '');
         return {
           method: 'GET',
           url,
@@ -167,7 +189,7 @@ export const boardsApi = createApi({
     findAllBoardsByCafeInfo: builder.mutation<BoardListResponse, { cafeInfoId: number; searchDto?: SearchBoardDto }>({
       query: ({ cafeInfoId, searchDto = {} }) => {
         const queryParams = new URLSearchParams();
-        
+
         if (searchDto.boardType) queryParams.append('boardType', searchDto.boardType);
         if (searchDto.startDay) queryParams.append('startDay', searchDto.startDay);
         if (searchDto.endDay) queryParams.append('endDay', searchDto.endDay);
@@ -176,10 +198,10 @@ export const boardsApi = createApi({
         if (searchDto.page) queryParams.append('page', searchDto.page.toString());
         if (searchDto.limit) queryParams.append('limit', searchDto.limit.toString());
 
-        const url = queryParams.toString() 
-          ? `cafe/${cafeInfoId}?${queryParams.toString()}` 
+        const url = queryParams.toString()
+          ? `cafe/${cafeInfoId}?${queryParams.toString()}`
           : `cafe/${cafeInfoId}`;
-        
+
         return {
           method: 'GET',
           url,
@@ -193,20 +215,21 @@ export const {
   // Board 관련
   useCreateBoardMutation,
   useFindAllBoardsMutation,
+  useFindAllBoardsByAdminMutation,
   useFindOneBoardQuery,
   useUpdateBoardMutation,
   useRemoveBoardMutation,
-  
+
   // BoardImage 관련
   useCreateBoardImageMutation,
   useUpdateBoardImageMutation,
   useRemoveBoardImageMutation,
-  
+
   // BoardReply 관련
   useCreateBoardReplyMutation,
   useUpdateBoardReplyMutation,
   useRemoveBoardReplyMutation,
-  
+
   // 특별 기능
   useFindAllBoardsByCafeInfoMutation,
 } = boardsApi;

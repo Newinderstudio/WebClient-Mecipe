@@ -27,6 +27,8 @@ export type CreateBoardDto = {
     isReplyAvaliable?: boolean;
     boardType?: BoardType;
     cafeInfoIds?: number[];
+
+    boardImages?: CreateBoardImageDto[];
 }
 
 export type SearchBoardDto = {
@@ -47,6 +49,7 @@ export type UpdateBoardImageDto = {
     height?: number;
     size?: number;
     isThumb?: boolean;
+    isDisable?: boolean;
 }
 
 export type UpdateBoardReplyDto = {
@@ -62,6 +65,9 @@ export type UpdateBoardDto = {
     isReplyAvaliable?: boolean;
     boardType?: BoardType;
     cafeInfoIds?: number[];
+
+    boardImages?: CreateBoardImageDto[];
+    removeImageIds?: number[];
 }
 
 // User만 포함된 Board 타입

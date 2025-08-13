@@ -18,11 +18,14 @@ const GetSeoulTime = ({
   if (typeof time !== 'string') {
     time = time.toString();
   }
+
+  const date = dayjsWithTimezone(time);
+
   return (
     <div >
-      <span >{dayjsWithTimezone().year()}년</span>
-      <span style ={{marginLeft:'0.3rem'}}>{dayjsWithTimezone().month() + 1}월</span>
-      <span style ={{marginLeft:'0.3rem'}}>{dayjsWithTimezone().date()}일</span>
+      <span >{date.year()}년</span>
+      <span style ={{marginLeft:'0.3rem'}}>{date.month() + 1}월</span>
+      <span style ={{marginLeft:'0.3rem'}}>{date.date()}일</span>
     </div>
   );
 };
