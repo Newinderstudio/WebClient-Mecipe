@@ -180,6 +180,11 @@ export const useAdminBoardCreateScreen = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    if(isCreatingCafe) {
+      alert('이미 생성 중입니다.');
+      return;
+    }
+
     if (!formData.boardType) {
       alert('게시판 타입을 선택해주세요.');
       return;
@@ -238,27 +243,22 @@ export const useAdminBoardCreateScreen = () => {
 
       }
 
-      // startDay: UTC+9
-      const startDay = new Date(formData.startDay);
-      startDay.setHours(startDay.getHours() + 9);
-      formData.startDay = startDay.toISOString();
+      // startDay: 해당 날짜 00:00:01 (한국 시간)으로 DB에 저장
+      const startDay = new Date(formData.startDay + 'T00:00:01+09:00');
 
-      // endDay: 자정으로 변경
-      if (!noEndDate) {
-        const endDay = new Date(formData.endDay || '');
-        endDay.setHours(endDay.getHours() + 9 + 23);
-        endDay.setMinutes(endDay.getMinutes() + 59);
-        endDay.setSeconds(endDay.getSeconds() + 59);
-        endDay.setMilliseconds(endDay.getMilliseconds() + 999);
-        formData.endDay = endDay.toISOString();
+      // endDay: 해당 날짜 23:59:59.999 (한국 시간)으로 DB에 저장
+      let koreaEndTime: string | undefined = undefined;
+      if (!noEndDate && formData.endDay) {
+        const endDay = new Date(formData.endDay + 'T23:59:59.999+09:00');
+        koreaEndTime = endDay.toISOString();
       }
 
-      // 게시판 생성
+      // 게시판 생성 (한국 시간으로 변환된 값들을 DB에 저장)
       const board = await createBoard({
         body: {
           ...formData,
-          startDay: formData.startDay || undefined,
-          endDay: noEndDate ? undefined : (formData.endDay || undefined),
+          startDay: startDay.toISOString(),
+          endDay: noEndDate ? undefined : koreaEndTime,
           boardImages: boardImages ?? undefined
         }
       });

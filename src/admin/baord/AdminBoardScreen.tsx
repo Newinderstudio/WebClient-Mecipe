@@ -7,6 +7,7 @@ import { BorderRoundedContent, ContentHeader, InputStyle, StyledButton } from '@
 import { Flex, FlexRow } from '@/common/styledComponents';
 import { fenxyBlue } from '@/util/constants/style';
 import GetSeoulTime from '@/common/time/GetSeoulTime';
+import { BoardType } from '@/data/prisma-client';
 
 const AdminBoardScreen: React.FC = () => {
   const hookMember = useAdminBoardScreen();
@@ -146,7 +147,14 @@ const AdminBoardScreen: React.FC = () => {
             <AdminTable
               headers={[
                 { name: '제목', minWidth: 300, selector: 'title' },
-                { name: '타입', minWidth: 100, selector: 'boardType' },
+                {
+                  name: '타입',
+                  minWidth: 100,
+                  selector: 'boardType',
+                  cell: ({ data }) => {
+                    return <div>{data.boardType === BoardType.BINFORM ? '공지사항' : data.boardType === BoardType.BEVENT ? '이벤트' : data.boardType === BoardType.BTALK ? '토크' : data.boardType === BoardType.BQUESTION ? '질문' : '-'}</div>;
+                  }
+                },
                 {
                   name: '시작일',
                   selector: 'startDay',

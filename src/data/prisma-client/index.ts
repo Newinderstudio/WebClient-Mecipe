@@ -100,6 +100,9 @@ export type CafeBoard = {
     boardId: number
     cafeInfoId: number
     createdAt: Date
+
+    Board?: Board
+    CafeInfo?: CafeInfo
   }
 
 /**

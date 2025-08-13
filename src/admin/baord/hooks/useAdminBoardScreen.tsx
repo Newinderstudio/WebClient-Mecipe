@@ -118,11 +118,10 @@ export const useAdminBoardScreen = () => {
 
   const boardTypeOptions = [
     { value: undefined, label: '전체' },
-    { value: 'NOTICE', label: '공지사항' },
-    { value: 'EVENT', label: '이벤트' },
-    { value: 'NEWS', label: '뉴스' },
-    { value: 'FAQ', label: 'FAQ' },
-    { value: 'GENERAL', label: '일반' }
+    { value: BoardType.BINFORM, label: '공지사항' },
+    { value: BoardType.BEVENT, label: '이벤트' },
+    { value: BoardType.BTALK, label: '토크' },
+    { value: BoardType.BQUESTION, label: '질문' },
   ];
 
   const deleteBoard = useCallback(async (id: number) => {

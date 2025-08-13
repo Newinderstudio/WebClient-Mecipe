@@ -10,6 +10,7 @@ export type CreateBoardImageDto = {
     height: number;
     size: number;
     isThumb?: boolean;
+    isDisable?: boolean;
 }
 
 export type CreateBoardReplyDto = {
