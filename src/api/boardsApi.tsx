@@ -49,6 +49,8 @@ export const boardsApi = createApi({
         if (searchDto.page) queryParams.append('page', searchDto.page.toString());
         if (searchDto.limit) queryParams.append('limit', searchDto.limit.toString());
         if (searchDto.cafeInfoId) queryParams.append('cafeInfoId', searchDto.cafeInfoId.toString());
+        if (searchDto.notInProgressDay) queryParams.append('notInProgressDay', searchDto.notInProgressDay);
+        if (searchDto.inProgressDay) queryParams.append('inProgressDay', searchDto.inProgressDay);
 
         const url = queryParams.toString() ? `?${queryParams.toString()}` : '';
         return {
@@ -56,6 +58,7 @@ export const boardsApi = createApi({
           url,
         };
       },
+      invalidatesTags: (result) => result?.boards.map(board => ({ type: 'Boards', id: board.id })) || []
     }),
 
     // Board 조회 (검색 및 페이징)
@@ -71,6 +74,8 @@ export const boardsApi = createApi({
         if (searchDto.page) queryParams.append('page', searchDto.page.toString());
         if (searchDto.limit) queryParams.append('limit', searchDto.limit.toString());
         if (searchDto.cafeInfoId) queryParams.append('cafeInfoId', searchDto.cafeInfoId.toString());
+        if (searchDto.notInProgressDay) queryParams.append('notInProgressDay', searchDto.notInProgressDay);
+        if (searchDto.inProgressDay) queryParams.append('inProgressDay', searchDto.inProgressDay);
 
         const url = "admin" + (queryParams.toString() ? `?${queryParams.toString()}` : '');
         return {
@@ -78,6 +83,7 @@ export const boardsApi = createApi({
           url,
         };
       },
+      invalidatesTags: (result) => result?.boards.map(board => ({ type: 'Boards', id: board.id })) || []
     }),
 
     // Board 상세 조회
@@ -236,7 +242,7 @@ export const {
 
 // 응답 타입 정의
 interface BoardListResponse {
-  boards: BoardResult[];
+  boards: Omit<BoardResult, "BoardReplies">[];
   pagination: {
     page: number;
     limit: number;

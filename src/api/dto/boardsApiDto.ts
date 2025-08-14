@@ -41,6 +41,9 @@ export type SearchBoardDto = {
     page?: number;
     limit?: number
     cafeInfoId?: number;
+
+    notInProgressDay?: string;
+    inProgressDay?: string;
 }
 
 export type UpdateBoardImageDto = {

@@ -15,8 +15,14 @@ module.exports = {
         port: '',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: '3nqndz90t07d5lyh.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
-    minimumCacheTTL: 25200, // 일주일간 캐시 유지
+    minimumCacheTTL: 100800, // 한달간 캐시 유지
   }
 }
 
