@@ -2,7 +2,7 @@
 
 import { FlexCenter, FlexRow } from "@/common/styledComponents";
 import styled from "@emotion/styled";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 const SearchInput = styled.input`
@@ -40,7 +40,8 @@ interface Props {
     fontColor?: string,
     iconBlack?: boolean,
     initialSearchText?: string,
-    fontWeight?: string | number
+    fontWeight?: string | number,
+    initSearchText?: string
 }
 
 function MainSearchComponent(props: Props) {
@@ -50,6 +51,10 @@ function MainSearchComponent(props: Props) {
     const onChangeSearchText = (text: string) => {
         setSearchText(text);
     }
+
+    useEffect(() => {
+        setSearchText(props.initSearchText ?? '');
+    }, [props.initSearchText]);
 
     const onClickSearch = () => {
         //

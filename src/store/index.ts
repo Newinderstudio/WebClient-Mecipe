@@ -20,6 +20,7 @@ import { cafeVirtualImagesApi } from '@/api/cafeVirtualImagesApi';
 import { cafeVirtualLinksApi } from '@/api/cafeVirtualLinksApi';
 import { regionCategoriesApi } from '@/api/regionCategoriesApi';
 import { couponsApi } from '@/api/couponsApi';
+import { boardsApi } from '@/api/boardsApi';
 
 const reducer = combineReducers({
   [examplesApi.reducerPath]: examplesApi.reducer,
@@ -31,6 +32,7 @@ const reducer = combineReducers({
   [cafeVirtualLinksApi.reducerPath]: cafeVirtualLinksApi.reducer,
   [regionCategoriesApi.reducerPath]: regionCategoriesApi.reducer,
   [couponsApi.reducerPath]: couponsApi.reducer,
+  [boardsApi.reducerPath]: boardsApi.reducer,
   account: accountSlice,
 });
 
@@ -47,6 +49,7 @@ export const store = configureStore({
       .concat(cafeVirtualLinksApi.middleware)
       .concat(regionCategoriesApi.middleware)
       .concat(couponsApi.middleware)
+      .concat(boardsApi.middleware)
   ,
   devTools: process.env.NODE_ENV !== 'production',
 });

@@ -42,15 +42,18 @@ export type Board = {
     title: string
     content: string | null
     link: string | null
-    startDay: Date
-    endDay: Date
+    startDay: Date | string
+    endDay: Date | string
     isDisable: boolean
     userId: number
     boardType: BoardType
+    isReplyAvaliable: boolean
 
     User?: User
     BoardImages?: BoardImage[]
     BoardReplies?: BoardReply[]
+
+    CafeBoards?: CafeBoard[]
 }
 
 /**
@@ -61,10 +64,12 @@ export type BoardImage = {
     id?: number
     createdAt?: Date | string
     url: string
+    thumbnailUrl: string
     width: number
     height: number
     size: number
     isThumb: boolean
+    isDisable: boolean
     boardId: number
 
     Board?: Board
@@ -83,7 +88,6 @@ export type BoardReply = {
     userId: number
     boardId: number
     boardReplyId?: number
-    boardType: BoardType
 
     Board?: Board
     User?: User
@@ -91,6 +95,15 @@ export type BoardReply = {
     BoardReply?: BoardReply
     BoardNestedReplies?: BoardReply[]
 }
+
+export type CafeBoard = {
+    boardId: number
+    cafeInfoId: number
+    createdAt: Date
+
+    Board?: Board
+    CafeInfo?: CafeInfo
+  }
 
 /**
  * Model RegionCategory
@@ -144,6 +157,8 @@ export type CafeInfo = {
     CafeCouponGoupPartners?: CafeCouponGoupPartner[]
 
     RegionCategory?: RegionCategory;
+
+    CafeBoards?: CafeBoard[]
 }
 
 /**
@@ -373,7 +388,8 @@ export type UserType = (typeof UserType)[keyof typeof UserType]
 export const BoardType = {
     BTALK: 'BTALK',
     BINFORM: 'BINFORM',
-    BQUESTION: 'BQUESTION'
+    BQUESTION: 'BQUESTION',
+    BEVENT: 'BEVENT'
 };
 
 export type BoardType = (typeof BoardType)[keyof typeof BoardType]
