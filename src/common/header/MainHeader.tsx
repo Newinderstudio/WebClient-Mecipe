@@ -93,7 +93,7 @@ const MainHeader = (props: Props) => {
 
         }
 
-        style={{ ...overlapStyle }}
+        style={{ ...overlapStyle, zIndex: 1 }}
         headerStyle={{ ...overlapHeaderStyle }}
     />
 }
