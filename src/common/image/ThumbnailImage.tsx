@@ -10,28 +10,31 @@ const ThumbnailBox = styled.div`
   overflow: hidden;
 `
 
-const ThumbnailContent = (props: ImageProps) => <Image {...props}
-    src={props.src}
-    alt={props.alt}
-    objectFit="cover"
-    layout="fill"
-    style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        objectPosition: 'center',
-    }}
+const ThumbnailContent = (props: ImageProps) => (
+    <div
+        style={{
+            position: 'relative',
+            ...props.style
+        }}
+    >
+        <Image
+            src={props.src}
+            alt={props.alt}
+            objectFit="cover"
+            layout="fill"
 
-/>
+        />
+    </div>
+)
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
     aspectWidth: number
-    aspectHeight:number
-    src:string
+    aspectHeight: number
+    src: string
 }
 
 const ThubmnailImage = (props: Props) => {
-    
+
     const aspectRatio = `${props.aspectWidth}/${props.aspectHeight}`;
 
     return (
