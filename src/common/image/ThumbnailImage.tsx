@@ -1,6 +1,7 @@
 "use client"
 
 import styled from "@emotion/styled"
+import Image, { ImageProps } from "next/image"
 
 const ThumbnailBox = styled.div`
   width: 100%;
@@ -9,12 +10,19 @@ const ThumbnailBox = styled.div`
   overflow: hidden;
 `
 
-const ThumbnailContent = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;      // ✅ 이미지 잘라도 비율 유지
-  object-position: center;
-`
+const ThumbnailContent = (props: ImageProps) => <Image {...props}
+    src={props.src}
+    alt={props.alt}
+    objectFit="cover"
+    layout="fill"
+    style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'center',
+    }}
+
+/>
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
     aspectWidth: number
