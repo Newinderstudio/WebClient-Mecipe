@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useFindAllBoardsMutation, BoardResult } from '@/api/boardsApi';
 import styled from '@emotion/styled';
 import Image, { ImageProps } from 'next/image';
@@ -19,6 +19,12 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
     const [endedEvents, setEndedEvents] = useState<BoardResult[]>([]);
     const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
     const [loading, setLoading] = useState(true);
+
+    // 슬라이더 ref와 이미지 로드 카운트
+    const todaySliderRef = useRef<HTMLDivElement>(null);
+    const tabSliderRef = useRef<HTMLDivElement>(null);
+    const todayLoadedImageCount = useRef(0);
+    const tabLoadedImageCount = useRef(0);
 
     // 오늘 날짜를 YYYY-MM-DD 형식으로 가져오기
     const getTodayString = () => {
@@ -50,7 +56,30 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
     const createInfiniteScrollEvents = (events: BoardResult[]) => {
         const eventsWithPlaceholders = getEventsWithPlaceholders(events, 5);
         // 5개씩 3번 복제하여 연속적인 스크롤 효과 생성
-        return [...eventsWithPlaceholders, ...eventsWithPlaceholders, ...eventsWithPlaceholders];
+        return [
+            ...eventsWithPlaceholders, 
+            ...eventsWithPlaceholders, 
+            ...eventsWithPlaceholders
+        ];
+    };
+
+    // 이미지 로드 완료 핸들러
+    const handleImageLoad = (sliderRef: React.RefObject<HTMLDivElement | null>, loadedCountRef: React.MutableRefObject<number>, eventCount: number) => {
+        loadedCountRef.current += 1;
+
+        if (sliderRef.current && loadedCountRef.current === eventCount * 3) {
+            // 모든 이미지가 로드되면 총 너비 계산
+            const totalWidth = Array.from(sliderRef.current.children).reduce(
+                (total, child) => total + (child as HTMLElement).getBoundingClientRect().width,
+                0
+            );
+
+            // 1/3만큼 이동하여 자연스러운 무한 루프 구현
+            const translateValue = `-${totalWidth / 3}px`;
+
+            // CSS 변수로 설정
+            sliderRef.current.style.setProperty('--carousel-translate', translateValue);
+        }
     };
 
     useEffect(() => {
@@ -122,7 +151,20 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                 <SectionTitle>오늘의 이벤트</SectionTitle>
                 <SectionSubtitle>지금 가장 인기 있는 이벤트</SectionSubtitle>
                 <EventSlider>
-                    <EventSliderContent>
+                    <EventSliderContent
+                        ref={todaySliderRef}
+                        className="animate-todayEventSlide"
+                        onMouseEnter={() => {
+                            if (todaySliderRef.current) {
+                                todaySliderRef.current.style.animationPlayState = 'paused';
+                            }
+                        }}
+                        onMouseLeave={() => {
+                            if (todaySliderRef.current) {
+                                todaySliderRef.current.style.animationPlayState = 'running';
+                            }
+                        }}
+                    >
                         {createInfiniteScrollEvents(todayEvents).map((event, index) => (
                             <EventCard key={`today-${event?.id || index}-${index}`}
                                 onClick={() => {
@@ -132,7 +174,11 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                                 }}
                             >
                                 {event?.BoardImages && event.BoardImages.length > 0 ? (
-                                    <EventImage src={event.BoardImages[0].thumbnailUrl} alt={event.title} />
+                                    <EventImage 
+                                        src={event.BoardImages[0].thumbnailUrl} 
+                                        alt={event.title}
+                                        onLoad={() => handleImageLoad(todaySliderRef, todayLoadedImageCount, todayEvents.length)}
+                                    />
                                 ) : (
                                     <EventImagePlaceholder />
                                 )}
@@ -163,7 +209,20 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                 </TabContainer>
 
                 <EventSlider>
-                    <EventSliderContent>
+                    <EventSliderContent
+                        ref={tabSliderRef}
+                        className="animate-tabEventSlide"
+                        onMouseEnter={() => {
+                            if (tabSliderRef.current) {
+                                tabSliderRef.current.style.animationPlayState = 'paused';
+                            }
+                        }}
+                        onMouseLeave={() => {
+                            if (tabSliderRef.current) {
+                                tabSliderRef.current.style.animationPlayState = 'running';
+                            }
+                        }}
+                    >
                         {createInfiniteScrollEvents(activeTab === 'ongoing' ? ongoingEvents : endedEvents).map((event, index) => (
                             <EventCard key={`${activeTab}-${event?.id || index}-${index}`}
                                 onClick={() => {
@@ -173,7 +232,11 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                                 }}
                             >
                                 {event?.BoardImages && event.BoardImages.length > 0 ? (
-                                    <EventImage src={event.BoardImages[0].thumbnailUrl} alt={event.title} />
+                                    <EventImage 
+                                        src={event.BoardImages[0].thumbnailUrl} 
+                                        alt={event.title}
+                                        onLoad={() => handleImageLoad(tabSliderRef, tabLoadedImageCount, (activeTab === 'ongoing' ? ongoingEvents : endedEvents).length)}
+                                    />
                                 ) : (
                                     <EventImagePlaceholder />
                                 )}
@@ -279,17 +342,39 @@ const EventSlider = styled.div`
 const EventSliderContent = styled.div`
   display: flex;
   gap: 20px;
-  animation: slideLeft 60s linear infinite;
   
-  @keyframes slideLeft {
+  /* CSS 변수 사용 */
+  --carousel-translate: 0px;
+  
+  /* 애니메이션 적용 */
+  &.animate-todayEventSlide {
+    animation: todayEventSlide 15s linear infinite;
+  }
+  
+  &.animate-tabEventSlide {
+    animation: tabEventSlide 15s linear infinite;
+  }
+  
+  /* 애니메이션 정의 */
+  @keyframes todayEventSlide {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-33.33%);
+      transform: translateX(var(--carousel-translate));
     }
   }
   
+  @keyframes tabEventSlide {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(var(--carousel-translate));
+    }
+  }
+  
+  /* 호버 시 일시정지 */
   &:hover {
     animation-play-state: paused;
   }
@@ -310,7 +395,7 @@ const EventCard = styled.div`
   }
 `;
 
-const EventImage = (props: ImageProps) => (<div
+const EventImage = (props: ImageProps & { onLoad?: () => void }) => (<div
     style={{
         width: '100%',
         height: '180px',
@@ -322,6 +407,7 @@ const EventImage = (props: ImageProps) => (<div
         alt={props.alt}
         objectFit="cover"
         layout="fill"
+        onLoad={props.onLoad}
     />
 </div>)
 
