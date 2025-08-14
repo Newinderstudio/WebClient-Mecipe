@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { useFindAllBoardsMutation, BoardResult } from '@/api/boardsApi';
 import styled from '@emotion/styled';
 import Image, { ImageProps } from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface EventDisplayComponentProps {
     className?: string;
 }
 
 const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className }) => {
+
+    const router = useRouter();
     const [findAllBoards] = useFindAllBoardsMutation();
     const [todayEvents, setTodayEvents] = useState<BoardResult[]>([]);
     const [ongoingEvents, setOngoingEvents] = useState<BoardResult[]>([]);
@@ -121,7 +124,13 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                 <EventSlider>
                     <EventSliderContent>
                         {createInfiniteScrollEvents(todayEvents).map((event, index) => (
-                            <EventCard key={`today-${event?.id || index}-${index}`}>
+                            <EventCard key={`today-${event?.id || index}-${index}`}
+                                onClick={() => {
+                                    if (event?.CafeBoards?.[0]?.cafeInfoId) {
+                                        router.push(`/detail/${event.CafeBoards[0].cafeInfoId}`);
+                                    }
+                                }}
+                            >
                                 {event?.BoardImages && event.BoardImages.length > 0 ? (
                                     <EventImage src={event.BoardImages[0].thumbnailUrl} alt={event.title} />
                                 ) : (
@@ -156,7 +165,13 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                 <EventSlider>
                     <EventSliderContent>
                         {createInfiniteScrollEvents(activeTab === 'ongoing' ? ongoingEvents : endedEvents).map((event, index) => (
-                            <EventCard key={`${activeTab}-${event?.id || index}-${index}`}>
+                            <EventCard key={`${activeTab}-${event?.id || index}-${index}`}
+                                onClick={() => {
+                                    if (event?.CafeBoards?.[0]?.CafeInfo?.id) {
+                                        router.push(`/detail/${event.CafeBoards[0].CafeInfo.id}`);
+                                    }
+                                }}
+                            >
                                 {event?.BoardImages && event.BoardImages.length > 0 ? (
                                     <EventImage src={event.BoardImages[0].thumbnailUrl} alt={event.title} />
                                 ) : (
@@ -287,6 +302,7 @@ const EventCard = styled.div`
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
   
   &:hover {
     transform: translateY(-4px);
