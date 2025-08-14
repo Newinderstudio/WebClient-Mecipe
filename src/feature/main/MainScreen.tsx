@@ -14,40 +14,139 @@ function MainScreen() {
     const hookMember = useMainScreen();
     const eventSectionRef = useRef<HTMLDivElement>(null);
     const userScreenRef = useRef<HTMLDivElement>(null);
-    const [lastScrollY, setLastScrollY] = useState(0);
+    const [currentSection, setCurrentSection] = useState<'section1' | 'section2'>('section1');
+    const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+
+    const [scrollTimeout, setScrollTimeout] = useState<NodeJS.Timeout | null>(null);
+
+    // const handleScroll = useCallback(() => {
+    //     if (isAutoScrolling) return; // 자동 스크롤 중이면 무시
+
+    //     const currentScrollY = window.scrollY;
+
+    //     // 섹션 1에서 아래로 100px 이상 스크롤하면 섹션 2로 이동
+    //     if (currentSection === 'section1' && currentScrollY > 100 && eventSectionRef.current) {
+    //         setIsAutoScrolling(true);
+    //         setCurrentSection('section2');
+    //         eventSectionRef.current.scrollIntoView({
+    //             behavior: 'smooth',
+    //             block: 'start'
+    //         });
+
+    //         if (scrollTimeout) clearTimeout(scrollTimeout);
+    //         // 스크롤 완료 후 잠금 해제
+    //         setScrollTimeout(setTimeout(() => {
+    //             setIsAutoScrolling(false);
+    //         }, 2000));
+    //     }
+
+    //     // 섹션 2에서 위로 올라가면 섹션 1로 이동 (섹션 2 영역을 벗어날 때)
+    //     else if (currentSection === 'section2' && eventSectionRef.current) {
+    //         const eventSectionTop = eventSectionRef.current.offsetTop;
+    //         if (currentScrollY < eventSectionTop - 50) { // 섹션 2 시작점에서 50px 위로 올라가면
+    //             setIsAutoScrolling(true);
+    //             setCurrentSection('section1');
+    //             userScreenRef.current?.scrollIntoView({
+    //                 behavior: 'smooth',
+    //                 block: 'start'
+    //             });
+
+    //             if (scrollTimeout) clearTimeout(scrollTimeout);
+    //             // 스크롤 완료 후 잠금 해제
+    //             setScrollTimeout(setTimeout(() => {
+    //                 setIsAutoScrolling(false);
+    //             }, 2000));
+    //         }
+    //     }
+    // }, [currentSection, isAutoScrolling, scrollTimeout]);
+
+    // const handleScrollEnd = useCallback(() => {
+    //     if (isAutoScrolling) {
+    //         setTimeout(() => {
+    //             setIsAutoScrolling(false);
+    //         }, 500);
+    //     }
+    // }, [isAutoScrolling]);
 
     useEffect(() => {
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            const scrollDirection = currentScrollY > lastScrollY;
-            const documentHeight = document.documentElement.scrollHeight;
-            const windowHeight = window.innerHeight;
-            const scrollPercentage = (currentScrollY / (documentHeight - windowHeight)) * 100;
-            
-            // 스크롤 방향이 아래로이고, UserScreen 영역을 벗어나려고 할 때 (페이지 하단 80% 이전까지만)
-            if (scrollDirection && currentScrollY > 100 && scrollPercentage < 80 && eventSectionRef.current) {
-                // EventDisplayContainer로 한 번에 이동
-                eventSectionRef.current.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-            
-            // 스크롤 방향이 위로이고, EventDisplayContainer 영역에서 위로 올라가려고 할 때
-            if (!scrollDirection && currentScrollY < window.innerHeight * 0.5 && userScreenRef.current) {
-                // UserScreen으로 한 번에 이동
-                userScreenRef.current.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-            
-            setLastScrollY(currentScrollY);
-        };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY]);
+        const handleScroll = () => {
+            if (isAutoScrolling) return; // 자동 스크롤 중이면 무시
+
+            const currentScrollY = window.scrollY;
+
+            // 섹션 1에서 아래로 100px 이상 스크롤하면 섹션 2로 이동
+            if (currentSection === 'section1' && currentScrollY > 100 && eventSectionRef.current) {
+                setIsAutoScrolling(true);
+                setCurrentSection('section2');
+                eventSectionRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+                // 스크롤 완료 후 잠금 해제
+                setScrollTimeout(setTimeout(() => {
+                    setIsAutoScrolling(false);
+                }, 2000));
+            }
+
+            // 섹션 2에서 위로 올라가면 섹션 1로 이동 (섹션 2 영역을 벗어날 때)
+            else if (currentSection === 'section2' && eventSectionRef.current) {
+                const eventSectionTop = eventSectionRef.current.offsetTop;
+                if (currentScrollY < eventSectionTop - 50) { // 섹션 2 시작점에서 50px 위로 올라가면
+                    setIsAutoScrolling(true);
+                    setCurrentSection('section1');
+                    userScreenRef.current?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    if (scrollTimeout) clearTimeout(scrollTimeout);
+                    // 스크롤 완료 후 잠금 해제
+                    setScrollTimeout(setTimeout(() => {
+                        setIsAutoScrolling(false);
+                    }, 2000));
+                }
+            }
+
+        }
+            const handleScrollEnd = () => {
+                if (isAutoScrolling) {
+                    if(scrollTimeout) clearTimeout(scrollTimeout);
+                    setScrollTimeout(setTimeout(() => {
+                        setIsAutoScrolling(false);
+                    }, 500));
+                }
+            }
+
+            window.addEventListener('scroll', handleScroll, { passive: true });
+            window.addEventListener('scrollend', handleScrollEnd, {passive: true});
+
+            return () => {
+                window.removeEventListener('scroll', handleScroll);
+                window.removeEventListener('scrollend', handleScrollEnd);
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+            };
+        
+    }, [currentSection, isAutoScrolling, scrollTimeout, eventSectionRef, userScreenRef]);
+
+    useEffect(() => {
+        if (!isAutoScrolling && userScreenRef.current && eventSectionRef.current) {
+            if(currentSection === 'section1') {
+                userScreenRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+            else if(currentSection === 'section2') {
+                eventSectionRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+    }, [currentSection, isAutoScrolling]);
 
     return (
         <>
