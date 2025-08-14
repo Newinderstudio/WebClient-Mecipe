@@ -108,6 +108,7 @@ function MainScreen() {
                             }}
                             fontColor='#fff'
                             fontWeight={600}
+                            initSearchText={'대전 수통골 카페'}
                         />
                     </FlexCenter>
                     <div style={{ height: 72 }} />
