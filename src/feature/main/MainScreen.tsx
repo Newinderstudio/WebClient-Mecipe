@@ -9,6 +9,7 @@ import { useMainScreen } from './hooks/useMainScreen';
 import EventDisplayComponent from '@/common/cafeinfo/EventDisplayComponent';
 import styled from '@emotion/styled';
 import { useEffect, useRef, useState } from 'react';
+import HideUrlPopUpWrapper from '@/common/popup/HideUrlPopUpWrapper';
 
 function MainScreen() {
 
@@ -151,6 +152,7 @@ function MainScreen() {
 
     return (
         <>
+            <HideUrlPopUpWrapper queryName="contact" />
             <div ref={userScreenRef}>
                 <UserScreen
                     headerOverlap={true}
