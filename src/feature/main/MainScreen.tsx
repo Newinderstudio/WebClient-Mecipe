@@ -112,35 +112,35 @@ function MainScreen() {
             }
 
         }
-            const handleScrollEnd = () => {
-                if (isAutoScrolling) {
-                    if(scrollTimeout) clearTimeout(scrollTimeout);
-                    setScrollTimeout(setTimeout(() => {
-                        setIsAutoScrolling(false);
-                    }, 500));
-                }
-            }
-
-            window.addEventListener('scroll', handleScroll, { passive: true });
-            window.addEventListener('scrollend', handleScrollEnd, {passive: true});
-
-            return () => {
-                window.removeEventListener('scroll', handleScroll);
-                window.removeEventListener('scrollend', handleScrollEnd);
+        const handleScrollEnd = () => {
+            if (isAutoScrolling) {
                 if (scrollTimeout) clearTimeout(scrollTimeout);
-            };
-        
+                setScrollTimeout(setTimeout(() => {
+                    setIsAutoScrolling(false);
+                }, 500));
+            }
+        }
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('scrollend', handleScrollEnd, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('scrollend', handleScrollEnd);
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+        };
+
     }, [currentSection, isAutoScrolling, scrollTimeout, eventSectionRef, userScreenRef]);
 
     useEffect(() => {
         if (!isAutoScrolling && userScreenRef.current && eventSectionRef.current) {
-            if(currentSection === 'section1') {
+            if (currentSection === 'section1') {
                 userScreenRef.current?.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
                 });
             }
-            else if(currentSection === 'section2') {
+            else if (currentSection === 'section2') {
                 eventSectionRef.current?.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
@@ -214,13 +214,40 @@ function MainScreen() {
                 </UserScreen>
             </div>
             <EventDisplayContainer ref={eventSectionRef}>
-                <EventDisplayComponent />
+                <EventDisplayComponent>
+                    {/* 소개 텍스트 */}
+                    <IntroText>
+                        혹시 실제 카페에 방문 중이신가요?
+                    </IntroText>
+                    <IntroText>
+                        &apos;메시피 X 카페&apos;에서 진행 중인 이벤트를 확인하고,
+                    </IntroText>
+                    <IntroText>
+                        메시피에서만 얻을 수 있는 달콤한 혜택 놓치지 마세요!
+                    </IntroText>
+                </EventDisplayComponent>
             </EventDisplayContainer>
 
         </>
     );
 };
 export default MainScreen;
+
+const IntroText = styled.p`
+  font-size: 1.5em;
+  line-height: 1.6;
+  color: #333;
+  margin: 8px 0;
+  font-weight: 400;
+  
+  &:first-of-type {
+    font-weight: 600;
+    color: #495057;
+  }
+  @media (max-width: 768px) {
+    text-align: center;
+  }
+`;
 
 const MainStyledHeader = styled.div({
     width: '100%',

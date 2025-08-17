@@ -10,6 +10,7 @@ import LinkCard from "./components/LinkCard";
 import ThubmnailImage from "@/common/image/ThumbnailImage";
 import NaverMap from "./components/NaverMap";
 import { getShortRegionCategoryNameById } from "@/api/regionCategoriesApi";
+import EventDisplayComponent from "@/common/cafeinfo/EventDisplayComponent";
 
 type PageParams = Awaited<ReturnType<typeof generateStaticParams>>[number]
 
@@ -194,6 +195,17 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
               ))
             }
           </Grid_Two>
+        </FlexCenter>
+        <FlexCenter
+          style={{
+            width: '100%',
+            marginTop: '6rem',
+            padding: '1rem'
+          }}
+        >
+          <EventDisplayComponent
+            cafeInfoId={cafeInfo.id}
+          />
         </FlexCenter>
         <FlexCenter
           style={{
