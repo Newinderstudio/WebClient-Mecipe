@@ -8,9 +8,11 @@ import { useRouter } from 'next/navigation';
 
 interface EventDisplayComponentProps {
     className?: string;
+    cafeInfoId?: number;
+    children?: React.ReactNode;
 }
 
-const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className }) => {
+const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className, cafeInfoId = -1, children }) => {
 
     const router = useRouter();
     const [findAllBoards] = useFindAllBoardsMutation();
@@ -64,7 +66,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                     boardType: 'BEVENT',
                     inProgressDay: today,
                     limit: 5,
-                    cafeInfoId: -1
+                    cafeInfoId: cafeInfoId
                 }).unwrap();
 
                 // 현재 진행 중인 이벤트 (startDay가 오늘인 것, 5개)
@@ -72,7 +74,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                     boardType: 'BEVENT',
                     inProgressDay: today,
                     limit: 5,
-                    cafeInfoId: -1
+                    cafeInfoId: cafeInfoId
                 }).unwrap();
 
                 // 종료된 이벤트 (endDay가 오늘인 것, 5개)
@@ -80,7 +82,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                     boardType: 'BEVENT',
                     notInProgressDay: today,
                     limit: 5,
-                    cafeInfoId: -1
+                    cafeInfoId: cafeInfoId
                 }).unwrap();
 
                 if (todayResponse?.boards) setTodayEvents(todayResponse.boards);
@@ -94,7 +96,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
         };
 
         fetchEvents();
-    }, [findAllBoards]);
+    }, [findAllBoards, cafeInfoId]);
 
     if (loading) {
         return (
@@ -106,16 +108,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
 
     return (
         <Container className={className}>
-            {/* 소개 텍스트 */}
-            <IntroText>
-                혹시 실제 카페에 방문 중이신가요?
-            </IntroText>
-            <IntroText>
-                &apos;메시피 X 카페&apos;에서 진행 중인 이벤트를 확인하고,
-            </IntroText>
-            <IntroText>
-                메시피에서만 얻을 수 있는 달콤한 혜택 놓치지 마세요!
-            </IntroText>
+            {children}
 
             {/* 오늘의 이벤트 */}
             <EventSection>
@@ -202,23 +195,6 @@ const LoadingText = styled.div`
   font-size: 18px;
   color: #666;
   padding: 40px 0;
-`;
-
-// 
-const IntroText = styled.p`
-  font-size: 1.5em;
-  line-height: 1.6;
-  color: #333;
-  margin: 8px 0;
-  font-weight: 400;
-  
-  &:first-of-type {
-    font-weight: 600;
-    color: #495057;
-  }
-  @media (max-width: 768px) {
-    text-align: center;
-  }
 `;
 
 const EventSection = styled.div`
