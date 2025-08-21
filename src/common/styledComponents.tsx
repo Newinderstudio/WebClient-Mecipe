@@ -189,6 +189,20 @@ export const SelectDropDown = (props: React.SelectHTMLAttributes<HTMLSelectEleme
     </_SelectBox >)
 }
 
+export const ContentWrapper = styled.div`
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  > div:not(.wide-content) {
+    max-width: ${appContentWidth}px;
+    width: 100%;
+  }
+`
+
 // export const SelectDropDown = styled.select`
 //   -moz-appearance: none;
 //   -webkit-appearance: none;

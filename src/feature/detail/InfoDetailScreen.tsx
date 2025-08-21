@@ -1,5 +1,5 @@
 import UserScreen from "@/common/screen/UserScreen";
-import { FlexCenter, Grid_Two } from "@/common/styledComponents";
+import { ContentWrapper, FlexCenter, Grid_Two } from "@/common/styledComponents";
 import { CafeInfo } from "@/data/prisma-client";
 import { Metadata } from "next";
 
@@ -75,13 +75,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
       fullScreen={false}
       navigationList={[{ name: cafeInfo.name, routerUrl: "" }]}
     >
-      <FlexCenter
-        style={{
-          maxWidth: 768,
-          alignSelf: 'center',
-          padding: '2rem 0 4rem 0'
-        }}
-      >
+      <ContentWrapper>
         <Carousel
           images={cafeInfo.CafeThumbnailImages?.map((image) => image.url) ?? []}
           interval={5000}
@@ -202,6 +196,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
             marginTop: '6rem',
             padding: '1rem'
           }}
+          className="wide-content"
         >
           <EventDisplayComponent
             cafeInfoId={cafeInfo.id}
@@ -240,7 +235,7 @@ async function InfoDetailScreen(props: { params: Promise<PageParams> }) {
           </div>
         </FlexCenter>
 
-      </FlexCenter>
+      </ContentWrapper>
     </UserScreen>
 
   )

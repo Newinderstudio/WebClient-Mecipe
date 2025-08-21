@@ -7,7 +7,7 @@ export const highBlack = '#222222';
 export const backColor = '#F5F5F5';
 export const dividerColor = '#DDDDDD';
 export const kakaoYellow = '#FFEB00';
-export const appContentWidth = 640;
+export const appContentWidth = 768;
 export const renderContentPcWidth = 1200;
 
 export const fenxyYellow = "#FFBD43";
