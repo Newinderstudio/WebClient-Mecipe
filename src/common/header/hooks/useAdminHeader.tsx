@@ -12,8 +12,8 @@ interface hookMember {
   confirmModal: 'flex' | 'none';
 
   onClickLogout: () => void;
-  onClickMenu: (item: { title: string, name: string, url: string }) => void;
-  onClickSubMenu: (active: string) => void;
+  onClickMenu: (item: NavItem) => void;
+  onClickSubMenu: (activeItem: {name:string, url:string}) => void;
   onClickAdminMain: () => void;
   onClickCloseConfirmModal: () => void;
   onClickRouterMain: () => void;
@@ -21,12 +21,26 @@ interface hookMember {
   onClickModify: () => void;
 }
 
-export const navArray = [
+export interface NavItem {
+  title: string;
+  children: { name: string, url: string }[];
+}
+
+export const navArray:NavItem[] = [
   // { title: '결제관리', name: '전체조회', url: '/admin/payment' },
-  { title: '카페관리', name: '카페관리', url: '/admin/cafeinfo' },
-  { title: '지역카테고리관리', name: '지역카테고리관리', url: '/admin/region' },
-  { title: '쿠폰관리', name: '쿠폰관리', url: '/admin/coupons' },
-  { title: '게시판관리', name: '게시판관리', url: '/admin/board' },
+  { title: '카페관리', children: [
+    { name: '카페관리', url: '/admin/cafeinfo' },
+  ] },
+  { title: '지역카테고리관리', children: [
+    { name: '지역카테고리관리', url: '/admin/region' },
+  ] },
+    { title: '쿠폰관리', children: [
+    { name: '쿠폰생성', url: '/admin/coupons/create' },
+    { name: '쿠폰관리', url: '/admin/coupons/list' },
+  ] },
+  { title: '게시판관리', children: [
+    { name: '게시판관리', url: '/admin/board' },
+  ] },
 ];
 
 export function useAdminHeader(): hookMember {
@@ -47,13 +61,11 @@ export function useAdminHeader(): hookMember {
       dispatch(accountSlice.logout());
       router.push('/login');
     },
-    onClickMenu: (item) => {
-      router.push(item.url);
+    onClickMenu: (item: NavItem) => {
+      router.push(item.children[0].url);
     },
-    onClickSubMenu: (active: string) => {
-      navArray.map((item) => {
-        if (item.name === active) router.push(item.url);
-      });
+    onClickSubMenu: (activeItem: {name:string, url:string}) => {
+      router.push(activeItem.url);
     },
     onClickAdminMain: () => {
       router.push('/admin');

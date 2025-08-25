@@ -8,6 +8,7 @@ import { BorderRoundedContent, ContentHeader, StyledButton, TheadSmall, InputSty
 import { Flex, FlexRow } from '@/common/styledComponents';
 import { fenxyBlue } from '@/util/constants/style';
 import ImageUploadCard from '../cafeinfo/components/ImageUploadCard';
+import RelatedCafeSelector from './components/RelatedCafeSelector';
 
 const AdminBoardDetailScreen: React.FC = () => {
 
@@ -247,106 +248,11 @@ const AdminBoardDetailScreen: React.FC = () => {
         </BorderRoundedContent>
 
         {/* 연관 카페 선택 섹션 */}
-        <BorderRoundedContent style={{ padding: 30 }}>
-          <ContentHeader>연관 카페</ContentHeader>
-          <Flex style={{ padding: '0 30px 30px 30px' }}>
-            <Flex style={{ gap: 20, flexFlow: 'wrap' }}>
-              <Flex style={{ width: '100%' }}>
-                <TheadSmall>
-                  카페 검색
-                </TheadSmall>
-                <FlexRow style={{ color: '#999' }}>
-                  <InputStyle
-                    type="text"
-                    placeholder="카페명으로 검색..."
-                    onChange={(e) => hookMember.onChangeCafeSearchText(e.target.value)}
-                    value={hookMember.cafeSearchText}
-                    style={{ flexGrow: 1 }}
-                  />
-                  <StyledButton
-                    onClick={hookMember.handleCafeSearch}
-                    style={{ background: !hookMember.isEditing ? '#4A5864' : fenxyBlue, cursor: !hookMember.isEditing ? 'not-allowed' : 'pointer' }}
-                    >
-                    검색
-                  </StyledButton>
-                </FlexRow>
-              </Flex>
-
-              {hookMember.isSearchingCafes && <div>검색 중...</div>}
-              {hookMember.cafes.length > 0 && (
-                <Flex style={{ width: '100%' }}>
-                  <div style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    maxHeight: '200px',
-                    overflowY: 'auto'
-                  }}>
-                    {hookMember.cafes.map(cafe => (
-                      <div
-                        key={cafe.id}
-                        style={{
-                          padding: '8px 12px',
-                          borderBottom: '1px solid #f3f4f6',
-                          cursor: 'pointer',
-                          backgroundColor: hookMember.isCafeSelected(cafe) ? '#EFF6FF' : 'transparent'
-                        }}
-                        onClick={() => hookMember.handleCafeSelect(cafe)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={hookMember.isCafeSelected(cafe)}
-                          onChange={() => { }} // onClick에서 처리
-                          style={{ marginRight: '8px' }}
-                          disabled={!hookMember.isEditing}
-                        />
-                        {cafe.name}
-                      </div>
-                    ))}
-                  </div>
-                </Flex>
-              )}
-              {hookMember.curOptionCafeInfos.length > 0 && (
-                <Flex style={{ width: '100%' }}>
-                  <div style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    maxHeight: '200px',
-                    overflowY: 'auto'
-                  }}>
-                    {hookMember.curOptionCafeInfos.map(cafe => (
-                      <div
-                        key={cafe.id}
-                        style={{
-                          padding: '8px 12px',
-                          borderBottom: '1px solid #f3f4f6',
-                          cursor: 'pointer',
-                          backgroundColor: hookMember.isCafeSelected(cafe) ? '#EFF6FF' : 'transparent'
-                        }}
-                        onClick={() => hookMember.handleCafeSelect(cafe)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={hookMember.isCafeSelected(cafe)}
-                          onChange={() => { }} // onClick에서 처리
-                          style={{ marginRight: '8px' }}
-                          disabled={!hookMember.isEditing}
-                        />
-                        {cafe.name}
-                      </div>
-                    ))}
-                  </div>
-                </Flex>
-              )}
-              {hookMember.selectedCafeInfos.length > 0 && (
-                <Flex style={{ width: '100%' }}>
-                  <div style={{ marginTop: '8px', fontSize: '14px', color: '#6B7280' }}>
-                    선택된 카페: {hookMember.selectedCafeInfos.length}개
-                  </div>
-                </Flex>
-              )}
-            </Flex>
-          </Flex>
-        </BorderRoundedContent>
+        <RelatedCafeSelector
+          isEditing={hookMember.isEditing}
+          selectedCafeInfos={hookMember.prevSelectedCafeInfos}
+          onCafeSelect={hookMember.handleCafeSelect}
+        />
 
         {/* 이미지 업로드 섹션 */}
         <BorderRoundedContent style={{ padding: 30 }}>

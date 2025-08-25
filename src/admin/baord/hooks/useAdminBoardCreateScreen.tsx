@@ -1,13 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useCreateBoardMutation, useCreateBoardImageMutation } from '@/api/boardsApi';
-import { useFindAllPlacesBySearchMutation } from '@/api/cafeInfosApi';
 import { CreateBoardDto, CreateBoardImageDto } from '@/api/dto/boardsApiDto';
-import { CafeInfoResult } from '@/api/cafeInfosApi';
 import { useRouter } from 'next/navigation';
 import { BoardType } from '@/data/prisma-client';
 import fetchImage, { deleteImage, getFileSize, getImageSize } from '@/util/fetchImage';
 import { imageResizer } from '@/common/image/imageResizer';
 import { useTypedSelector } from '@/store';
+import { CafeInfoResult } from '@/api/cafeInfosApi';
 interface UploadImageData extends CreateBoardImageDto {
   file: File;
   thumbnailFile: File;
@@ -28,45 +27,18 @@ export const useAdminBoardCreateScreen = () => {
   });
 
   const [images, setImages] = useState<UploadImageData[]>([]);
-  const [selectedCafeIds, setSelectedCafeIds] = useState<number[]>([]);
-  const [cafeSearchText, setCafeSearchText] = useState<string>('');
   const [noEndDate, setNoEndDate] = useState(false);
 
-  const [cafes, setCafes] = useState<CafeInfoResult[]>([]);
-  const [isSearchingCafes, setIsSearchingCafes] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+
 
   const [isCreatingCafe, setIsCreatingCafe] = useState(false);
 
   const [createBoard, { isLoading: isCreating }] = useCreateBoardMutation();
   const [createBoardImage, { isLoading: isCreatingImage }] = useCreateBoardImageMutation();
-  const [findAllPlaces, { isLoading: isSearchingPlaces }] = useFindAllPlacesBySearchMutation();
 
   const token = useTypedSelector((state) => state.account?.accessToken ?? undefined);
 
-  const searchCafes = useCallback(async (searchParams: {
-    page: number;
-    take: number;
-    searchText?: string;
-  }) => {
-    try {
-      setIsSearchingCafes(true);
-      setError(null);
 
-      const result = await findAllPlaces({
-        skip: searchParams.page * searchParams.take,
-        take: searchParams.take,
-        searchText: searchParams.searchText
-      }).unwrap();
-
-      setCafes(result.data);
-    } catch (err) {
-      setError(err as Error);
-      console.error('카페 검색 실패:', err);
-    } finally {
-      setIsSearchingCafes(false);
-    }
-  }, [findAllPlaces]);
 
   const createBoardWithImages = useCallback(async (boardData: CreateBoardDto, images: CreateBoardImageDto[]) => {
     try {
@@ -151,29 +123,12 @@ export const useAdminBoardCreateScreen = () => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleCafeSearch = () => {
-    searchCafes({
-      page: 0,
-      take: 10,
-      searchText: cafeSearchText.trim()
-    });
-  };
 
-  const onChangeCafeSearchText = (searchText: string) => {
-    setCafeSearchText(searchText);
-  };
 
-  const handleCafeSelect = (cafeId: number) => {
-    setSelectedCafeIds(prev =>
-      prev.includes(cafeId)
-        ? prev.filter(id => id !== cafeId)
-        : [...prev, cafeId]
-    );
+  const handleCafeSelect = (cafes: CafeInfoResult[]) => {
     setFormData(prev => ({
       ...prev,
-      cafeInfoIds: selectedCafeIds.includes(cafeId)
-        ? selectedCafeIds.filter(id => id !== cafeId)
-        : [...selectedCafeIds, cafeId]
+      cafeInfoIds: cafes.map(cafe => cafe.id)
     }));
   };
 
@@ -285,25 +240,17 @@ export const useAdminBoardCreateScreen = () => {
   };
 
   return {
-    searchCafes,
-    cafes,
-    isSearchingCafes: isSearchingCafes || isSearchingPlaces,
     isCreating: isCreating || isCreatingImage,
-    error,
     formData,
     handleInputChange,
     handleNoEndDateChange,
     handleImageUpload,
     handleRemoveImage,
-    handleCafeSearch,
     handleCafeSelect,
     handleSubmit,
     handleCancel,
     images,
-    selectedCafeIds,
     createBoardWithImages,
-    cafeSearchText,
-    onChangeCafeSearchText,
     isCreatingCafe,
     noEndDate
   };

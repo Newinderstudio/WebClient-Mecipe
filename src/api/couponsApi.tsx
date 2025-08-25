@@ -15,23 +15,33 @@ export interface UseCouponResponse extends CafeCouponHistory {
 
 // API 요청 타입 정의
 export interface CreateCouponRequest {
-  payload: string;
-  signature: string;
+  name?: string,
+  content?: string,
+  startDay?: Date,
+  endDay?: Date,
+  groupCode: string,
+  memberId: string,
+  nickname: string,
+  userType: ProxyUserType,
+  eventDescription?: string,
+  duplicate?: boolean,
+  force?: boolean
 }
 
 export interface CreateCouponQRCodeRequest {
-  payload: string;
-  signature: string;
+  serialNumber: string;
 }
 
 export interface FindByCouponByGroupCodeWithUserIdRequest {
-  payload: string;
-  signature: string;
+  groupCode: string,
+  memberId: string,
+  userType: ProxyUserType
 }
 
 export interface UseCouponRequest {
-  payload: string;
-  signature: string;
+  serialNumber: string,
+  eventDescription: string,
+  actorId: number
 }
 
 // 쿠폰 생성 payload 타입
@@ -185,7 +195,7 @@ export const couponsApi = createApi({
     // 쿠폰 생성
     createCoupon: builder.mutation<CreateCouponResponse, CreateCouponRequest>({
       query: (body) => ({
-        url: '/create-coupon',
+        url: 'admin/create-coupon',
         method: 'POST',
         body,
       }),
@@ -195,7 +205,7 @@ export const couponsApi = createApi({
     // 쿠폰 QR 코드 생성
     createCouponQRCode: builder.mutation<CafeCouponQRCode, CreateCouponQRCodeRequest>({
       query: (body) => ({
-        url: '/create-coupon-qrcode',
+        url: 'admin/create-coupon-qrcode',
         method: 'POST',
         body,
       }),
@@ -207,17 +217,16 @@ export const couponsApi = createApi({
       CreateCouponResponse[],
       FindByCouponByGroupCodeWithUserIdRequest
     >({
-      query: (body) => ({
-        url: '/find/group-code/member-id',
-        method: 'POST',
-        body,
+      query: (args) => ({
+        url: `admin/find/group-code/member-id?groupCode=${args.groupCode}&memberId=${args.memberId}&userType=${args.userType}`,
+        method: 'GET',
       }),
     }),
 
     // 쿠폰 사용
     useCoupon: builder.mutation<UseCouponResponse, UseCouponRequest>({
       query: (body) => ({
-        url: '/use-coupon/serial-number/actor-id',
+        url: 'admin/use-coupon/serial-number/actor-id',
         method: 'POST',
         body,
       }),

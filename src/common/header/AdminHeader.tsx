@@ -60,23 +60,22 @@ const AdminHeader = ({
                 ? '10px 0'
                 : 0,
           }}>
-          {navArray.map((item, index) => {
-            if (item.title === parent)
-              return (
-                <Flex
-                  key={index.toString()}
-                  onClick={() => {
-                    hookMember.onClickSubMenu(item.name);
-                  }}
-                  style={{
-                    color: item.name === activeItem ? '#fff' : '#999',
-                    height: 40,
-                    cursor: 'pointer',
-                    paddingLeft: 20,
-                  }}>
-                  {item.name}
-                </Flex>
-              );
+          {navArray.find((e) => e.title === parent)?.children.map((item, index) => {
+            return (
+              <Flex
+              key={index.toString()}
+              onClick={() => {
+                hookMember.onClickSubMenu(item);
+              }}
+              style={{
+                color: item.name === activeItem ? '#fff' : '#999',
+                height: 40,
+                cursor: 'pointer',
+                paddingLeft: 20,
+              }}>
+              {item.name}
+            </Flex>
+            );
           })}
         </div>
       </>

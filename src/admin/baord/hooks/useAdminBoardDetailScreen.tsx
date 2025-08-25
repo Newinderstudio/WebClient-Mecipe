@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useFindOneBoardQuery, useUpdateBoardMutation, useCreateBoardImageMutation } from '@/api/boardsApi';
-import { useFindAllPlacesBySearchMutation } from '@/api/cafeInfosApi';
 import { UpdateBoardDto, UpdateBoardImageDto, CreateBoardImageDto } from '@/api/dto/boardsApiDto';
 import { CafeInfoResult } from '@/api/cafeInfosApi';
 import { useRouter, useParams } from 'next/navigation';
@@ -41,8 +40,6 @@ export const useAdminBoardDetailScreen = () => {
   const params = useParams();
   const boardId = Number(params.id) || 0;
 
-  const [cafes, setCafes] = useState<CafeInfoResult[]>([]);
-  const [isSearchingCafes, setIsSearchingCafes] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const token = useTypedSelector((state) => state.account?.accessToken ?? undefined);
@@ -51,13 +48,10 @@ export const useAdminBoardDetailScreen = () => {
   const [uploadImages, setUploadImages] = useState<UploadImageData[]>([]);
   const [selectedCafeInfos, setSelectedCafeInfos] = useState<CafeInfoResult[]>([]);
   const [prevSelectedCafeInfos, setPrevSelectedCafeInfos] = useState<CafeInfoResult[]>([]);
-  const [curOptionCafeInfos, setCurOptionCafeInfos] = useState<CafeInfoResult[]>([]);
-  const [cafeSearchText, setCafeSearchText] = useState<string>('');
 
   const { data: board, isLoading: isLoadingBoard, error: boardError } = useFindOneBoardQuery({ id: boardId });
   const [updateBoard, { isLoading: isUpdating }] = useUpdateBoardMutation();
   const [createBoardImage, { isLoading: isCreatingImage }] = useCreateBoardImageMutation();
-  const [findAllPlaces, { isLoading: isSearchingPlaces }] = useFindAllPlacesBySearchMutation();
   const [isUpdatingBoard, setIsUpdatingBoard] = useState(false);
 
   const [formData, setFormData] = useState<UpdateBoardDto>({
@@ -93,8 +87,8 @@ export const useAdminBoardDetailScreen = () => {
         boardType: board.boardType || '',
       });
       const selectedCafeInfos = board.CafeBoards?.map(cafe => cafe.CafeInfo).filter(cafe => cafe !== undefined) as CafeInfoResult[] || [];
-      setPrevSelectedCafeInfos(selectedCafeInfos);
       setSelectedCafeInfos(selectedCafeInfos);
+      setPrevSelectedCafeInfos(selectedCafeInfos);
 
       console.log(board.startDay, new Date(board.startDay).toLocaleDateString());
       console.log(board.endDay);
@@ -182,9 +176,12 @@ export const useAdminBoardDetailScreen = () => {
         koreaEndTime = endDay.toISOString();
       }
 
-      let cafeInfoIds: number[] | undefined = selectedCafeInfos.map(cafe => cafe.id);
-      if (prevSelectedCafeInfos.every(cafe => selectedCafeInfos.find(selectedCafe => selectedCafe.id === cafe.id))) {
+      let cafeInfoIds: number[] | undefined = undefined;
+      // selectedCafeInfos가 prevSelectedCafeInfos와 같으면 undefined로 변경
+      if (selectedCafeInfos.length === prevSelectedCafeInfos.length && selectedCafeInfos.every(cafe => prevSelectedCafeInfos.find(selectedCafe => selectedCafe.id === cafe.id))) {
         cafeInfoIds = undefined;
+      } else {
+        cafeInfoIds = selectedCafeInfos.map(cafe => cafe.id);
       }
 
       // 다른 점이 없으면 undefined로 변경
@@ -240,21 +237,8 @@ export const useAdminBoardDetailScreen = () => {
     }
   };
 
-  const handleCafeSearch = () => {
-    if (!isEditing) return;
-    searchCafes({
-      page: 0,
-      take: 10,
-      searchText: cafeSearchText.trim()
-    });
-  };
-
-  const onChangeCafeSearchText = (searchText: string) => {
-    setCafeSearchText(searchText);
-  };
-
-  const handleCafeSelect = (cafeInfo: CafeInfoResult) => {
-    setSelectedCafeInfos(prev => prev.includes(cafeInfo) ? prev.filter(cafe => cafe.id !== cafeInfo.id) : [...prev, cafeInfo]);
+  const handleCafeSelect = (cafeInfos: CafeInfoResult[]) => {
+    setSelectedCafeInfos(cafeInfos);
   };
 
   // 이미지 disable
@@ -268,13 +252,6 @@ export const useAdminBoardDetailScreen = () => {
     setImages(prev => [...prev, ...uploadImages.filter((image): image is NonNullable<typeof image> => image !== null)]);
   }, [uploadImages]);
 
-  useEffect(() => {
-    setCurOptionCafeInfos([...prevSelectedCafeInfos, ...selectedCafeInfos.filter(cafe => !prevSelectedCafeInfos.find(selectedCafe => selectedCafe.id === cafe.id))]);
-  }, [selectedCafeInfos, prevSelectedCafeInfos]);
-
-  const isCafeSelected = useCallback((cafe: CafeInfoResult) => {
-    return selectedCafeInfos.findIndex(selectedCafe => selectedCafe.id === cafe.id) !== -1;
-  }, [selectedCafeInfos]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -340,31 +317,6 @@ export const useAdminBoardDetailScreen = () => {
     }
   }, [boardError]);
 
-
-  const searchCafes = useCallback(async (searchParams: {
-    page: number;
-    take: number;
-    searchText?: string;
-  }) => {
-    try {
-      setIsSearchingCafes(true);
-      setError(null);
-
-      const result = await findAllPlaces({
-        skip: searchParams.page * searchParams.take,
-        take: searchParams.take,
-        searchText: searchParams.searchText
-      }).unwrap();
-
-      setCafes(result.data);
-    } catch (err) {
-      setError(err as Error);
-      console.error('카페 검색 실패:', err);
-    } finally {
-      setIsSearchingCafes(false);
-    }
-  }, [findAllPlaces]);
-
   const updateBoardWithImages = useCallback(async (boardData: UpdateBoardDto, images: UpdateBoardImageDto[]) => {
     try {
       // 게시판 수정
@@ -399,9 +351,6 @@ export const useAdminBoardDetailScreen = () => {
   return {
     board,
     boardImages: board?.BoardImages || [],
-    searchCafes,
-    cafes,
-    isSearchingCafes: isSearchingCafes || isSearchingPlaces,
     isLoading: isLoadingBoard || isUpdating || isCreatingImage,
     error,
     isEditing,
@@ -415,15 +364,10 @@ export const useAdminBoardDetailScreen = () => {
     noEndDate,
     handleNoEndDateChange,
     setEditMode,
-    onChangeCafeSearchText,
     handleCafeSelect,
-    cafeSearchText,
     images,
     selectedCafeInfos,
     prevSelectedCafeInfos,
-    curOptionCafeInfos,
-    isCafeSelected,
-    handleCafeSearch,
     handleImageUpload,
     handleRemoveImage,
     isUpdatingBoard

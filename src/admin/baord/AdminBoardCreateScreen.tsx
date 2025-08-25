@@ -7,6 +7,7 @@ import { BorderRoundedContent, ContentHeader, StyledButton, TheadSmall, InputSty
 import { Flex, FlexRow } from '@/common/styledComponents';
 import { fenxyBlue } from '@/util/constants/style';
 import ImageUploadCard from '../cafeinfo/components/ImageUploadCard';
+import RelatedCafeSelector from './components/RelatedCafeSelector';
 
 const AdminBoardCreateScreen: React.FC = () => {
 
@@ -15,17 +16,7 @@ const AdminBoardCreateScreen: React.FC = () => {
 
 
 
-  if (hookMember.error) {
-    return (
-      <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', width: '100%' }}>
-        <div style={{ marginLeft: 240, padding: 20, minWidth: 1100 }}>
-          <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>
-            오류가 발생했습니다: {hookMember.error.message}
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', width: '100%' }}>
@@ -196,72 +187,9 @@ const AdminBoardCreateScreen: React.FC = () => {
         </BorderRoundedContent>
 
         {/* 연관 카페 선택 섹션 */}
-        <BorderRoundedContent style={{ padding: 30 }}>
-          <ContentHeader>연관 카페</ContentHeader>
-          <Flex style={{ padding: '0 30px 30px 30px' }}>
-            <Flex style={{ gap: 20, flexFlow: 'wrap' }}>
-              <Flex style={{ width: '100%' }}>
-                <TheadSmall>
-                  카페 검색
-                </TheadSmall>
-                <FlexRow style={{ color: '#999' }}>
-                  <InputStyle
-                    type="text"
-                    placeholder="카페명으로 검색..."
-                    onChange={(e) => hookMember.onChangeCafeSearchText(e.target.value)}
-                    value={hookMember.cafeSearchText}
-                    style={{ flexGrow: 1 }}
-                  />
-                  <StyledButton
-                    onClick={hookMember.handleCafeSearch}
-                    style={{ background: fenxyBlue }}>
-                    검색
-                  </StyledButton>
-                </FlexRow>
-              </Flex>
-
-              {hookMember.isSearchingCafes && <div>검색 중...</div>}
-              {hookMember.cafes.length > 0 && (
-                <Flex style={{ width: '100%' }}>
-                  <div style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    maxHeight: '200px',
-                    overflowY: 'auto'
-                  }}>
-                    {hookMember.cafes.map(cafe => (
-                      <div
-                        key={cafe.id}
-                        style={{
-                          padding: '8px 12px',
-                          borderBottom: '1px solid #f3f4f6',
-                          cursor: 'pointer',
-                          backgroundColor: hookMember.selectedCafeIds.includes(cafe.id) ? '#EFF6FF' : 'transparent'
-                        }}
-                        onClick={() => hookMember.handleCafeSelect(cafe.id)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={hookMember.selectedCafeIds.includes(cafe.id)}
-                          onChange={() => { }} // onClick에서 처리
-                          style={{ marginRight: '8px' }}
-                        />
-                        {cafe.name}
-                      </div>
-                    ))}
-                  </div>
-                </Flex>
-              )}
-              {hookMember.selectedCafeIds.length > 0 && (
-                <Flex style={{ width: '100%' }}>
-                  <div style={{ marginTop: '8px', fontSize: '14px', color: '#6B7280' }}>
-                    선택된 카페: {hookMember.selectedCafeIds.length}개
-                  </div>
-                </Flex>
-              )}
-            </Flex>
-          </Flex>
-        </BorderRoundedContent>
+        <RelatedCafeSelector
+          onCafeSelect={hookMember.handleCafeSelect}
+        />
 
         {/* 이미지 업로드 섹션 */}
         <BorderRoundedContent style={{ padding: 30 }}>

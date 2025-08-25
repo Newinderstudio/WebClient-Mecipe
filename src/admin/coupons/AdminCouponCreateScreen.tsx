@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react';
-import { useCreateCouponMutation, useCreateCouponQRCodeMutation, createSignedRequest, CreateCouponPayload, CreateCouponQRCodePayload, CreateCouponResponse } from '../../api/couponsApi';
+import React, { useCallback, useState } from 'react';
+import { useCreateCouponMutation, useCreateCouponQRCodeMutation, CreateCouponPayload, CreateCouponQRCodePayload, CreateCouponResponse } from '../../api/couponsApi';
 import { ProxyUserType } from '../../data/prisma-client';
 import { BorderRoundedContent } from '@/common/styledAdmin';
 
@@ -28,8 +28,6 @@ const AdminCouponCreateScreen: React.FC = () => {
     const [includeStartDay, setIncludeStartDay] = useState(false);
     const [includeEventDescription, setIncludeEventDescription] = useState(false);
     const [includeForce, setIncludeForce] = useState(false);
-
-    const [secretKey, setSecretKey] = useState('');
     const [createdCoupon, setCreatedCoupon] = useState<CreateCouponResponse | null>(null);
     const [qrCodeImage, setQrCodeImage] = useState<string>('');
 
@@ -38,44 +36,44 @@ const AdminCouponCreateScreen: React.FC = () => {
         try {
             // base64를 바이트 배열로 변환
             const bytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-            
+
             // Canvas 생성
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas context를 생성할 수 없습니다.');
-            
+
             // QR 코드 크기 설정 (픽셀 단위)
             const pixelSize = 8; // 각 셀을 8x8 픽셀로 표현 (더 크게)
             const canvasSize = size * pixelSize;
-            
+
             canvas.width = canvasSize;
             canvas.height = canvasSize;
-            
+
             // 배경을 흰색으로 설정
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(0, 0, canvasSize, canvasSize);
-            
+
             // QR 코드 그리기
             ctx.fillStyle = '#000000';
-            
+
             for (let y = 0; y < size; y++) {
                 for (let x = 0; x < size; x++) {
                     const bitIndex = y * size + x;
                     const byteIndex = Math.floor(bitIndex / 8);
                     const bitOffset = 7 - (bitIndex % 8); // MSB부터
-                    
+
                     if (byteIndex < bytes.length && (bytes[byteIndex] & (1 << bitOffset))) {
                         // 검은색 셀 그리기
                         ctx.fillRect(
-                            x * pixelSize, 
-                            y * pixelSize, 
-                            pixelSize, 
+                            x * pixelSize,
+                            y * pixelSize,
+                            pixelSize,
                             pixelSize
                         );
                     }
                 }
             }
-            
+
             // Canvas를 base64 이미지로 변환
             return canvas.toDataURL('image/png');
         } catch (error) {
@@ -83,6 +81,10 @@ const AdminCouponCreateScreen: React.FC = () => {
             throw new Error('QR 코드 이미지 생성에 실패했습니다.');
         }
     };
+
+    const isValidFormData = useCallback(() => {
+        return formData.groupCode !== '' && formData.memberId !== '' && formData.nickname !== '' && !isNaN(formData.endDay.getTime());
+    }, [formData.groupCode, formData.memberId, formData.nickname, formData.endDay]);
 
     const handleInputChange = (field: keyof CreateCouponPayload, value: string | Date | boolean) => {
         setFormData(prev => ({
@@ -92,6 +94,28 @@ const AdminCouponCreateScreen: React.FC = () => {
     };
 
     const handleCreateCoupon = async () => {
+
+        if (formData.groupCode === '') {
+            alert('그룹 코드를 입력해주세요.');
+            return;
+        }
+
+        if (formData.memberId === '') {
+            alert('회원 ID를 입력해주세요.');
+            return;
+        }
+
+        if (formData.nickname === '') {
+            alert('닉네임을 입력해주세요.');
+            return;
+        }
+
+        // 종료일이 InvalidDate인지 체크
+        if (isNaN(formData.endDay.getTime())) {
+            alert('종료일을 입력해주세요.');
+            return;
+        }
+
         try {
             // 필수 필드들
             const couponData: CreateCouponPayload = {
@@ -122,8 +146,7 @@ const AdminCouponCreateScreen: React.FC = () => {
                 couponData.force = formData.force;
             }
 
-            const { payload, signature } = createSignedRequest(couponData, secretKey);
-            const result = await createCoupon({ payload, signature }).unwrap();
+            const result = await createCoupon(couponData).unwrap();
             setCreatedCoupon(result);
             alert('쿠폰이 성공적으로 생성되었습니다!');
         } catch (error) {
@@ -143,9 +166,8 @@ const AdminCouponCreateScreen: React.FC = () => {
                 serialNumber: createdCoupon.serialNumber
             };
 
-            const { payload, signature } = createSignedRequest(qrCodePayload, secretKey);
-            const result = await createCouponQRCode({ payload, signature }).unwrap();
-            
+            const result = await createCouponQRCode(qrCodePayload).unwrap();
+
             // QR Matrix 데이터를 이미지로 변환
             try {
                 const imageData = convertQrMatrixToImage(result.base64Data, result.size);
@@ -392,31 +414,11 @@ const AdminCouponCreateScreen: React.FC = () => {
                     </div>
                 </div>
                 <BorderRoundedContent style={{ padding: 30 }}>
-                    <div style={{ marginBottom: '30px' }}>
-                        <h2 style={{ marginBottom: '20px', color: '#333', borderBottom: '2px solid #007bff', paddingBottom: '10px' }}>
-                            Secret Key
-                        </h2>
-                        <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '400px' }}>
-                            <label style={{ marginBottom: '8px', fontWeight: '600', color: '#555' }}>Secret Key</label>
-                            <input
-                                type="password"
-                                value={secretKey}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSecretKey(e.target.value)}
-                                placeholder="Secret Key를 입력하세요"
-                                style={{
-                                    padding: '12px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '6px',
-                                    fontSize: '14px'
-                                }}
-                            />
-                        </div>
-                    </div>
 
                     <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
                         <button
                             onClick={handleCreateCoupon}
-                            disabled={isCreatingCoupon || !secretKey}
+                            disabled={isCreatingCoupon || !isValidFormData()}
                             style={{
                                 padding: '12px 24px',
                                 border: 'none',
@@ -426,7 +428,7 @@ const AdminCouponCreateScreen: React.FC = () => {
                                 cursor: 'pointer',
                                 backgroundColor: '#007bff',
                                 color: 'white',
-                                opacity: (isCreatingCoupon || !secretKey) ? 0.6 : 1
+                                opacity: isCreatingCoupon || !isValidFormData() ? 0.6 : 1
                             }}
                         >
                             {isCreatingCoupon ? '쿠폰 생성 중...' : '쿠폰 생성'}
@@ -435,7 +437,7 @@ const AdminCouponCreateScreen: React.FC = () => {
                         {createdCoupon && (
                             <button
                                 onClick={handleCreateQRCode}
-                                disabled={isCreatingQRCode || !secretKey}
+                                disabled={isCreatingQRCode}
                                 style={{
                                     padding: '12px 24px',
                                     border: 'none',
@@ -445,7 +447,7 @@ const AdminCouponCreateScreen: React.FC = () => {
                                     cursor: 'pointer',
                                     backgroundColor: '#6c757d',
                                     color: 'white',
-                                    opacity: (isCreatingQRCode || !secretKey) ? 0.6 : 1
+                                    opacity: isCreatingQRCode ? 0.6 : 1
                                 }}
                             >
                                 {isCreatingQRCode ? 'QR 코드 생성 중...' : 'QR 코드 생성'}
@@ -518,15 +520,15 @@ const AdminCouponCreateScreen: React.FC = () => {
                                             const link = document.createElement('a');
                                             link.href = url;
                                             link.download = `coupon-qr-${createdCoupon?.serialNumber || 'unknown'}.png`;
-                                            
+
                                             // 링크 클릭 및 정리
                                             document.body.appendChild(link);
                                             link.click();
                                             document.body.removeChild(link);
-                                            
+
                                             // 메모리 정리
                                             URL.revokeObjectURL(url);
-                                            
+
                                             alert('QR 코드가 성공적으로 다운로드되었습니다!');
                                         } catch (error) {
                                             console.error('QR 코드 다운로드 실패:', error);
