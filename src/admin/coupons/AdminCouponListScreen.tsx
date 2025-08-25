@@ -1,91 +1,15 @@
 'use client'
 
-import React, { useState } from 'react';
-import { useFindByCouponByGroupCodeWithUserIdMutation, CreateCouponResponse } from '../../api/couponsApi';
+import React from 'react';
 import { ProxyUserType } from '../../data/prisma-client';
 import { BorderRoundedContent } from '@/common/styledAdmin';
+import { useAdminCouponListScreen } from './hooks/usAdminCouponListScreen';
+import { Flex } from '@/common/styledComponents';
+import AdminTable from '@/common/table/AdminTable';
+import GetSeoulTime from '@/common/time/GetSeoulTime';
 
 const AdminCouponListScreen: React.FC = () => {
-    const [findCoupons, { isLoading: isSearching }] = useFindByCouponByGroupCodeWithUserIdMutation();
-    
-    const [searchParams, setSearchParams] = useState({
-        groupCode: '',
-        memberId: '',
-        userType: ProxyUserType.WEB
-    });
-    
-    const [coupons, setCoupons] = useState<CreateCouponResponse[]>([]);
-    const [searchPerformed, setSearchPerformed] = useState(false);
-
-    const handleInputChange = (field: keyof typeof searchParams, value: string | ProxyUserType) => {
-        setSearchParams(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    const handleSearch = async () => {
-        if (!searchParams.groupCode && !searchParams.memberId) {
-            alert('그룹 코드 또는 회원 ID 중 하나는 입력해야 합니다.');
-            return;
-        }
-
-        try {
-            const searchData = {
-                groupCode: searchParams.groupCode,
-                memberId: searchParams.memberId,
-                userType: searchParams.userType
-            };
-
-            const result = await findCoupons(searchData).unwrap();
-            
-            setCoupons(result);
-            setSearchPerformed(true);
-            
-            if (result.length === 0) {
-                alert('검색 결과가 없습니다.');
-            } else {
-                alert(`${result.length}개의 쿠폰을 찾았습니다.`);
-            }
-        } catch (error) {
-            console.error('쿠폰 검색 실패:', error);
-            alert('쿠폰 검색에 실패했습니다.');
-        }
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleString('ko-KR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const getStatusBadge = (endDay: string) => {
-        const now = new Date();
-        const endDate = new Date(endDay);
-        
-        if (endDate < now) {
-            return <span style={{ 
-                backgroundColor: '#dc3545', 
-                color: 'white', 
-                padding: '4px 8px', 
-                borderRadius: '12px', 
-                fontSize: '12px' 
-            }}>만료</span>;
-        } else {
-            return <span style={{ 
-                backgroundColor: '#28a745', 
-                color: 'white', 
-                padding: '4px 8px', 
-                borderRadius: '12px', 
-                fontSize: '12px' 
-            }}>유효</span>;
-        }
-    };
+    const hookMember = useAdminCouponListScreen();
 
     return (
         <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
@@ -98,14 +22,14 @@ const AdminCouponListScreen: React.FC = () => {
                     <h3 style={{ marginBottom: '20px', color: '#333', borderBottom: '1px solid #dee2e6', paddingBottom: '10px' }}>
                         검색 조건
                     </h3>
-                    
+
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <label style={{ marginBottom: '8px', fontWeight: '600', color: '#555' }}>그룹 코드</label>
                             <input
                                 type="text"
-                                value={searchParams.groupCode}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('groupCode', e.target.value)}
+                                value={hookMember.searchParams.groupCode}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => hookMember.handleInputChange('groupCode', e.target.value)}
                                 placeholder="쿠폰 그룹 코드를 입력하세요"
                                 style={{
                                     padding: '12px',
@@ -120,8 +44,8 @@ const AdminCouponListScreen: React.FC = () => {
                             <label style={{ marginBottom: '8px', fontWeight: '600', color: '#555' }}>회원 ID</label>
                             <input
                                 type="text"
-                                value={searchParams.memberId}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('memberId', e.target.value)}
+                                value={hookMember.searchParams.memberId}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => hookMember.handleInputChange('memberId', e.target.value)}
                                 placeholder="회원 ID를 입력하세요"
                                 style={{
                                     padding: '12px',
@@ -135,8 +59,8 @@ const AdminCouponListScreen: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <label style={{ marginBottom: '8px', fontWeight: '600', color: '#555' }}>사용자 타입</label>
                             <select
-                                value={searchParams.userType}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange('userType', e.target.value as ProxyUserType)}
+                                value={hookMember.searchParams.userType}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => hookMember.handleInputChange('userType', e.target.value as ProxyUserType)}
                                 style={{
                                     padding: '12px',
                                     border: '1px solid #ddd',
@@ -145,16 +69,16 @@ const AdminCouponListScreen: React.FC = () => {
                                     backgroundColor: 'white'
                                 }}
                             >
-                                {Object.values(ProxyUserType).map(type => (
-                                    <option key={type} value={type}>{type}</option>
+                                {['ALL', ...Object.values(ProxyUserType)].map(type => (
+                                    <option key={type} value={type === 'ALL' ? undefined : type}>{type}</option>
                                 ))}
                             </select>
                         </div>
                     </div>
 
                     <button
-                        onClick={handleSearch}
-                        disabled={isSearching}
+                        onClick={hookMember.handleSearch}
+                        disabled={hookMember.isSearching}
                         style={{
                             padding: '12px 24px',
                             border: 'none',
@@ -164,91 +88,106 @@ const AdminCouponListScreen: React.FC = () => {
                             cursor: 'pointer',
                             backgroundColor: '#007bff',
                             color: 'white',
-                            opacity: isSearching ? 0.6 : 1
+                            opacity: hookMember.isSearching ? 0.6 : 1
                         }}
                     >
-                        {isSearching ? '검색 중...' : '쿠폰 검색'}
+                        {hookMember.isSearching ? '검색 중...' : '쿠폰 검색'}
                     </button>
                 </BorderRoundedContent>
 
-                {searchPerformed && (
-                    <BorderRoundedContent style={{ padding: 30 }}>
-                        <h3 style={{ marginBottom: '20px', color: '#333', borderBottom: '1px solid #dee2e6', paddingBottom: '10px' }}>
-                            검색 결과 ({coupons.length}개)
-                        </h3>
-                        
-                        {coupons.length > 0 ? (
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ 
-                                    width: '100%', 
-                                    borderCollapse: 'collapse',
-                                    backgroundColor: 'white',
-                                    borderRadius: '8px',
-                                    overflow: 'hidden',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                }}>
-                                    <thead>
-                                        <tr style={{ backgroundColor: '#f8f9fa' }}>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>시리얼 번호</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>쿠폰명</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>내용</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>시작일</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>종료일</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>상태</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>그룹 코드</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>회원 ID</th>
-                                            <th style={{ padding: '15px', textAlign: 'left', borderBottom: '2px solid #dee2e6', fontWeight: '600' }}>사용자 타입</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {coupons.map((coupon, index) => (
-                                            <tr key={coupon.serialNumber} style={{ 
-                                                backgroundColor: index % 2 === 0 ? 'white' : '#f8f9fa',
-                                                borderBottom: '1px solid #e9ecef'
-                                            }}>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef', fontFamily: 'monospace', fontSize: '12px' }}>
-                                                    {coupon.serialNumber}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.name || '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.content || '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.startDay ? formatDate(coupon.startDay.toISOString()) : '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.endDay ? formatDate(coupon.endDay.toISOString()) : '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.endDay ? getStatusBadge(coupon.endDay.toISOString()) : '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.CafeCouponGroup?.code || '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.ProxyUser?.memberId || '-'}
-                                                </td>
-                                                <td style={{ padding: '15px', borderBottom: '1px solid #e9ecef' }}>
-                                                    {coupon.ProxyUser?.proxyUserType || '-'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div style={{ 
-                                textAlign: 'center', 
-                                padding: '40px', 
-                                color: '#6c757d',
-                                backgroundColor: '#f8f9fa',
-                                borderRadius: '8px'
-                            }}>
-                                검색 결과가 없습니다.
-                            </div>
-                        )}
+
+                
+                {
+                    // 시리얼 번호, 쿠폰명, 내용, 시작일, 종료일, 상태, 그룹코드, 회원 ID, 사용자 타입
+                hookMember.searchPerformed && (
+                    <BorderRoundedContent>
+                        <Flex style={{ padding: 30 }}>
+                            <AdminTable
+                                headers={[
+                                    { name: '이름', minWidth: 200, selector: 'name', cell: ({ data }) => {
+                                        return <div style={{overflow:'scroll', textOverflow:'unset'}}><span>{data.name}</span></div>;
+                                    } },
+                                    {
+                                        name: '시리얼 번호',
+                                        minWidth: 200,
+                                        selector: 'serialNumber',
+                                    },
+                                    {
+                                        name: '내용',
+                                        minWidth: 200,
+                                        selector: 'content',
+                                        cell: ({ data }) => {
+                                            return <div style={{overflow:'scroll', textOverflow:'unset'}}><span>{data.content}</span></div>;
+                                        }
+                                    },
+                                    {
+                                        name: '그룹코드',
+                                        minWidth: 200,
+                                        selector: 'groupCode',
+                                        cell: ({ data }) => {
+                                            return <div style={{overflow:'scroll', textOverflow:'unset'}}><span>{data.groupCode}</span></div>;
+                                        }   
+                                    },
+                                    {
+                                        name: '회원 ID',
+                                        selector: 'memberId',
+                                        maxWidth: 200,
+                                    },
+                                    {
+                                        name: '닉네임',
+                                        selector: 'nickname',
+                                        maxWidth: 200,
+                                    },
+                                    {
+                                        name: '사용자 타입',
+                                        selector: 'userType',
+                                        maxWidth: 100,
+                                    },
+                                    {
+                                        name: '시작일',
+                                        selector: 'startDay',
+                                        minWidth: 150,
+                                        cell: ({ data }) => {
+                                            return <GetSeoulTime time={data.startDay} long />;
+                                        },
+                                    },
+                                    {
+                                        name: '종료일',
+                                        selector: 'endDay',
+                                        minWidth: 150,
+                                        cell: ({ data }) => {
+                                            return data.endDay ? <GetSeoulTime time={data.endDay} long /> : <div>---</div>;
+                                        },
+                                    },
+                                    // { name: '댓글허용', minWidth: 100, selector: 'isReplyAvaliable' },
+                                    {
+                                        name: '생성일',
+                                        minWidth: 150,
+                                        selector: 'createdAt',
+                                        cell: ({ data }) => {
+                                            return <GetSeoulTime time={data.createdAt} long />;
+                                        },
+                                    }
+                                ]}
+                                datas={hookMember.coupons.map(coupon => ({
+                                    id: coupon.id,
+                                    name: coupon.name,
+                                    serialNumber: coupon.serialNumber,
+                                    content: coupon.content,
+                                    groupCode: coupon.CafeCouponGroup?.code,
+                                    memberId: coupon.ProxyUser?.memberId || '-',
+                                    userType: coupon.ProxyUser?.proxyUserType || '-',
+                                    startDay: coupon.startDay || '-',
+                                    endDay: coupon.endDay || '-',
+                                    nickname: coupon.ProxyUser?.name || '-',
+                                    createdAt: coupon.createdAt ? new Date(coupon.createdAt).toLocaleDateString('ko-KR') : '-'
+                                }))}
+                                totalCount={hookMember.totalCount}
+                                page={hookMember.currentPage}
+                                take={hookMember.pageSize}
+                                setPage={hookMember.handlePageChange}
+                            />
+                        </Flex>
                     </BorderRoundedContent>
                 )}
             </div>

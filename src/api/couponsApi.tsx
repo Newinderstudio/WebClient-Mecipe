@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { fetchCompatBaseQuery } from '../util/fetchCompatBaseQuery';
 import { CafeCoupon, CafeCouponHistory, CafeCouponQRCode, ProxyUserType } from '../data/prisma-client';
+import { MakePrimitiveRequiredWithObject } from '@/util/types';
 
 // API 응답 타입 정의
 export interface CreateCouponResponse extends Omit<CafeCoupon, 'CafeCouponGroup'> {
@@ -11,6 +12,28 @@ export interface CreateCouponResponse extends Omit<CafeCoupon, 'CafeCouponGroup'
 
 export interface UseCouponResponse extends CafeCouponHistory {
   CafeCoupon: CafeCoupon;
+}
+
+export type CafeCouponResult = MakePrimitiveRequiredWithObject<CafeCoupon>;
+
+export interface CouponListResponse {
+  coupons: (CafeCouponResult & {
+    CafeCouponGroup: {
+      code: string;
+    } & {
+      ProxyUser: {
+        memberId: string;
+        proxyUserType: ProxyUserType;
+        name: string;
+      }
+    };
+  })[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 // API 요청 타입 정의
@@ -33,9 +56,11 @@ export interface CreateCouponQRCodeRequest {
 }
 
 export interface FindByCouponByGroupCodeWithUserIdRequest {
-  groupCode: string,
-  memberId: string,
-  userType: ProxyUserType
+  groupCode?: string,
+  memberId?: string,
+  userType?: ProxyUserType,
+  page?: number,
+  take?: number
 }
 
 export interface UseCouponRequest {
@@ -213,13 +238,14 @@ export const couponsApi = createApi({
     }),
 
     // 그룹 코드와 사용자 ID로 쿠폰 조회
-    findByCouponByGroupCodeWithUserId: builder.mutation<
-      CreateCouponResponse[],
+    adminFindAllCoupons: builder.mutation<
+      CouponListResponse,
       FindByCouponByGroupCodeWithUserIdRequest
     >({
       query: (args) => ({
-        url: `admin/find/group-code/member-id?groupCode=${args.groupCode}&memberId=${args.memberId}&userType=${args.userType}`,
+        url: "admin/find-coupons",
         method: 'GET',
+        params: args,
       }),
     }),
 
@@ -248,7 +274,7 @@ export const couponsApi = createApi({
 export const {
   useCreateCouponMutation,
   useCreateCouponQRCodeMutation,
-  useFindByCouponByGroupCodeWithUserIdMutation,
+  useAdminFindAllCouponsMutation,
   useUseCouponMutation,
   useTestQrQuery,
 } = couponsApi;
