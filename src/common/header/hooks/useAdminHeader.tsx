@@ -38,6 +38,9 @@ export const navArray:NavItem[] = [
     { name: '쿠폰생성', url: '/admin/coupons/create' },
     { name: '쿠폰관리', url: '/admin/coupons/list' },
   ] },
+  { title: '상품관리', children: [
+    { name: '상품카테고리관리', url: '/admin/product/category' },
+  ] },
   { title: '게시판관리', children: [
     { name: '게시판관리', url: '/admin/board' },
   ] },
