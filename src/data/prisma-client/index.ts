@@ -405,8 +405,8 @@ export type ProductCategory = {
     categoryId: number
     cafeInfoId: number | null
 
-    category?: ProductCategory  
-    cafeInfo?: CafeInfo
+    ProductCategory?: ProductCategory  
+    CafeInfo?: CafeInfo
     WishlistProducts?: WishlistProduct[]
     ProductImages?: ProductImage[]
   }
@@ -422,7 +422,7 @@ export type ProductCategory = {
     proxyUserId: number
 
     product?: Product
-    proxyUser?: ProxyUser
+    ProxyUser?: ProxyUser
   }
   
   /**
@@ -439,6 +439,8 @@ export type ProductCategory = {
     size: number
     isDisable: boolean
     productId: number
+
+    isThumb: boolean
 
     Product?: Product
   }

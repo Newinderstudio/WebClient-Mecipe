@@ -22,6 +22,7 @@ import { regionCategoriesApi } from '@/api/regionCategoriesApi';
 import { couponsApi } from '@/api/couponsApi';
 import { boardsApi } from '@/api/boardsApi';
 import { productCategoriesApi } from '@/api/productCategoriesApi';
+import { productsApi } from '@/api/productsApi';
 
 const reducer = combineReducers({
   [examplesApi.reducerPath]: examplesApi.reducer,
@@ -35,6 +36,7 @@ const reducer = combineReducers({
   [couponsApi.reducerPath]: couponsApi.reducer,
   [boardsApi.reducerPath]: boardsApi.reducer,
   [productCategoriesApi.reducerPath]: productCategoriesApi.reducer,
+  [productsApi.reducerPath]: productsApi.reducer,
   account: accountSlice,
 });
 
@@ -53,6 +55,7 @@ export const store = configureStore({
       .concat(couponsApi.middleware)
       .concat(boardsApi.middleware)
       .concat(productCategoriesApi.middleware)
+      .concat(productsApi.middleware)
   ,
   devTools: process.env.NODE_ENV !== 'production',
 });
