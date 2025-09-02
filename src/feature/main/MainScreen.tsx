@@ -218,15 +218,18 @@ function MainScreen() {
             <EventDisplayContainer ref={eventSectionRef}>
                 <EventDisplayComponent>
                     {/* 소개 텍스트 */}
-                    <IntroText>
-                        혹시 실제 카페에 방문 중이신가요?
-                    </IntroText>
-                    <IntroText>
-                        &apos;메시피 X 카페&apos;에서 진행 중인 이벤트를 확인하고,
-                    </IntroText>
-                    <IntroText>
-                        메시피에서만 얻을 수 있는 달콤한 혜택 놓치지 마세요!
-                    </IntroText>
+                    <div style={{ paddingTop: 60, paddingBottom: 20 }}>
+                        <IntroTextTitle>
+                            혹시 실제 카페에 방문 중이신가요?
+                        </IntroTextTitle>
+                        <IntroText>
+                            &apos;메시피 X 카페&apos;에서 진행 중인 이벤트를 확인하고,
+                        </IntroText>
+                        <IntroText>
+                            메시피에서만 얻을 수 있는 달콤한 혜택 놓치지 마세요!
+                        </IntroText>
+                    </div>
+
                 </EventDisplayComponent>
             </EventDisplayContainer>
 
@@ -235,20 +238,23 @@ function MainScreen() {
 };
 export default MainScreen;
 
+const IntroTextTitle = styled.p`
+  font-size: 2em;
+  line-height: 1.6;
+  margin: 8px 0;
+  
+  font-weight: 600;
+  color: #495057;
+  text-align: center;
+`;
+
 const IntroText = styled.p`
   font-size: 1.5em;
   line-height: 1.6;
   color: #333;
-  margin: 8px 0;
+  margin: 0;
   font-weight: 400;
-  
-  &:first-of-type {
-    font-weight: 600;
-    color: #495057;
-  }
-  @media (max-width: 768px) {
-    text-align: center;
-  }
+  text-align: center;
 `;
 
 const MainStyledHeader = styled.div({

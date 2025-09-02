@@ -10,9 +10,10 @@ interface EventDisplayComponentProps {
     className?: string;
     cafeInfoId?: number;
     children?: React.ReactNode;
+    style?: React.CSSProperties;
 }
 
-const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className, cafeInfoId = -1, children }) => {
+const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className, cafeInfoId = -1, children, style }) => {
 
     const router = useRouter();
     const [findAllBoards] = useFindAllBoardsMutation();
@@ -136,7 +137,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
     }
 
     return (
-        <Container className={className}>
+        <Container className={className} style={style}>
             {children}
 
             {/* 오늘의 이벤트 */}
