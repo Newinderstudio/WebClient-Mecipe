@@ -16,7 +16,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
 
     const router = useRouter();
     const [findAllBoards] = useFindAllBoardsMutation();
-    const [todayEvents, setTodayEvents] = useState<BoardResult[]>([]);
+    // const [todayEvents, setTodayEvents] = useState<BoardResult[]>([]);
     const [ongoingEvents, setOngoingEvents] = useState<BoardResult[]>([]);
     const [endedEvents, setEndedEvents] = useState<BoardResult[]>([]);
     const [activeTab, setActiveTab] = useState<'ongoing' | 'ended'>('ongoing');
@@ -62,12 +62,12 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                 const today = getTodayString();
 
                 // 오늘의 이벤트 (startDay가 오늘인 것, 5개)
-                const todayResponse = await findAllBoards({
-                    boardType: 'BEVENT',
-                    inProgressDay: today,
-                    limit: 5,
-                    cafeInfoId: cafeInfoId
-                }).unwrap();
+                // const todayResponse = await findAllBoards({
+                //     boardType: 'BEVENT',
+                //     inProgressDay: today,
+                //     limit: 5,
+                //     cafeInfoId: cafeInfoId
+                // }).unwrap();
 
                 // 현재 진행 중인 이벤트 (startDay가 오늘인 것, 5개)
                 const ongoingResponse = await findAllBoards({
@@ -85,7 +85,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                     cafeInfoId: cafeInfoId
                 }).unwrap();
 
-                if (todayResponse?.boards) setTodayEvents(todayResponse.boards);
+                // if (todayResponse?.boards) setTodayEvents(todayResponse.boards);
                 if (ongoingResponse?.boards) setOngoingEvents(ongoingResponse.boards);
                 if (endedResponse?.boards) setEndedEvents(endedResponse.boards);
             } catch (error) {
@@ -111,7 +111,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
             {children}
 
             {/* 오늘의 이벤트 */}
-            <EventSection>
+            {/* <EventSection>
                 <SectionTitle>오늘의 이벤트</SectionTitle>
                 <SectionSubtitle>지금 가장 인기 있는 이벤트</SectionSubtitle>
                 <EventSlider>
@@ -135,7 +135,7 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
                         ))}
                     </EventSliderContent>
                 </EventSlider>
-            </EventSection>
+            </EventSection> */}
 
             {/* 현재 진행 중인 이벤트 | 종료된 이벤트 */}
             <EventSection>
@@ -201,21 +201,21 @@ const EventSection = styled.div`
   margin-bottom: 50px;
 `;
 
-const SectionTitle = styled.h2`
-  font-size: 28px;
-  font-weight: 700;
-  color: #212529;
-  margin: 0 0 8px 0;
-  text-align: center;
-`;
+// const SectionTitle = styled.h2`
+//   font-size: 28px;
+//   font-weight: 700;
+//   color: #212529;
+//   margin: 0 0 8px 0;
+//   text-align: center;
+// `;
 
-const SectionSubtitle = styled.p`
-  font-size: 16px;
-  color: #6c757d;
-  text-align: center;
-  margin: 0 0 30px 0;
-  font-weight: 400;
-`;
+// const SectionSubtitle = styled.p`
+//   font-size: 16px;
+//   color: #6c757d;
+//   text-align: center;
+//   margin: 0 0 30px 0;
+//   font-weight: 400;
+// `;
 
 const TabContainer = styled.div`
   display: flex;
