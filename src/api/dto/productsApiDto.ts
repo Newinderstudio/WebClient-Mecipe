@@ -18,11 +18,14 @@ export type CreateProductDto = {
     minOrderQuantity?: number;
     isAvailable: boolean;
     isDisable?: boolean;
+    isSignature?: boolean;
 
     cafeInfoId?: number;
     categoryId: number;
 
     productImages?: CreateProductImageDto[];
+
+    productRedirectUrlArray?: string[];
 }
 
 export type SearchProductDto = {
@@ -63,9 +66,12 @@ export type UpdateProductDto = {
 
     cafeInfoId?: number;
     categoryId?: number;
+    isSignature?: boolean;
 
     productImages?: CreateProductImageDto[];
     disabledImageIds?: number[];
 
     isThumbImageId?: number;
+
+    productRedirectUrlArray?: string[];
 }

@@ -61,6 +61,7 @@ export const useAdminProductDetailScreen = () => {
         isAvailable: product.isAvailable ?? true,
         categoryId: product.categoryId,
         cafeInfoId: product.cafeInfoId ?? 0,
+        isSignature: product.isSignature ?? false,
         // productImages: product.ProductImages ?? [],
       });
 
@@ -305,7 +306,8 @@ export const useAdminProductDetailScreen = () => {
           stockQuantity: product.stockQuantity === formData.stockQuantity ? undefined : formData.stockQuantity, // 재고가 0이면 1로 설정
           productImages: productImages ?? undefined,
           disabledImageIds: removeImageIds.length > 0 ? removeImageIds : undefined,
-          isThumbImageId: thumbnailImage?.id !== undefined && product.ProductImages?.find(image => image.isThumb)?.id != thumbnailImage?.id ? thumbnailImage?.id : undefined
+          isThumbImageId: thumbnailImage?.id !== undefined && product.ProductImages?.find(image => image.isThumb)?.id != thumbnailImage?.id ? thumbnailImage?.id : undefined,
+          isSignature: product.isSignature === formData.isSignature ? undefined : formData.isSignature,
         }
       });
 
@@ -341,6 +343,7 @@ export const useAdminProductDetailScreen = () => {
         categoryId: product.categoryId ?? 0,
         cafeInfoId: product.cafeInfoId ?? 0,
         productImages: product.ProductImages ?? [],
+        isSignature: product.isSignature ?? false,
       });
       setImages(product.ProductImages?.map(image => {
         return {

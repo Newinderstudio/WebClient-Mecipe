@@ -108,6 +108,7 @@ const AdminProductCreateScreen: React.FC = () => {
                                     type="number"
                                     value={hookMember.formData.price}
                                     onChange={(e) => hookMember.handleInputChange('price', Number(e.target.value))}
+                                    required
                                 />
                             </FlexRow>
                         </Flex>
@@ -154,7 +155,21 @@ const AdminProductCreateScreen: React.FC = () => {
                             </Flex>
                         </Flex>
 
-                        <FlexRow style={{ width: '100%' }}>
+                        <FlexRow style={{ width: 'calc(50% - 15px)' }}>
+                            <TheadSmall
+                                style={{
+                                    flexGrow: 1
+                                }}
+                            >
+                                시그니처 여부
+                            </TheadSmall>
+                            <InputStyle
+                                type="checkbox"
+                                checked={hookMember.formData.isSignature}
+                                onChange={(e) => hookMember.handleInputChange('isSignature', e.target.checked)}
+                            />
+                        </FlexRow>
+                        <FlexRow style={{ width: 'calc(50% - 15px)' }}>
                             <TheadSmall
                                 style={{
                                     flexGrow: 1
