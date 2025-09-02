@@ -23,9 +23,9 @@ const EventDisplayComponent: React.FC<EventDisplayComponentProps> = ({ className
     const [loading, setLoading] = useState(true);
 
     // 슬라이더 ref와 이미지 로드 카운트
-    const todaySliderRef = useRef<HTMLDivElement>(null);
+    // const todaySliderRef = useRef<HTMLDivElement>(null);
     const tabSliderRef = useRef<HTMLDivElement>(null);
-    const todayLoadedImageCount = useRef(0);
+    // const todayLoadedImageCount = useRef(0);
     const tabLoadedImageCount = useRef(0);
 
     // 오늘 날짜를 YYYY-MM-DD 형식으로 가져오기
