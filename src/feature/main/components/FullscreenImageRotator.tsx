@@ -1,36 +1,45 @@
 import React, { useEffect, useState } from 'react'
 import styled from '@emotion/styled'
+import Image from 'next/image';
 
 const ImageContainer = styled.div`
-  top: 0; left: 0;
-  width: 120vw;
-  height: 120vh;
-  overflow: hidden;
-  z-index: -1;
-  position: absolute;
-  margin: -10vw
-`;
-
-const CoverImage = styled.img`
-    position: absolute;
     top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(4px);
-    
-    &.cross {
+    width: 120vw;
+    height: 120vh;
+    overflow: hidden;
+    z-index: -1;
+    position: absolute;
+    margin: -10vw;
+    & > img.cross {
         opacity: 0;
         z-index: 2;
     }
 
-    &.cross.visible {
+    & > img.cross.visible {
         opacity: 1;
         transition: opacity 2s ease-in-out;
-
     }
 `;
-export default function FullscreenImageRotator({ imgList }: { imgList: string[]}) {
+const CoverImage = function ({ src, className, alt }: { src: string, className: string, alt: string }) {
+    return (
+        <Image
+            src={src}
+            className={className}
+            alt={alt}
+            style={{
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                filter: 'blur(4px)',
+            }}
+            fill
+        />
+    )
+}
+
+export default function FullscreenImageRotator({ imgList }: { imgList: string[] }) {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [nextIndex, setNextIndex] = useState(1)
     const [isFading, setIsFading] = useState(false)
