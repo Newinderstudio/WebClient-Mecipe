@@ -1,7 +1,6 @@
 import { RigidBody } from "@react-three/rapier";
-import AdvancedGltfLoader from "./AdvancedGltfLoader";
-import { useCallback } from "react";
 import { Environment } from "@react-three/drei";
+import useWorldRenderer from "./hooks/useWorldRenderer";
 
 export interface WorldRendererProps {
     worldGltfOptions: {
@@ -15,36 +14,8 @@ export interface WorldRendererProps {
 }
 
 const WorldRenderer = (props: WorldRendererProps) => {
-    const { worldGltfOptions, colliderGltfOptions } = props;
-
-    const VisibleGltfLoader = useCallback(() => {
-        return <AdvancedGltfLoader
-            gltfPath={worldGltfOptions.path}
-            options={{
-                isBatching: true,
-                isDraco: worldGltfOptions.isDraco,
-                isVisible: true,
-                enableShadows: true,
-                disableReflections: true,
-            }}
-        />
-    }, [worldGltfOptions]);
-
-    const ColliderGltfLoader = useCallback(() => {
-        if (!colliderGltfOptions) return null;
-        return <AdvancedGltfLoader
-            gltfPath={colliderGltfOptions.path}
-            options={{
-                isBatching: true,
-                isDraco: colliderGltfOptions.isDraco,
-                isVisible: false,
-                enableShadows: false,
-                disableReflections: true,
-            }}
-        />
-    }, [colliderGltfOptions]);
-
-
+    const { VisibleGltfLoader, ColliderGltfLoader } = useWorldRenderer(props);
+    
     return (
         <group>
             {/* <Sky sunPosition={[100, 20, 100]} /> */}
