@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/public/3d/test_virtual_world/*
 
 # next.js
 /.next/

@@ -30,7 +30,8 @@ const nextConfig: NextConfig = {
   /* config options here */
   compiler: {
     emotion: true
-  }
+  },
+  transpilePackages: ['three'],
 };
 
 export default nextConfig;
