@@ -1,6 +1,6 @@
-import { RigidBody } from "@react-three/rapier";
+import { MeshCollider, RigidBody } from "@react-three/rapier";
 import { Environment } from "@react-three/drei";
-import useWorldRenderer from "./hooks/useWorldRenderer";
+import { JSX } from "react";
 
 export interface WorldRendererProps {
     worldGltfOptions: {
@@ -13,17 +13,22 @@ export interface WorldRendererProps {
     }
 }
 
-const WorldRenderer = (props: WorldRendererProps) => {
-    const { VisibleGltfLoader, ColliderGltfLoader } = useWorldRenderer(props);
-    
+function WorldRenderer({ visibleRenderer: VisibleRenderer, colliderRenderer: ColliderRenderer }: { visibleRenderer: JSX.Element, colliderRenderer?: JSX.Element }) {
+
+    const Collider = ColliderRenderer ? ColliderRenderer : VisibleRenderer;
+
     return (
         <group>
             {/* <Sky sunPosition={[100, 20, 100]} /> */}
             <Environment preset="sunset" />
-            <RigidBody type="fixed" colliders={false} >
-                {<ColliderGltfLoader /> ?? <VisibleGltfLoader />}
+            <RigidBody type="fixed" colliders="trimesh" >
+                {/* {Collider} */}
+                <group visible={false}>
+                    <MeshCollider type="trimesh">{Collider}</MeshCollider>
+                </group>
+
             </RigidBody>
-            <VisibleGltfLoader />
+            {VisibleRenderer}
         </group>
 
     )

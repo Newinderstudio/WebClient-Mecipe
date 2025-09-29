@@ -4,8 +4,10 @@ import { Canvas } from '@react-three/fiber'
 import { PointerLockControls } from '@react-three/drei'
 
 import { Physics } from '@react-three/rapier';
-import WorldRenderer from "@/common/THREE/world/WorldRenderer";
 import { Suspense } from 'react';
+import CharacterAvatar from '@/common/THREE/Character/CharacterAvatar';
+import { KeyboardController } from '@/common/THREE/Character/controllers';
+import useWorldRendererResult from '@/hooks/THREE/useWorldRendererResult';
 
 export default function TestThreeScreen() {
 
@@ -15,6 +17,21 @@ export default function TestThreeScreen() {
     const worldGltfIsDraco = true;
     const colliderGltfIsDraco = true;
 
+    const characterGltfPath = "/3d/test_virtual_world/character.glb";
+    const characterGltfIsDraco = true;
+    const characterController = new KeyboardController();
+
+    const { renderer: WorldRenderer, isLoaded: isWorldLoaded } = useWorldRendererResult({
+        worldGltfOptions: {
+            path: worldGltfPath,
+            isDraco: worldGltfIsDraco,
+        },
+        colliderGltfOptions: {
+            path: colliderGltfPath,
+            isDraco: colliderGltfIsDraco,
+        }
+    });
+
     return (
         <div
             style={{
@@ -23,20 +40,19 @@ export default function TestThreeScreen() {
             }}
         >
             <Canvas camera={{ fov: 45 }}>
-                <Physics gravity={[0, -30, 0]}>
+                <Physics timeStep="vary" gravity={[0, -10, 0]}>
                     <Suspense fallback={null}>
-                        <WorldRenderer
-                            worldGltfOptions={{
-                                path: worldGltfPath,
-                                isDraco: worldGltfIsDraco,
-                            }}
-                            colliderGltfOptions={{
-                                path: colliderGltfPath,
-                                isDraco: colliderGltfIsDraco,
-                            }}
-                        />
+                        {WorldRenderer && <WorldRenderer />}
                     </Suspense>
-
+                    {isWorldLoaded &&
+                        <group>
+                            <CharacterAvatar
+                                gltfPath={characterGltfPath}
+                                isDraco={characterGltfIsDraco}
+                                controller={characterController}
+                            />
+                        </group>
+                    }
                 </Physics>
                 <PointerLockControls />
             </Canvas>

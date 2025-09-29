@@ -136,3 +136,29 @@ export function setEnableReflections(material: THREE.Material | THREE.Material[]
         }
     });
 }
+
+// export function createMeshCollider(mesh: THREE.Mesh): Promise<{ collider: Collider, mesh: THREE.Mesh, type: 'static' } | null> {
+//     if (!this.rapierWorld) return null;
+
+//     try {
+//         // 메시의 월드 변환을 적용한 지오메트리 생성
+//         const geometry = mesh.geometry.clone();
+//         geometry.applyMatrix4(mesh.matrixWorld);
+
+//         const position = geometry.getAttribute('position');
+//         const index = geometry.getIndex();
+
+//         const vertices = new Float32Array(position.array);
+//         const indices = index ? new Uint32Array(index.array) : new Uint32Array(0);
+
+//         // Trimesh 콜라이더 생성
+//         const colliderDesc = RAPIER.ColliderDesc
+//             .trimesh(vertices, indices)
+//             .setCollisionGroups(ColliderGroupType.Default << 16 | ColliderGroupType.Default)
+//             .setSolverGroups(ColliderGroupType.Default << 16 | ColliderGroupType.Default);
+
+//     } catch (error) {
+//         console.error('Error creating mesh collider:', error);
+//         return null;
+//     }
+// }
