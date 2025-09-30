@@ -1,16 +1,18 @@
+import { CharacterControllerHelperOptions } from "@/hooks/THREE/useCharacterControllerHelper";
+import { RootState } from "@react-three/fiber";
+import { RefObject } from "react";
+import { RapierRigidBody } from "@react-three/rapier";
 import { Vector3 } from "three";
 
 export interface MovementInput {
   direction: Vector3;
-  jump: boolean;
-  run: boolean;
 }
 
-export interface IController {
+export interface IController<T> {
   /**
    * 컨트롤러 초기화
    */
-  initialize(): void;
+  initialize(rootState: RootState, options: CharacterControllerHelperOptions): void;
   
   /**
    * 컨트롤러 정리
@@ -20,7 +22,7 @@ export interface IController {
   /**
    * 현재 프레임의 입력 상태를 반환
    */
-  getMovementInput(): MovementInput;
+  getMovementInput(ref: RefObject<RapierRigidBody | null>, props: T): MovementInput;
   
   /**
    * 컨트롤러 활성화/비활성화

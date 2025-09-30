@@ -1,36 +1,18 @@
 "use client"
 
 import { Canvas } from '@react-three/fiber'
-import { PointerLockControls } from '@react-three/drei'
+import { Capsule, KeyboardControls, PointerLockControls } from '@react-three/drei'
+import { Suspense } from 'react';
 
 import { Physics } from '@react-three/rapier';
-import { Suspense } from 'react';
-import CharacterAvatar from '@/common/THREE/Character/CharacterAvatar';
-import { KeyboardController } from '@/common/THREE/Character/controllers';
-import useWorldRendererResult from '@/hooks/THREE/useWorldRendererResult';
+import CharacterManager from '@/common/THREE/core/CharacterManager';
+import useVirtualWorldScreen from './hooks/useVirtualWorldScreen';
+import GameControlManager from '@/common/THREE/core/GameControlManager';
+import { Vector3 } from 'three';
 
-export default function TestThreeScreen() {
+export default function VirtualWorldScreen() {
 
-    const worldGltfPath = "/3d/test_virtual_world/virtual_world.glb";
-    const colliderGltfPath = "/3d/test_virtual_world/virtual_world_collider.glb";
-
-    const worldGltfIsDraco = true;
-    const colliderGltfIsDraco = true;
-
-    const characterGltfPath = "/3d/test_virtual_world/character.glb";
-    const characterGltfIsDraco = true;
-    const characterController = new KeyboardController();
-
-    const { renderer: WorldRenderer, isLoaded: isWorldLoaded } = useWorldRendererResult({
-        worldGltfOptions: {
-            path: worldGltfPath,
-            isDraco: worldGltfIsDraco,
-        },
-        colliderGltfOptions: {
-            path: colliderGltfPath,
-            isDraco: colliderGltfIsDraco,
-        }
-    });
+    const { World, isWorldLoaded, keyBoardMap } = useVirtualWorldScreen();
 
     return (
         <div
@@ -39,23 +21,34 @@ export default function TestThreeScreen() {
                 height: '100vh',
             }}
         >
-            <Canvas camera={{ fov: 45 }}>
-                <Physics timeStep="vary" gravity={[0, -10, 0]}>
-                    <Suspense fallback={null}>
-                        {WorldRenderer && <WorldRenderer />}
-                    </Suspense>
-                    {isWorldLoaded &&
-                        <group>
-                            <CharacterAvatar
-                                gltfPath={characterGltfPath}
-                                isDraco={characterGltfIsDraco}
-                                controller={characterController}
-                            />
-                        </group>
-                    }
-                </Physics>
-                <PointerLockControls />
-            </Canvas>
+            <KeyboardControls
+                map={keyBoardMap}
+            >
+                <Canvas camera={{ fov: 45 }}>
+                    <GameControlManager />
+                    <Physics timeStep={1.0 / 60.0} gravity={[0, -10, 0]}>
+
+                        {
+                            <>
+                                <Suspense fallback={null}>
+                                    {World && <World />}
+                                </Suspense>
+                                {isWorldLoaded &&
+                                    <CharacterManager characterOptions={{
+                                        height: 1,
+                                        radius: 0.2,
+                                        spawnPoint: new Vector3(0, 10, 0),
+                                        playerJumpForce: 4,
+                                        playerSpeed: 10,
+                                    }} />
+                                }
+                            </>
+                        }
+                        <Capsule args={[0.3, 1]} position={[-3, 3, 0]} />
+                    </Physics>
+                    <PointerLockControls />
+                </Canvas>
+            </KeyboardControls>
 
         </div>
     )

@@ -1,5 +1,7 @@
 import { Vector3 } from "three";
 import { IController, MovementInput } from "./IController";
+import { RootState } from "@react-three/fiber";
+import { CharacterControllerHelperOptions } from "@/hooks/THREE/useCharacterControllerHelper";
 
 export interface WebSocketMovementMessage {
   type: 'movement';
@@ -27,7 +29,7 @@ export class WebSocketController implements IController {
     }
   }
 
-  initialize(): void {
+  initialize(rootState: RootState, options: CharacterControllerHelperOptions): void {
     // WebSocket 연결이 이미 있다면 초기화 완료
   }
 

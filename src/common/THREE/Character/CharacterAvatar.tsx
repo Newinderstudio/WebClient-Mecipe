@@ -1,27 +1,26 @@
 import useCharacterAvatar from "./hooks/useCharacterAvatar";
-import { CapsuleCollider, RigidBody } from "@react-three/rapier";
-import { IController } from "./controllers/IController";
+import { Vector3 } from "three";
+
+export interface CharacterAvatarOptions {
+    scale: Vector3;
+}
 
 export interface CharacterAvatarProps {
     gltfPath: string;
     isDraco?: boolean;
-    controller?: IController;
+    options: CharacterAvatarOptions;
 }
 
-function CharacterAvatar({ 
+function CharacterAvatar({
     gltfPath,
     isDraco = false,
-    controller,
+    options,
 }: CharacterAvatarProps) {
 
-    const { gltf, ref } = useCharacterAvatar({ gltfPath, isDraco, controller });
-
+    const { gltf } = useCharacterAvatar({ gltfPath, isDraco });
 
     return (
-        <RigidBody type="dynamic" ref={ref} mass={1} colliders={false} position={[0, 100, 0]} enabledRotations={[false, false, false]}>
-            <CapsuleCollider args={[0.75, 0.5]} />
-            <primitive object={gltf.scene} />
-        </RigidBody>
+        <primitive object={gltf.scene} scale={options.scale} />
     )
 }
 

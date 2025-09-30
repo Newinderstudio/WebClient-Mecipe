@@ -1,77 +1,76 @@
 import { Vector3 } from "three";
 import { IController, MovementInput } from "./IController";
+import { RootState } from "@react-three/fiber";
+import { CharacterManagerOptions } from "@/common/THREE/core/CharacterManager";
+import { RapierContext, RapierRigidBody } from "@react-three/rapier";
+import { RefObject } from "react";
+import * as RAPIER from "@dimforge/rapier3d-compat"
+import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
 
-export class KeyboardController implements IController {
+type KeyboardControlsState<T extends string = string> = {
+  [K in T]: boolean;
+};
+
+export interface KeyboardControllerProps {
+  rapier: RapierContext
+  getKeyboarState: () => KeyboardControlsState<string>
+}
+
+export class KeyboardController implements IController<KeyboardControllerProps> {
   private enabled: boolean = true;
   private keys: Set<string> = new Set();
+  private direction = new Vector3()
+  private frontVector = new Vector3()
+  private sideVector = new Vector3()
+  private rotation = new Vector3()
+
   private movementInput: MovementInput = {
     direction: new Vector3(),
-    jump: false,
-    run: false,
   };
 
-  initialize(): void {
-    this.addEventListeners();
+  private rootState?: RootState;
+  private options?: CharacterManagerOptions;
+
+  initialize(rootState: RootState, options: CharacterManagerOptions): void {
+    this.rootState = rootState;
+    this.options = options;
   }
 
   dispose(): void {
-    this.removeEventListeners();
+
   }
 
-  private addEventListeners(): void {
-    document.addEventListener('keydown', this.handleKeyDown);
-    document.addEventListener('keyup', this.handleKeyUp);
-  }
+  getMovementInput(ref: RefObject<RapierRigidBody | null>, {getKeyboarState, rapier}: KeyboardControllerProps): MovementInput {
 
-  private removeEventListeners(): void {
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('keyup', this.handleKeyUp);
-  }
+    if(!this.rootState || !this.options || !ref.current) return this.movementInput;
 
-  private handleKeyDown = (event: KeyboardEvent): void => {
-    if (!this.enabled) return;
-    
-    this.keys.add(event.code);
-    this.updateMovementInput();
-  };
+    const { forward:forwardTrigger, backward:backwardTrigger, left:leftTrigger, right:rightTrigger, jump:jumpTrigger } = getKeyboarState();
 
-  private handleKeyUp = (event: KeyboardEvent): void => {
-    if (!this.enabled) return;
-    
-    this.keys.delete(event.code);
-    this.updateMovementInput();
-  };
+    const forward = forwardTrigger ? 1 : 0;
+    const backward = backwardTrigger ? 1 : 0;
+    const left = leftTrigger ? 1 : 0;
+    const right = rightTrigger ? 1 : 0;
 
-  private updateMovementInput(): void {
     const direction = new Vector3();
-    
-    // WASD 또는 화살표 키로 이동
-    if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) {
-      direction.z -= 1;
-    }
-    if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) {
-      direction.z += 1;
-    }
-    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) {
-      direction.x -= 1;
-    }
-    if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) {
-      direction.x += 1;
+
+    this.frontVector.set(0, 0, backward - forward)
+    this.sideVector.set(left - right, 0, 0)
+    direction.subVectors(this.frontVector, this.sideVector).normalize().multiplyScalar(this.options.playerSpeed).applyEuler(this.rootState.camera.rotation)
+
+    direction.y = ref.current.linvel().y;
+
+    // jumping
+    const world = rapier.world;
+    const translation = ref.current.translation();
+    const ray = world.castRayAndGetNormal(new RAPIER.Ray(translation, { x: 0, y: -1, z: 0 }), this.options.height, true, undefined, colliderGroup(ColliderGroupType.Default, ColliderGroupType.Default));
+    const grounded = ray && ray.collider && ray.timeOfImpact <= this.options.height/2+0.01;
+
+    if(jumpTrigger && grounded) {
+      direction.add(new Vector3(0, this.options.playerJumpForce, 0));
     }
 
-    // 정규화
-    if (direction.length() > 0) {
-      direction.normalize();
-    }
+    this.movementInput.direction = direction;
 
-    this.movementInput = {
-      direction,
-      jump: this.keys.has('Space'),
-      run: this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
-    };
-  }
-
-  getMovementInput(): MovementInput {
     return this.movementInput;
   }
 
@@ -81,8 +80,6 @@ export class KeyboardController implements IController {
       this.keys.clear();
       this.movementInput = {
         direction: new Vector3(),
-        jump: false,
-        run: false,
       };
     }
   }

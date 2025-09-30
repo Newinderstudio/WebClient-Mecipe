@@ -21,10 +21,12 @@ function WorldRenderer({ visibleRenderer: VisibleRenderer, colliderRenderer: Col
         <group>
             {/* <Sky sunPosition={[100, 20, 100]} /> */}
             <Environment preset="sunset" />
-            <RigidBody type="fixed" colliders="trimesh" >
+            <RigidBody type="fixed" colliders="trimesh">
                 {/* {Collider} */}
                 <group visible={false}>
+
                     <MeshCollider type="trimesh">{Collider}</MeshCollider>
+
                 </group>
 
             </RigidBody>
