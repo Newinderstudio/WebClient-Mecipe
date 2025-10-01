@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import { IController, MovementInput } from "./IController";
 import { RootState } from "@react-three/fiber";
 import { CharacterManagerOptions } from "@/common/THREE/core/CharacterManager";
-import { RapierContext, RapierRigidBody } from "@react-three/rapier";
+import { RapierCollider, RapierContext } from "@react-three/rapier";
 import { RefObject } from "react";
 import * as RAPIER from "@dimforge/rapier3d-compat"
 import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
@@ -40,7 +40,7 @@ export class KeyboardController implements IController<KeyboardControllerProps> 
 
   }
 
-  getMovementInput(ref: RefObject<RapierRigidBody | null>, {getKeyboarState, rapier}: KeyboardControllerProps): MovementInput {
+  getMovementInput(ref: RefObject<RapierCollider | null>, {getKeyboarState, rapier}: KeyboardControllerProps): MovementInput {
 
     if(!this.rootState || !this.options || !ref.current) return this.movementInput;
 
@@ -57,12 +57,10 @@ export class KeyboardController implements IController<KeyboardControllerProps> 
     this.sideVector.set(left - right, 0, 0)
     direction.subVectors(this.frontVector, this.sideVector).normalize().multiplyScalar(this.options.playerSpeed).applyEuler(this.rootState.camera.rotation)
 
-    direction.y = ref.current.linvel().y;
-
     // jumping
     const world = rapier.world;
     const translation = ref.current.translation();
-    const ray = world.castRayAndGetNormal(new RAPIER.Ray(translation, { x: 0, y: -1, z: 0 }), this.options.height, true, undefined, colliderGroup(ColliderGroupType.Default, ColliderGroupType.Default));
+    const ray = world.castRayAndGetNormal(new RAPIER.Ray(translation, { x: 0, y: -1, z: 0 }), this.options.height, true, undefined, colliderGroup(ColliderGroupType.Player, ColliderGroupType.Default));
     const grounded = ray && ray.collider && ray.timeOfImpact <= this.options.height/2+0.01;
 
     if(jumpTrigger && grounded) {

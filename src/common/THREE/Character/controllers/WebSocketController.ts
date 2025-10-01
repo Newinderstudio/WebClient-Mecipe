@@ -96,8 +96,6 @@ export class WebSocketController implements IController {
     if (!enabled) {
       this.movementInput = {
         direction: new Vector3(),
-        jump: false,
-        run: false,
       };
     }
   }

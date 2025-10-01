@@ -1,6 +1,6 @@
 import { Vector3, Euler } from "three";
-import LoadedMesh from "./LoadedMesh";
 import useAdvancedGltfLoader from "./hooks/useAdvancedGltfLoader";
+import { useMemo } from "react";
 
 export interface AdvancedGltfLoaderOptions {
     position: Vector3
@@ -8,10 +8,10 @@ export interface AdvancedGltfLoaderOptions {
     scale: Vector3;
 
     isBatching: boolean;
-    isVisible: boolean;
+    isVisible?: boolean;
 
-    disableReflections: boolean;
-    enableShadows: boolean;
+    disableReflections?: boolean;
+    enableShadows?: boolean;
 
     onLoad: () => void;
 }
@@ -19,26 +19,27 @@ export interface AdvancedGltfLoaderOptions {
 export interface AdvancedGltfLoaderProps {
     gltfPath: string;
     isDraco: boolean;
+    isCollider?: boolean;
     options?: Partial<AdvancedGltfLoaderOptions>;
     onLoad: () => void;
 }
 
-function AdvancedGltfLoader({ gltfPath, isDraco, options, onLoad }: AdvancedGltfLoaderProps) {
+function AdvancedGltfLoader({ gltfPath, isDraco, isCollider, options, onLoad }: AdvancedGltfLoaderProps) {
 
-    const { gltf } = useAdvancedGltfLoader({ gltfPath, isDraco, onLoad });
+    const { targetRenderer } = useAdvancedGltfLoader({ gltfPath, isDraco, isCollider: isCollider ?? false, options, onLoad });
+    
+    // 기본 값들을 메모이제이션
+    const defaultPosition = useMemo(() => new Vector3(), []);
+    const defaultRotation = useMemo(() => new Euler(), []);
+    const defaultScale = useMemo(() => new Vector3(1, 1, 1), []);
+    
     return (
         <group
-            position={options?.position ?? new Vector3()}
-            rotation={options?.rotation ?? new Euler()}
-            scale={options?.scale ?? new Vector3(1, 1, 1)}
+            position={options?.position ?? defaultPosition}
+            rotation={options?.rotation ?? defaultRotation}
+            scale={options?.scale ?? defaultScale}
         >
-            {gltf.scene && <LoadedMesh
-                scene={gltf.scene}
-                isBatching={options?.isBatching ?? false}
-                isVisible={options?.isVisible === undefined ? true : options?.isVisible}
-                enableShadows={options?.enableShadows ?? true}
-                disableReflections={options?.disableReflections ?? false}
-            />}
+            {targetRenderer}
         </group>
     );
 }

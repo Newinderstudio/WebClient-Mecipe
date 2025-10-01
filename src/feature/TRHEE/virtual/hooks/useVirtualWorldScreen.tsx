@@ -1,23 +1,23 @@
 import useWorldRendererResult from '@/hooks/THREE/useWorldRendererResult';
+import { useThreeStateContext } from '@/store/THREE/store';
 import { useMemo } from 'react';
 
 export default function useVirtualWorldScreen() {
-    const worldGltfPath = "/3d/test_virtual_world/virtual_world.glb";
-    const colliderGltfPath = "/3d/test_virtual_world/virtual_world_collider.glb";
+    const {gravity} = useThreeStateContext();
 
-    const worldGltfIsDraco = true;
-    const colliderGltfIsDraco = true;
-
-    const { renderer: World, isLoaded: isWorldLoaded } = useWorldRendererResult({
+    // 옵션 객체를 메모이제이션하여 불필요한 리렌더링 방지
+    const rendererOptions = useMemo(() => ({
         worldGltfOptions: {
-            path: worldGltfPath,
-            isDraco: worldGltfIsDraco,
+            path: "/3d/test_virtual_world/virtual_world.glb",
+            isDraco: true,
         },
         colliderGltfOptions: {
-            path: colliderGltfPath,
-            isDraco: colliderGltfIsDraco,
+            path: "/3d/test_virtual_world/virtual_world_collider.glb",
+            isDraco: true,
         }
-    });
+    }), []);
+
+    const { renderer: World, isLoaded: isWorldLoaded } = useWorldRendererResult(rendererOptions);
 
     const keyBoardMap = useMemo(() => [
         { name: "forward", keys: ["ArrowUp", "w", "W"] },
@@ -31,6 +31,8 @@ export default function useVirtualWorldScreen() {
     return {
         World,
         isWorldLoaded,
-        keyBoardMap
+        keyBoardMap,
+
+        gravity
     }
 }
