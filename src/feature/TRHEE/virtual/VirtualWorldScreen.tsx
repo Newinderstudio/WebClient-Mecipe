@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas } from '@react-three/fiber'
-import { Capsule, KeyboardControls, PointerLockControls } from '@react-three/drei'
+import { KeyboardControls, PointerLockControls } from '@react-three/drei'
 import { Suspense } from 'react';
 
 import { Physics } from '@react-three/rapier';
@@ -12,14 +12,13 @@ import WorldRenderer from '@/common/THREE/world/WorldRenderer';
 
 export default function VirtualWorldScreen() {
 
-    const { 
-        rendererOptions, 
+    const {
+        rendererOptions,
         isLoadingOptions,
-        isLoaded: isWorldLoaded, 
-        keyBoardMap, 
-        characterOptions, 
-        gravityArray, 
-        loadingScreen 
+        keyBoardMap,
+        characterOptions,
+        gravityArray,
+        loadingScreen: LoadingScreen
     } = useVirtualWorldScreen();
 
     return (
@@ -35,20 +34,15 @@ export default function VirtualWorldScreen() {
                 <Canvas camera={{ fov: 45 }}>
                     <GameControlManager />
                     <Physics timeStep={1.0 / 60.0} gravity={gravityArray}>
-                        <Suspense fallback={loadingScreen}>
+                        <Suspense fallback={<LoadingScreen msg="Loading..." />}>
                             {/* 옵션 로딩 중이거나 옵션이 없으면 fallback 표시 */}
-                            {!isLoadingOptions && rendererOptions ? (
-                                <>
-                                    <WorldRenderer
-                                        rendererOptions={rendererOptions}
-                                    />
-                                    {isWorldLoaded && <CharacterManager characterOptions={characterOptions} />}
-                                </>
-                            ) : (
-                                loadingScreen
-                            )}
+                            <LoadingScreen msg={`WorldRenderer...${rendererOptions?.worldGltfOptions.path}/${isLoadingOptions}`} />
+                            <WorldRenderer
+                                rendererOptions={rendererOptions}
+                            >
+                                <CharacterManager characterOptions={characterOptions} />
+                            </WorldRenderer>
                         </Suspense>
-                        <Capsule args={[0.3, 1]} position={[-3, 3, 0]} />
                     </Physics>
                     <PointerLockControls />
                 </Canvas>

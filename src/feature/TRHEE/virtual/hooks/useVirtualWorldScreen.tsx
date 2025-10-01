@@ -1,6 +1,6 @@
-import { useThreeStateContext } from '@/store/THREE/store';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Vector3 } from 'three';
+import { useThreeStore } from '@/store/THREE/store';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Euler, Vector3 } from 'three';
 
 export interface WorldRendererProps {
     worldGltfOptions: {
@@ -10,17 +10,19 @@ export interface WorldRendererProps {
     colliderGltfOptions: {
         path: string;
         isDraco: boolean;
-    }
+    },
+    position: Vector3;
+    rotation: Euler;
+    scale: Vector3;
 }
 
 export default function useVirtualWorldScreen() {
-    const { gravity, renderingState } = useThreeStateContext();
+    // ✅ Zustand selector 패턴 - 필요한 값만 선택적으로 구독
+    const gravity = useThreeStore(state => state.gravity);
 
     // 옵션 객체를 메모이제이션하여 불필요한 리렌더링 방지
     const [rendererOptions, setRendererOptions] = useState<WorldRendererProps | undefined>(undefined);
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-
-    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
         // 서버에서 렌더러 옵션을 가져오는 로직 (나중에 API 호출로 대체)
@@ -41,7 +43,10 @@ export default function useVirtualWorldScreen() {
                     colliderGltfOptions: {
                         path: "/3d/test_virtual_world/virtual_world_collider.glb",
                         isDraco: true,
-                    }
+                    },
+                    position: new Vector3(0, 0, 0),
+                    rotation: new Euler(0, 0, 0),
+                    scale: new Vector3(1, 1, 1),
                 };
                 
                 setRendererOptions(options);
@@ -54,12 +59,6 @@ export default function useVirtualWorldScreen() {
 
         fetchRendererOptions();
     }, []);
-
-    useEffect(() => {
-        if (renderingState.visibleRenderer && renderingState.colliderRenderer) {
-            setIsLoaded(true);
-        }
-    }, [renderingState.visibleRenderer, renderingState.colliderRenderer]);
 
     const keyBoardMap = useMemo(() => [
         { name: "forward", keys: ["ArrowUp", "w", "W"] },
@@ -82,8 +81,8 @@ export default function useVirtualWorldScreen() {
     // gravity 배열도 메모이제이션
     const gravityArray = useMemo(() => gravity.toArray(), [gravity]);
 
-    const loadingScreen = useMemo(() => {
-        console.log("loadingScreen");
+    const loadingScreen = useCallback(({msg}:{msg:string}) => {
+        console.log("loadingScreen", msg);
         return (
             <group>
 
@@ -91,14 +90,17 @@ export default function useVirtualWorldScreen() {
         );
     }, []);
 
+    useEffect(() => {
+        console.log("🛑 Test Renderer Options&IsLoadingOptions", rendererOptions,isLoadingOptions);
+    }, [rendererOptions,isLoadingOptions]);
+
     const renderingCount = useRef(0);
     
-    console.warn("VirtualWorldScreen ReRendering", renderingState, renderingCount.current++);
+    console.warn("VirtualWorldScreen ReRendering", { rendererOptions, isLoadingOptions }, renderingCount.current++);
 
     return {
         rendererOptions,
         isLoadingOptions,
-        isLoaded,
         keyBoardMap,
 
         gravity,

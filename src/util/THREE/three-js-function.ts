@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // 씬 그룹을 받아서 머터리얼별로 배치치된 씬 그룹을 반환
@@ -135,6 +137,44 @@ export function setEnableReflections(material: THREE.Material | THREE.Material[]
             mat.needsUpdate = true;
         }
     });
+}
+
+export type PromiseGroup = Promise<THREE.Group>;
+// ✅ Promise 캐시 - 같은 파일은 한 번만 로드
+const gltfPromiseCache = new Map<string, PromiseGroup>();
+
+export function promiseForGLTFLoader(path: string, isDraco: boolean): PromiseGroup {
+    const cacheKey = `${path}-${isDraco}`;
+    
+    // ✅ 캐시에 있으면 재사용
+    if (gltfPromiseCache.has(cacheKey)) {
+        console.log("🟢 [promiseForGLTFLoader] 캐시에서 반환", path);
+        return gltfPromiseCache.get(cacheKey)!;
+    }
+    
+    console.log("🟡 [promiseForGLTFLoader] 새로 로드 시작", path);
+    
+    const promise = new Promise<THREE.Group>((resolve, reject) => {
+        const loader = new GLTFLoader();
+        if(isDraco) {
+            const dracoLoader = new DRACOLoader();
+            dracoLoader.setDecoderPath('/examples/jsm/libs/draco/');
+            loader.setDRACOLoader(dracoLoader);
+        }
+        
+        loader.load(path, (gltf) => {
+            console.log("✅ [promiseForGLTFLoader] 로드 완료!", path);
+            resolve(gltf.scene);
+        }, undefined, (error) => {
+            console.error("🔴 [promiseForGLTFLoader] 로드 실패", error);
+            gltfPromiseCache.delete(cacheKey); // 실패 시 캐시 제거
+            reject(error);
+        });
+    });
+    
+    // ✅ 캐시에 저장
+    gltfPromiseCache.set(cacheKey, promise);
+    return promise;
 }
 
 // export function createMeshCollider(mesh: THREE.Mesh): Promise<{ collider: Collider, mesh: THREE.Mesh, type: 'static' } | null> {

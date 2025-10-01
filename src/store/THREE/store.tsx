@@ -1,62 +1,39 @@
 "use client"
 
-import { createContext, useReducer, useContext } from "react";
+import { create } from "zustand";
 import { Object3D, Vector3 } from "three";
 
 type RenderingState = { [key: string]: boolean }
 
-type DispatchAction = {type:"SetGravity", payload: Vector3} | { type: "InitHeadSocket", payload: Object3D } | { type: "SetRenderingState", payload: RenderingState };
-type StateType = { headSocket: Object3D | null, gravity: Vector3, renderingState: RenderingState }
+interface ThreeState {
+    headSocket: Object3D | null;
+    gravity: Vector3;
+    renderingState: RenderingState;
+}
 
-const initialState: StateType = {
+interface ThreeActions {
+    setHeadSocket: (headSocket: Object3D) => void;
+    setGravity: (gravity: Vector3) => void;
+    setRenderingState: (renderingState: RenderingState) => void;
+}
+
+type ThreeStore = ThreeState & ThreeActions;
+
+export const useThreeStore = create<ThreeStore>((set) => ({
+    // Initial state
     headSocket: null,
     gravity: new Vector3(0, -9.81, 0),
-    renderingState: {}
-};
+    renderingState: {},
 
-// 추후 Provider를 사용하지 않았을 때에는 context의 값이 null이 되어야 하기때문에 null 값을 선언해준다.
-const StateContext = createContext<StateType>(initialState)
-const DispatchContext = createContext<((action: DispatchAction) => void)>(() => { })
-
-export const useThreeStateContext = () => useContext(StateContext);
-export const useThreeDispatchContext = () => useContext(DispatchContext);
-
-
-
-const reducer = (state: StateType, action: DispatchAction) => {
-    switch (action.type) {
-        case "InitHeadSocket":
-            return {
-                ...state,
-                headSocket: action.payload
-            };
-        case "SetGravity":
-            return {
-                ...state,
-                gravity: action.payload
-            };
-        case "SetRenderingState":
-            return {
-                ...state,
-                renderingState: {
-                    ...state.renderingState,
-                    ...action.payload
-                }
-            };
-        default:
-            return state;
-    }
-};
-
-export function ThreeContextProvider({ children }: { children: React.ReactNode }) {
-    const [state, dispatch] = useReducer(reducer, initialState);
-    return (
-
-        <DispatchContext.Provider value={dispatch}>
-            <StateContext.Provider value={state}>
-                {children}
-            </StateContext.Provider>
-        </DispatchContext.Provider>
-
-    );
-}
+    // Actions
+    setHeadSocket: (headSocket) => set({ headSocket }),
+    
+    setGravity: (gravity) => set({ gravity }),
+    
+    setRenderingState: (newRenderingState) => set((state) => ({
+        renderingState: {
+            ...state.renderingState,
+            ...newRenderingState
+        }
+    })),
+}));

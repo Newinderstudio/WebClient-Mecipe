@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { CapsuleCollider, CapsuleColliderProps, useRapier } from "@react-three/rapier";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CharacterManagerOptions } from "@/common/THREE/core/CharacterManager";
-import { useThreeStateContext } from "@/store/THREE/store";
+import { useThreeStore } from "@/store/THREE/store";
 import { RapierCollider } from "@react-three/rapier/dist/declarations/src/types";
 
 export default function useCharacterControllerHelper<T>({
@@ -21,7 +21,8 @@ export default function useCharacterControllerHelper<T>({
     
     const colliderRef = useRef<RapierCollider>(null);
 
-    const { gravity } = useThreeStateContext();
+    // ✅ Zustand selector 패턴
+    const gravity = useThreeStore(state => state.gravity);
     const rapier = useRapier();
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

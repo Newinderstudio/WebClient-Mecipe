@@ -10,7 +10,7 @@ export interface ControllerConfig {
 }
 
 export class ControllerFactory {
-  static createController(config: ControllerConfig): IController {
+  static createController(config: ControllerConfig): IController<unknown> {
     switch (config.type) {
       case 'keyboard':
         return new KeyboardController();

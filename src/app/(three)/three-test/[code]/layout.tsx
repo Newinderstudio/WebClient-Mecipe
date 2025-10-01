@@ -1,13 +1,9 @@
-import { ThreeContextProvider } from "@/store/THREE/store";
+// ✅ Zustand는 Provider가 필요 없습니다!
 
 export default function VirtualWorldLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    return (
-        <ThreeContextProvider>
-            {children}
-        </ThreeContextProvider>
-    );
+    return <>{children}</>;
 }

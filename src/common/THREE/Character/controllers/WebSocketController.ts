@@ -1,7 +1,5 @@
 import { Vector3 } from "three";
 import { IController, MovementInput } from "./IController";
-import { RootState } from "@react-three/fiber";
-import { CharacterControllerHelperOptions } from "@/hooks/THREE/useCharacterControllerHelper";
 
 export interface WebSocketMovementMessage {
   type: 'movement';
@@ -10,17 +8,13 @@ export interface WebSocketMovementMessage {
     y: number;
     z: number;
   };
-  jump: boolean;
-  run: boolean;
 }
 
-export class WebSocketController implements IController {
+export class WebSocketController implements IController<WebSocketMovementMessage> {
   private enabled: boolean = true;
   private websocket: WebSocket | null = null;
   private movementInput: MovementInput = {
     direction: new Vector3(),
-    jump: false,
-    run: false,
   };
 
   constructor(websocketUrl?: string) {
@@ -29,7 +23,7 @@ export class WebSocketController implements IController {
     }
   }
 
-  initialize(rootState: RootState, options: CharacterControllerHelperOptions): void {
+  initialize(): void {
     // WebSocket 연결이 이미 있다면 초기화 완료
   }
 
@@ -81,8 +75,6 @@ export class WebSocketController implements IController {
           message.direction.y,
           message.direction.z
         ),
-        jump: message.jump,
-        run: message.run,
       };
     }
   }

@@ -1,41 +1,27 @@
-import { useEffect, useMemo } from "react";
-import { AdvancedGltfLoaderProps } from "../AdvancedGltfLoader";
 import { WorldRendererProps } from "@/feature/TRHEE/virtual/hooks/useVirtualWorldScreen";
+import { promiseForGLTFLoader } from "@/util/THREE/three-js-function";
+import { use, useMemo } from "react";
+import { Group } from "three";
 
-export default function useWorldRenderer({ rendererOptions }: { rendererOptions: WorldRendererProps }) {
+export default function useWorldRenderer({ rendererOptions }: { rendererOptions?: WorldRendererProps }) {
 
-    const visibleRendererOptions: AdvancedGltfLoaderProps = useMemo(() => {
+    const promiseForOption = useMemo(() => {
+        return new Promise<WorldRendererProps>((resolve, reject) => {
+            if (!rendererOptions) reject("rendererOptions is not defined");
+            resolve(rendererOptions as WorldRendererProps);
+        });
+    }, [rendererOptions]);
 
-        console.log("visibleRenderer", rendererOptions.worldGltfOptions);
-        return (
-            {
-                gltfPath: rendererOptions.worldGltfOptions.path,
-                isDraco: rendererOptions.worldGltfOptions.isDraco,
-                requiredId: "visibleRenderer",
-                options: {
-                    isBatching: true,
-                }
-            }
-        )
-    }, [rendererOptions.worldGltfOptions]);
+    const option = use<WorldRendererProps>(promiseForOption);
 
-    const colliderRendererOptions: AdvancedGltfLoaderProps = useMemo(() => {
-        console.log("colliderRenderer", rendererOptions.colliderGltfOptions);
-        return {
-            gltfPath: rendererOptions.colliderGltfOptions.path,
-            isDraco: rendererOptions.colliderGltfOptions.isDraco,
-            requiredId: "colliderRenderer",
-            isCollider: true,
-            options: {
-                isBatching: true,
-            }
-        }
-    }, [rendererOptions.colliderGltfOptions]);
+    const rendererScene = use<Group>(promiseForGLTFLoader(option.worldGltfOptions.path, option.worldGltfOptions.isDraco));
 
-useEffect(() => {
-    console.log("--useVisibleOptions", rendererOptions.worldGltfOptions);
-    console.log("--useColliderOptions", rendererOptions.colliderGltfOptions);
-}, [rendererOptions.worldGltfOptions, rendererOptions.colliderGltfOptions]);
+    const rendererColliderScene = use<Group>(promiseForGLTFLoader(option.colliderGltfOptions.path, option.colliderGltfOptions.isDraco));
 
-return { visibleRendererOptions, colliderRendererOptions };
+    return {
+        option,
+        rendererScene,
+        rendererColliderScene,
+    }
+    // return { rendererOptions };
 }
