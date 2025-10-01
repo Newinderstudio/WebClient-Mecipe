@@ -1,33 +1,19 @@
-import { MeshCollider } from "@react-three/rapier";
-import { Environment } from "@react-three/drei";
-import { JSX, useMemo } from "react";
+import { Environment, Sky } from "@react-three/drei";
+import { WorldRendererProps } from "@/feature/TRHEE/virtual/hooks/useVirtualWorldScreen";
+import useWorldRenderer from "./hooks/useWorldRenderer";
+import AdvancedGltfLoader from "./AdvancedGltfLoader";
 
-export interface WorldRendererProps {
-    worldGltfOptions: {
-        path: string;
-        isDraco: boolean;
-    }
-    colliderGltfOptions?: {
-        path: string;
-        isDraco: boolean;
-    }
-}
+function WorldRenderer({ rendererOptions }: { rendererOptions: WorldRendererProps }) {
 
-function WorldRenderer({ visibleRenderer, colliderRenderer }: { visibleRenderer: JSX.Element, colliderRenderer?: JSX.Element }) {
-
-    const collider = useMemo(() => {
-        if (!colliderRenderer) return <MeshCollider type="trimesh">{visibleRenderer}</MeshCollider>
-        return colliderRenderer;
-    }, [colliderRenderer,visibleRenderer]);
+    const { visibleRendererOptions, colliderRendererOptions } = useWorldRenderer({ rendererOptions });
 
     return (
         <group>
             {/* <Sky sunPosition={[100, 20, 100]} /> */}
             <Environment preset="sunset" />
-            <group visible={false}>
-                {collider}
-            </group>
-            {visibleRenderer}
+            <Sky />
+            <AdvancedGltfLoader {...visibleRendererOptions} />
+            <AdvancedGltfLoader {...colliderRendererOptions} />
         </group>
 
     )

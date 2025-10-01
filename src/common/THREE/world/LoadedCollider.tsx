@@ -10,9 +10,8 @@ function LoadedCollider({ scene, isBatching }: {
     isBatching: boolean;
 }) {
 
-    // useMemo로 trimesh args를 한 번만 계산
     const triArgs = useMemo(() => {
-        if (!scene) return [];
+        if (!scene || isBatching === undefined) return;
 
         console.log('Computing trimesh colliders...');
         
@@ -41,14 +40,15 @@ function LoadedCollider({ scene, isBatching }: {
             return [vertices, indices];
         });
 
-        console.log(`Created ${args.length} trimesh colliders`);
+        console.log(`[LoadedCollider] triArgs`, args);
 
         return args;
     }, [scene, isBatching]);
 
+
     return (
         <group>
-            {triArgs.map((triArg, index) => {
+            {triArgs?.map((triArg, index) => {
                 const props: TrimeshColliderProps = {
                     args: triArg,
                     collisionGroups: colliderGroup(ColliderGroupType.Default, ColliderGroupType.Player)

@@ -3,12 +3,15 @@
 import { createContext, useReducer, useContext } from "react";
 import { Object3D, Vector3 } from "three";
 
-type DispatchAction = {type:"SetGravity", payload: Vector3} | { type: "InitHeadSocket", payload: Object3D };
-type StateType = { headSocket: Object3D | null, gravity: Vector3 }
+type RenderingState = { [key: string]: boolean }
+
+type DispatchAction = {type:"SetGravity", payload: Vector3} | { type: "InitHeadSocket", payload: Object3D } | { type: "SetRenderingState", payload: RenderingState };
+type StateType = { headSocket: Object3D | null, gravity: Vector3, renderingState: RenderingState }
 
 const initialState: StateType = {
     headSocket: null,
     gravity: new Vector3(0, -9.81, 0),
+    renderingState: {}
 };
 
 // 추후 Provider를 사용하지 않았을 때에는 context의 값이 null이 되어야 하기때문에 null 값을 선언해준다.
@@ -31,6 +34,14 @@ const reducer = (state: StateType, action: DispatchAction) => {
             return {
                 ...state,
                 gravity: action.payload
+            };
+        case "SetRenderingState":
+            return {
+                ...state,
+                renderingState: {
+                    ...state.renderingState,
+                    ...action.payload
+                }
             };
         default:
             return state;

@@ -22,6 +22,8 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
         if (disableReflections) setDisableReflections(Array.from(meaterials));
         else setEnableReflections(Array.from(meaterials));
 
+        console.log('[LoadedMesh] renderScene children length:', targetScene.children.length);
+
         return targetScene;
     }, [scene, enableShadows, disableReflections, isBatching])
 

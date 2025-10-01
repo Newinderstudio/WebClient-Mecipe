@@ -1,6 +1,7 @@
 import { Vector3, Euler } from "three";
 import useAdvancedGltfLoader from "./hooks/useAdvancedGltfLoader";
-import { useMemo } from "react";
+import LoadedCollider from "./LoadedCollider";
+import LoadedMesh from "./LoadedMesh";
 
 export interface AdvancedGltfLoaderOptions {
     position: Vector3
@@ -12,8 +13,6 @@ export interface AdvancedGltfLoaderOptions {
 
     disableReflections?: boolean;
     enableShadows?: boolean;
-
-    onLoad: () => void;
 }
 
 export interface AdvancedGltfLoaderProps {
@@ -21,25 +20,28 @@ export interface AdvancedGltfLoaderProps {
     isDraco: boolean;
     isCollider?: boolean;
     options?: Partial<AdvancedGltfLoaderOptions>;
-    onLoad: () => void;
+    
+    requiredId?: string;
 }
 
-function AdvancedGltfLoader({ gltfPath, isDraco, isCollider, options, onLoad }: AdvancedGltfLoaderProps) {
+function AdvancedGltfLoader({ gltfPath, isDraco, isCollider, options, requiredId }: AdvancedGltfLoaderProps) {
 
-    const { targetRenderer } = useAdvancedGltfLoader({ gltfPath, isDraco, isCollider: isCollider ?? false, options, onLoad });
-    
-    // 기본 값들을 메모이제이션
-    const defaultPosition = useMemo(() => new Vector3(), []);
-    const defaultRotation = useMemo(() => new Euler(), []);
-    const defaultScale = useMemo(() => new Vector3(1, 1, 1), []);
+    const { rendererScene } = useAdvancedGltfLoader({ gltfPath, isDraco, requiredId });
+
+    // useGLTF는 Suspense를 지원하므로, rendererScene이 없으면 자동으로 suspend됨
+    // 따라서 여기서 rendererScene은 항상 존재함
     
     return (
         <group
-            position={options?.position ?? defaultPosition}
-            rotation={options?.rotation ?? defaultRotation}
-            scale={options?.scale ?? defaultScale}
+            position={options?.position}
+            rotation={options?.rotation}
+            scale={options?.scale}
         >
-            {targetRenderer}
+            {
+                isCollider ? <LoadedCollider scene={rendererScene} isBatching={options?.isBatching ?? false} /> : 
+                <LoadedMesh scene={rendererScene} isBatching={options?.isBatching ?? false} isVisible={options?.isVisible ?? true} enableShadows={options?.enableShadows ?? true} disableReflections={options?.disableReflections ?? false} />
+
+            }
         </group>
     );
 }
