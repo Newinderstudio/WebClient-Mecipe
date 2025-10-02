@@ -2,17 +2,24 @@ import useCharacterControllerHelper from "@/hooks/THREE/useCharacterControllerHe
 import { KeyboardController } from "../../character/controllers";
 import { useKeyboardControls } from "@react-three/drei";
 import { useRapier } from "@react-three/rapier";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { CharacterManagerOptions } from "../CharacterManager";
+import { Group, Vector3 } from "three";
+import { useThreeStore } from "@/store/THREE/store";
 
-export default function useCharacterManager({characterOptions}: {characterOptions: CharacterManagerOptions}) {
+export default function useCharacterManager({ gltfPath, isDraco, characterOptions }: { gltfPath: string, isDraco: boolean, characterOptions: CharacterManagerOptions }) {
     const [, get] = useKeyboardControls();
     const rapier = useRapier();
 
+    const worldRef = useRef<Group>(null);
+
+    const characterNodes = useThreeStore(state => state.characterNodes);
+    const addCharacterNodes = useThreeStore(state => state.addCharacterNodes);
+    const removeCharacterNodes = useThreeStore(state => state.removeCharacterNodes);
     const keyboardController = new KeyboardController();
 
-    const { renderer: LocalControl } = useCharacterControllerHelper({
+    const { renderer: localControl } = useCharacterControllerHelper({
         controller: keyboardController,
         options: characterOptions,
         moveProps: {
@@ -22,24 +29,42 @@ export default function useCharacterManager({characterOptions}: {characterOption
     });
 
     const [isReset, setIsReset] = useState(false);
+    const [isSpecial, setIsSpecial] = useState(false);
 
     useFrame(() => {
-        const { reset } = get();
-
-        if(reset && !isReset) {
+        const { reset, special } = get();
+        if (reset && !isReset) {
             setIsReset(true);
-        } else if(!reset && isReset) {
+        } else if (!reset && isReset) {
             setIsReset(false);
+        }
+        if (special && !isSpecial) {
+            setIsSpecial(true);
+        } else if (!special && isSpecial) {
+            setIsSpecial(false);
         }
     });
 
     useEffect(() => {
-        if(isReset) {
+        if(!gltfPath || !isDraco || !characterOptions) return;
+        if (isReset) {
             console.log('reset');
+            const randomeId = Math.random().toString(36).substring(2, 15);
+            addCharacterNodes(randomeId, {
+                gltfPath,
+                isDraco,
+                options: {...characterOptions, spawnPoint: new Vector3(Math.random() * 10, 10, Math.random() * 10)},
+            });
+        } else if (isSpecial) {
+            console.log('special');
+            const randomeId = Math.random().toString(36).substring(2, 15);
+            removeCharacterNodes(randomeId);
         }
-    }, [isReset]);
+    }, [isReset, characterOptions, addCharacterNodes, removeCharacterNodes, gltfPath, isDraco, isSpecial]);
 
     return {
-        LocalControl
+        worldRef,
+        localControl,
+        characterNodes,
     }
 }

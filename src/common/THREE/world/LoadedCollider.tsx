@@ -40,7 +40,10 @@ function LoadedCollider({ scene, isBatching }: {
             return [vertices, indices];
         });
 
-        console.log(`[LoadedCollider] triArgs`, args);
+        console.log(`[LoadedCollider] triArgs`, args.map((arg) => ({
+            vertices: arg[0].length,
+            indices: arg[1].length,
+        })));
 
         return args;
     }, [scene, isBatching]);

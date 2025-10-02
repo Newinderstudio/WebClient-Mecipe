@@ -3,12 +3,18 @@ import { WorldRendererProps } from "@/feature/TRHEE/virtual/hooks/useVirtualWorl
 import LoadedCollider from "./LoadedCollider";
 import useWorldRenderer from "./hooks/useWorldRenderer";
 import LoadedMesh from "./LoadedMesh";
+import React from "react";
+import { Group } from "three";
 
-function WorldRenderer({ children, rendererOptions }: { children: React.ReactNode, rendererOptions?: WorldRendererProps}) {
+export interface WorldRendererResult {
+    options: WorldRendererProps;
+    rendererScene: Group;
+    rendererColliderScene: Group;
+}
 
-    const { option, rendererScene, rendererColliderScene } = useWorldRenderer({ rendererOptions});
+function WorldRenderer({ children, promiseForRendererOptions }: { children: React.ReactNode, promiseForRendererOptions: Promise<WorldRendererResult>}) {
 
-    console.warn("WorldRenderer", rendererOptions);
+    const { options, rendererScene, rendererColliderScene } = useWorldRenderer({ promiseForRendererOptions});
 
     return (
         <group>
@@ -16,9 +22,9 @@ function WorldRenderer({ children, rendererOptions }: { children: React.ReactNod
             <Environment preset="sunset" />
             <Sky />
             <group
-                position={option.position}
-                rotation={option.rotation}
-                scale={option.scale}
+                position={options.position}
+                rotation={options.rotation}
+                scale={options.scale}
             >
                 <LoadedCollider scene={rendererColliderScene} isBatching={true} /> :
                 <LoadedMesh scene={rendererScene} isBatching={true} isVisible={true} enableShadows={true} disableReflections={false} />

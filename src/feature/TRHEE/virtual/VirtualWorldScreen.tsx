@@ -13,12 +13,10 @@ import WorldRenderer from '@/common/THREE/world/WorldRenderer';
 export default function VirtualWorldScreen() {
 
     const {
-        rendererOptions,
-        isLoadingOptions,
+        promiseForRendererOptions,
         keyBoardMap,
         characterOptions,
         gravityArray,
-        loadingScreen: LoadingScreen
     } = useVirtualWorldScreen();
 
     return (
@@ -34,11 +32,10 @@ export default function VirtualWorldScreen() {
                 <Canvas camera={{ fov: 45 }}>
                     <GameControlManager />
                     <Physics timeStep={1.0 / 60.0} gravity={gravityArray}>
-                        <Suspense fallback={<LoadingScreen msg="Loading..." />}>
+                        <Suspense fallback={null}>
                             {/* 옵션 로딩 중이거나 옵션이 없으면 fallback 표시 */}
-                            <LoadingScreen msg={`WorldRenderer...${rendererOptions?.worldGltfOptions.path}/${isLoadingOptions}`} />
                             <WorldRenderer
-                                rendererOptions={rendererOptions}
+                                promiseForRendererOptions={promiseForRendererOptions}
                             >
                                 <CharacterManager characterOptions={characterOptions} />
                             </WorldRenderer>

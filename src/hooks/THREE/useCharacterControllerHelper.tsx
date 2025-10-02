@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CharacterManagerOptions } from "@/common/THREE/core/CharacterManager";
 import { useThreeStore } from "@/store/THREE/store";
 import { RapierCollider } from "@react-three/rapier/dist/declarations/src/types";
+import { Capsule } from "@react-three/drei";
 
 export default function useCharacterControllerHelper<T>({
     controller,
@@ -130,6 +131,7 @@ export default function useCharacterControllerHelper<T>({
         return (
             <CapsuleCollider {...capsuleColliderProps} ref={colliderRef} position={options.spawnPoint}>
                 {children}
+                <Capsule args={[options.height / 2 - options.radius, options.radius]} />
             </CapsuleCollider>
         )
     }, [options]); // colliderRef는 ref이므로 의존성에서 제거
