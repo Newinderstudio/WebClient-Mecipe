@@ -1,9 +1,13 @@
 
 import { RootState } from "@react-three/fiber";
-import { RefObject } from "react";
-import { RapierCollider } from "@react-three/rapier";
 import { Vector3 } from "three";
 import { CharacterManagerOptions } from "../../core/CharacterManager";
+
+export interface PlayerInterface {
+  getPlayerPosition: () => Vector3;
+  getIsGrounded: () => boolean;
+  startJump?: (force?: number) => void;
+}
 
 export interface MovementInput {
   direction: Vector3;
@@ -23,7 +27,7 @@ export interface IController<T> {
   /**
    * 현재 프레임의 입력 상태를 반환
    */
-  getMovementInput(ref: RefObject<RapierCollider | null>, props: T): MovementInput;
+  getMovementInput(player: PlayerInterface, props: T): MovementInput;
   
   /**
    * 컨트롤러 활성화/비활성화

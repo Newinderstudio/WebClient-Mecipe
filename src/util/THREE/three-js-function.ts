@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // 씬 그룹을 받아서 머터리얼별로 배치치된 씬 그룹을 반환
@@ -142,19 +142,26 @@ export function setEnableReflections(material: THREE.Material | THREE.Material[]
 export type PromiseGroup = Promise<THREE.Group>;
 // ✅ Promise 캐시 - 같은 파일은 한 번만 로드
 const gltfPromiseCache = new Map<string, PromiseGroup>();
+const gltfCache = new Map<string, GLTF>();
 
-export function promiseForGLTFLoader(path: string, isDraco: boolean): PromiseGroup {
+export function promiseForGLTFLoader(path: string, isDraco: boolean, cache?:boolean): PromiseGroup {
     const cacheKey = `${path}-${isDraco}`;
     
     // ✅ 캐시에 있으면 재사용
     if (gltfPromiseCache.has(cacheKey)) {
-        console.log("🟢 [promiseForGLTFLoader] 캐시에서 반환", path);
+        console.log("🟢 [promiseForGLTFLoader] 이미 캐시된 프로미스스 반환", path);
         return gltfPromiseCache.get(cacheKey)!;
     }
     
     console.log("🟡 [promiseForGLTFLoader] 새로 로드 시작", path);
     
     const promise = new Promise<THREE.Group>((resolve, reject) => {
+
+        if(cache && gltfCache.has(cacheKey)) {
+            console.log("⭐ [promiseForGLTFLoader] 캐시에서 GLTF 객체 반환", path);
+            resolve(gltfCache.get(cacheKey)!.scene);
+        }
+
         const loader = new GLTFLoader();
         if(isDraco) {
             const dracoLoader = new DRACOLoader();
@@ -164,6 +171,9 @@ export function promiseForGLTFLoader(path: string, isDraco: boolean): PromiseGro
         
         loader.load(path, (gltf) => {
             console.log("✅ [promiseForGLTFLoader] 로드 완료!", path);
+            if(cache) {
+                gltfCache.set(cacheKey, gltf);
+            }
             resolve(gltf.scene);
         }, undefined, (error) => {
             console.error("🔴 [promiseForGLTFLoader] 로드 실패", error);

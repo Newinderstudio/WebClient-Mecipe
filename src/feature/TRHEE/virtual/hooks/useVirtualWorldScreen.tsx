@@ -94,7 +94,7 @@ export default function useVirtualWorldScreen() {
         height: 1,
         radius: 0.2,
         spawnPoint: new Vector3(0, 10, 0),
-        playerJumpForce: 4,
+        playerJumpForce: 2,
         playerSpeed: 10,
         scale: new Vector3(1, 1, 1),
         rotation: new Euler(0, 0, 0),

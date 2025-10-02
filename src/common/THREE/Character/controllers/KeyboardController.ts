@@ -1,18 +1,13 @@
 import { Vector3 } from "three";
-import { IController, MovementInput } from "./IController";
+import { IController, MovementInput, PlayerInterface } from "./IController";
 import { RootState } from "@react-three/fiber";
 import { CharacterManagerOptions } from "@/common/THREE/core/CharacterManager";
-import { RapierCollider, RapierContext } from "@react-three/rapier";
-import { RefObject } from "react";
-import * as RAPIER from "@dimforge/rapier3d-compat"
-import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
 
 type KeyboardControlsState<T extends string = string> = {
   [K in T]: boolean;
 };
 
 export interface KeyboardControllerProps {
-  rapier: RapierContext
   getKeyboarState: () => KeyboardControlsState<string>
 }
 
@@ -40,9 +35,9 @@ export class KeyboardController implements IController<KeyboardControllerProps> 
 
   }
 
-  getMovementInput(ref: RefObject<RapierCollider | null>, {getKeyboarState, rapier}: KeyboardControllerProps): MovementInput {
+  getMovementInput(player: PlayerInterface, {getKeyboarState}: KeyboardControllerProps): MovementInput {
 
-    if(!this.rootState || !this.options || !ref.current) return this.movementInput;
+    if(!this.rootState || !this.options) return this.movementInput;
 
     const { forward:forwardTrigger, backward:backwardTrigger, left:leftTrigger, right:rightTrigger, jump:jumpTrigger } = getKeyboarState();
 
@@ -57,14 +52,10 @@ export class KeyboardController implements IController<KeyboardControllerProps> 
     this.sideVector.set(left - right, 0, 0)
     direction.subVectors(this.frontVector, this.sideVector).normalize().multiplyScalar(this.options.playerSpeed).applyEuler(this.rootState.camera.rotation)
 
-    // jumping
-    const world = rapier.world;
-    const translation = ref.current.translation();
-    const ray = world.castRayAndGetNormal(new RAPIER.Ray(translation, { x: 0, y: -1, z: 0 }), this.options.height, true, undefined, colliderGroup(ColliderGroupType.Player, ColliderGroupType.Default));
-    const grounded = ray && ray.collider && ray.timeOfImpact <= this.options.height/2+0.01;
-
-    if(jumpTrigger && grounded) {
-      direction.add(new Vector3(0, this.options.playerJumpForce, 0));
+    // jumping - 별도 처리
+    if(jumpTrigger && player.getIsGrounded() && player.startJump) {
+      console.log('Starting jump with force:', this.options.playerJumpForce);
+      player.startJump(this.options.playerJumpForce);
     }
 
     this.movementInput.direction = direction;

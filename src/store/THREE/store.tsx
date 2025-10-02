@@ -31,9 +31,9 @@ export const useThreeStore = create<ThreeStore>((set) => ({
     characterNodes: {},
     // Actions
     setHeadSocket: (headSocket) => set({ headSocket }),
-    
+
     setGravity: (gravity) => set({ gravity }),
-    
+
     setRenderingState: (newRenderingState) => set((state) => ({
         renderingState: {
             ...state.renderingState,
@@ -50,5 +50,5 @@ export const useThreeStore = create<ThreeStore>((set) => ({
         const newCharacterNodes = { ...state.characterNodes };
         delete newCharacterNodes[id];
         return { characterNodes: newCharacterNodes };
-    }),
+    })
 }));
