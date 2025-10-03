@@ -71,7 +71,7 @@ export default function useVirtualWorldScreen() {
                 }
                 const rendererScene = await promiseForGLTFLoader(options.worldGltfOptions.path, options.worldGltfOptions.isDraco);
                 const rendererColliderScene = await promiseForGLTFLoader(options.colliderGltfOptions.path, options.colliderGltfOptions.isDraco);
-                resolve({ options, rendererScene, rendererColliderScene });
+                resolve({ options, rendererScene: rendererScene.scene, rendererColliderScene: rendererColliderScene.scene });
             } catch (error) {
                 reject(error);
             }
@@ -95,9 +95,11 @@ export default function useVirtualWorldScreen() {
         radius: 0.2,
         spawnPoint: new Vector3(0, 10, 0),
         playerJumpForce: 2,
-        playerSpeed: 10,
-        scale: new Vector3(1, 1, 1),
+        playerSpeed: 6,
+        scale: new Vector3(0.8, 0.8, 0.8),
         rotation: new Euler(0, 0, 0),
+        rotationSpeed: 0.2,
+        defaultAnimationClip: "Idle"
     }), []);
 
     // gravity 배열도 메모이제이션

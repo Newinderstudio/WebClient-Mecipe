@@ -139,12 +139,12 @@ export function setEnableReflections(material: THREE.Material | THREE.Material[]
     });
 }
 
-export type PromiseGroup = Promise<THREE.Group>;
+export type PromiseGroup = Promise<GLTF>;
 // ✅ Promise 캐시 - 같은 파일은 한 번만 로드
 const gltfPromiseCache = new Map<string, PromiseGroup>();
 const gltfCache = new Map<string, GLTF>();
 
-export function promiseForGLTFLoader(path: string, isDraco: boolean, cache?:boolean): PromiseGroup {
+export function promiseForGLTFLoader(path: string, isDraco: boolean, cache:boolean = true): PromiseGroup {
     const cacheKey = `${path}-${isDraco}`;
     
     // ✅ 캐시에 있으면 재사용
@@ -155,11 +155,11 @@ export function promiseForGLTFLoader(path: string, isDraco: boolean, cache?:bool
     
     console.log("🟡 [promiseForGLTFLoader] 새로 로드 시작", path);
     
-    const promise = new Promise<THREE.Group>((resolve, reject) => {
+    const promise = new Promise<GLTF>((resolve, reject) => {
 
         if(cache && gltfCache.has(cacheKey)) {
             console.log("⭐ [promiseForGLTFLoader] 캐시에서 GLTF 객체 반환", path);
-            resolve(gltfCache.get(cacheKey)!.scene);
+            resolve(gltfCache.get(cacheKey)!);
         }
 
         const loader = new GLTFLoader();
@@ -168,18 +168,22 @@ export function promiseForGLTFLoader(path: string, isDraco: boolean, cache?:bool
             dracoLoader.setDecoderPath('/examples/jsm/libs/draco/');
             loader.setDRACOLoader(dracoLoader);
         }
-        
-        loader.load(path, (gltf) => {
-            console.log("✅ [promiseForGLTFLoader] 로드 완료!", path);
-            if(cache) {
-                gltfCache.set(cacheKey, gltf);
-            }
-            resolve(gltf.scene);
-        }, undefined, (error) => {
+        try {
+            loader.load(path, (gltf) => {
+                console.log("✅ [promiseForGLTFLoader] 로드 완료!", path);
+                if(cache) {
+                    gltfCache.set(cacheKey, gltf);
+                }
+                resolve(gltf);
+            }, undefined, (error) => {
+                console.error("🔴 [promiseForGLTFLoader] 로드 실패", error);
+                gltfPromiseCache.delete(cacheKey); // 실패 시 캐시 제거
+                reject(error);
+            });
+        } catch (error) {
             console.error("🔴 [promiseForGLTFLoader] 로드 실패", error);
-            gltfPromiseCache.delete(cacheKey); // 실패 시 캐시 제거
             reject(error);
-        });
+        }
     });
     
     // ✅ 캐시에 저장

@@ -1,16 +1,20 @@
 
 import { RootState } from "@react-three/fiber";
-import { Vector3 } from "three";
+import { Euler, Vector3 } from "three";
 import { CharacterManagerOptions } from "../../core/CharacterManager";
 
 export interface PlayerInterface {
   getPlayerPosition: () => Vector3;
   getIsGrounded: () => boolean;
-  startJump?: (force?: number) => void;
+  getPlayerRotation: () => Euler;
+  startJump: (force?: number) => void;
+  updateAnimator: (delta: number) => void;
+  playAnimator: (animationClipName: string, isForce?: boolean) => void;
 }
 
 export interface MovementInput {
   direction: Vector3;
+  rotation: Euler;
 }
 
 export interface IController<T> {

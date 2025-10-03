@@ -7,7 +7,7 @@ import { CharacterAvatarProps } from "@/common/THREE/character/CharacterAvatar";
 type RenderingState = { [key: string]: boolean }
 
 interface ThreeState {
-    headSocket: Object3D | null;
+    headSocket: Object3D | undefined;
     gravity: Vector3;
     renderingState: RenderingState;
     characterNodes: { [key: string]: CharacterAvatarProps };
@@ -25,7 +25,7 @@ type ThreeStore = ThreeState & ThreeActions;
 
 export const useThreeStore = create<ThreeStore>((set) => ({
     // Initial state
-    headSocket: null,
+    headSocket: undefined,
     gravity: new Vector3(0, -9.81, 0),
     renderingState: {},
     characterNodes: {},
