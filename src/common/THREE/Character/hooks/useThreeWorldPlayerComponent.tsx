@@ -100,7 +100,7 @@ export default function useThreeWorldPlayerComponent({ controllerOptions, bodyOp
                 bodyOpt.spawnPoint.y,
                 bodyOpt.spawnPoint.z
             ).setRotation(
-                bodyOpt.rotation
+                { x: bodyOpt.rotation.x, y: bodyOpt.rotation.y, z: bodyOpt.rotation.z, w: 1 }
             ).setCollisionGroups(colliderGroup(colGroup.collisionGroup, colGroup.collisionMask))
                 .setSolverGroups(colliderGroup(colGroup.collisionGroup, colGroup.collisionMask));
 

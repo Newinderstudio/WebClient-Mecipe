@@ -1,7 +1,8 @@
 import { forwardRef, useImperativeHandle } from 'react';
 import * as THREE from "three";
-import { Quaternion, Vector3  } from "@react-three/rapier/node_modules/@dimforge/rapier3d-compat";
+import { Vector3 } from "@react-three/rapier/node_modules/@dimforge/rapier3d-compat";
 import useThreeWorldPlayerComponent from './hooks/useThreeWorldPlayerComponent';
+import { CharacterManagerOptions } from '../core/CharacterManager';
 export interface ThreeWorldPlayerRef {
     moveDirection: (direction: THREE.Vector3, rotation: THREE.Euler, delta: number) => void;
     getPlayerPosition: () => Vector3;
@@ -19,15 +20,6 @@ export interface ThreeWorldPlayerGltfOptions {
     isDraco: boolean;
 }
 
-export interface ThreeWorldPlayerBodyOptions {
-    height: number;
-    radius: number;
-    spawnPoint: Vector3;
-    rotation: Quaternion;
-    scale: Vector3;
-    defaultAnimationClip: string;
-}
-
 export interface ThreeWorldPlayerControllerOptions {
     offset: number;
     mass: number;
@@ -43,7 +35,7 @@ export interface ThreeWorldPlayerCollisionGroupOptions {
 export interface ThreeWorldPlayerComponentProps {
     isLocal: boolean;
     gltfOptions: ThreeWorldPlayerGltfOptions;
-    bodyOptions?: Partial<ThreeWorldPlayerBodyOptions>;
+    bodyOptions?: Partial<CharacterManagerOptions>;
     controllerOptions?: Partial<ThreeWorldPlayerControllerOptions>;
     collisionGroup?: Partial<ThreeWorldPlayerCollisionGroupOptions>;
 }

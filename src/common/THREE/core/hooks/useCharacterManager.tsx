@@ -21,6 +21,11 @@ export default function useCharacterManager({ gltfPath, isDraco, characterOption
     const keyboardController = useRef<KeyboardController>(null);
     const localPlayerRef = useRef<ThreeWorldPlayerRef>(null);
 
+    const characterGltfOptions = useMemo(() => ({
+        gltfPath,
+        isDraco
+    }), [gltfPath, isDraco]);
+
     useEffect(() => {
         if (!gltfPath || !isDraco || !characterOptions || !threeState || keyboardController.current) return;
         const ctrl = new KeyboardController();
@@ -94,5 +99,6 @@ export default function useCharacterManager({ gltfPath, isDraco, characterOption
         worldRef,
         characterNodes,
         localPlayerRef,
+        characterGltfOptions
     }
 }

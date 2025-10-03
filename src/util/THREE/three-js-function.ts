@@ -5,39 +5,52 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 
 // 씬 그룹을 받아서 머터리얼별로 배치치된 씬 그룹을 반환
 export function getBatchedScene(sceneGroup: THREE.Group): THREE.Group {
-    const materialMap = new Map<THREE.Material, { material: THREE.Material, geometries: THREE.BufferGeometry[], maxUvIndex: number }>();
+    const materialMap = new Map<string, { 
+        material: THREE.Material, 
+        geometries: THREE.BufferGeometry[], 
+        maxUvIndex: number,
+        instanceCount: number 
+    }>();
 
+    // 첫 번째 패스: 머터리얼별로 지오메트리 수집
     sceneGroup.traverse((child) => {
-
         if (child instanceof THREE.Mesh) {
             const mat = child.material;
             const key = Array.isArray(mat) ? mat.map(m => m.uuid).join('-') : mat.uuid;
 
             if (!materialMap.has(key)) {
-                materialMap.set(key, { material: mat, geometries: [], maxUvIndex: 0 });
+                materialMap.set(key, { 
+                    material: mat, 
+                    geometries: [], 
+                    maxUvIndex: 0,
+                    instanceCount: 0
+                });
             }
 
-            const entry = materialMap.get(key);
-            if (entry) {
-                const geom = child.geometry.clone();
-                geom.applyMatrix4(child.matrixWorld);
+            const entry = materialMap.get(key)!;
+            entry.instanceCount++;
 
-                for(let i = 1; i< 10;i++) {
-                    if (geom.attributes[`uv${i}`]) {
-                        entry.maxUvIndex = i;
-                    } else {
-                        break;
-                    }
+            // 지오메트리 복제 및 변환
+            const geom = child.geometry.clone();
+            geom.applyMatrix4(child.matrixWorld);
+
+            // UV 인덱스 확인
+            for(let i = 1; i < 10; i++) {
+                if (geom.attributes[`uv${i}`]) {
+                    entry.maxUvIndex = Math.max(entry.maxUvIndex, i);
+                } else {
+                    break;
                 }
-
-                entry.geometries.push(geom);
             }
+
+            entry.geometries.push(geom);
         }
     });
 
+    // 두 번째 패스: UV 속성 보완
     materialMap.forEach((entry) => {
         entry.geometries.forEach((geom) => {
-            for(let i = 1; i< entry.maxUvIndex + 1;i++) {
+            for(let i = 1; i <= entry.maxUvIndex; i++) {
                 if (!geom.attributes[`uv${i}`]) {
                     const count = geom.attributes.position.count;
                     const uvArray = new Float32Array(count * 2).fill(0);
@@ -48,15 +61,39 @@ export function getBatchedScene(sceneGroup: THREE.Group): THREE.Group {
     });
 
     const optimizedScene = new THREE.Group();
+    let totalBatches = 0;
+    let totalInstances = 0;
 
+    // 세 번째 패스: 배치 생성
     materialMap.forEach(({ material, geometries }) => {
-        const merged = BufferGeometryUtils.mergeGeometries(geometries, true);
-        // console.log("Merged Geometry:", material.name, merged, geometries);
-        if (!merged) return;
-        const mesh = new THREE.Mesh(merged, material);
-        optimizedScene.add(mesh);
+        // 너무 많은 지오메트리를 한 번에 병합하지 않도록 청크 단위로 처리
+        const chunkSize = 100; // 한 번에 병합할 최대 지오메트리 수
+        
+        for (let i = 0; i < geometries.length; i += chunkSize) {
+            const chunk = geometries.slice(i, i + chunkSize);
+            
+            if (chunk.length === 0) continue;
+            
+            const merged = BufferGeometryUtils.mergeGeometries(chunk, true);
+            if (!merged) continue;
+
+            // 지오메트리 최적화
+            merged.computeBoundingBox();
+            merged.computeBoundingSphere();
+            
+            const mesh = new THREE.Mesh(merged, material);
+            mesh.frustumCulled = true; // 프러스텀 컬링 활성화
+            mesh.castShadow = false; // 그림자 캐스팅 비활성화
+            mesh.receiveShadow = false; // 그림자 수신 비활성화
+            
+            optimizedScene.add(mesh);
+            totalBatches++;
+            totalInstances += chunk.length;
+        }
     });
 
+    console.log(`[getBatchedScene] Optimization complete: ${totalBatches} batches, ${totalInstances} instances from ${materialMap.size} materials`);
+    
     return optimizedScene;
 }
 
