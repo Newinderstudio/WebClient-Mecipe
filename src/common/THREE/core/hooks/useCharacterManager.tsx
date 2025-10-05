@@ -1,7 +1,7 @@
 import { KeyboardController } from "../../character/controllers";
 import { PlayerInterface } from "../../character/controllers/IController";
 import { useKeyboardControls } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { CharacterManagerOptions } from "../CharacterManager";
 import { Euler, Group, Vector3 } from "three";
@@ -9,14 +9,13 @@ import { useThreeStore } from "@/store/THREE/store";
 import { ThreeWorldPlayerRef } from "../../character/ThreeWorldPlayerComponent";
 
 export default function useCharacterManager({ gltfPath, isDraco, characterOptions }: { gltfPath: string, isDraco: boolean, characterOptions: CharacterManagerOptions }) {
+
     const [, get] = useKeyboardControls();
 
     const worldRef = useRef<Group>(null);
     const threeState = useThree();
 
-    const characterNodes = useThreeStore(state => state.characterNodes);
     const addCharacterNodes = useThreeStore(state => state.addCharacterNodes);
-    const removeCharacterNodes = useThreeStore(state => state.removeCharacterNodes);
 
     const keyboardController = useRef<KeyboardController>(null);
     const localPlayerRef = useRef<ThreeWorldPlayerRef>(null);
@@ -76,29 +75,38 @@ export default function useCharacterManager({ gltfPath, isDraco, characterOption
                 console.error('Error in character movement:', error);
             }
         }
+        
+
     });
+
+    const refCallback = useCallback((id: string, ref: ThreeWorldPlayerRef|null) => {
+        if(ref) addCharacterNodes(id, ref);
+    }, [addCharacterNodes]);
+
+    const [players, setPlayers] = useState<string[]>([]);
+
+    const addPlayer = useCallback((id: string) => {
+        setPlayers(prev=>[...prev, id]);
+    }, []);
 
     useEffect(() => {
         if (!gltfPath || !isDraco || !characterOptions) return;
         if (isReset) {
             console.log('reset');
             const randomeId = Math.random().toString(36).substring(2, 15);
-            addCharacterNodes(randomeId, {
-                gltfPath,
-                isDraco,
-                // options: {...characterOptions, spawnPoint: new Vector3(Math.random() * 10, 10, Math.random() * 10)},
-            });
+            addPlayer(randomeId);
         } else if (isSpecial) {
             console.log('special');
-            const randomeId = Math.random().toString(36).substring(2, 15);
-            removeCharacterNodes(randomeId);
+            // const randomeId = Math.random().toString(36).substring(2, 15);
+            // removePlayer(randomeId);
         }
-    }, [isReset, characterOptions, addCharacterNodes, removeCharacterNodes, gltfPath, isDraco, isSpecial]);
+    }, [isReset, characterOptions, addPlayer, gltfPath, isDraco, isSpecial]);
 
     return {
         worldRef,
-        characterNodes,
         localPlayerRef,
-        characterGltfOptions
+        characterGltfOptions,
+        refCallback,
+        players
     }
 }

@@ -1,6 +1,6 @@
 import { getBatchedScene } from "@/util/THREE/three-js-function";
 import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
-import { TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three/rapier";
+import { RigidBody, TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three/rapier";
 import { useMemo } from "react";
 import { BufferGeometry, Group, Mesh } from "three";
 
@@ -48,18 +48,21 @@ function LoadedCollider({ scene, isBatching }: {
         return args;
     }, [scene, isBatching]);
 
+    const colliders = useMemo(() => {
+        return triArgs?.map((triArg, index) => {
+            const props: TrimeshColliderProps = {
+                args: triArg,
+                collisionGroups: colliderGroup(ColliderGroupType.Default, ColliderGroupType.Player)
+            };
+            return <TrimeshCollider key={index} {...props} />
+        });
+    }, [triArgs]);
+
 
     return (
-        <group>
-            {triArgs?.map((triArg, index) => {
-                const props: TrimeshColliderProps = {
-                    args: triArg,
-                    collisionGroups: colliderGroup(ColliderGroupType.Default, ColliderGroupType.Player)
-                };
-
-                return <TrimeshCollider key={index} {...props} />
-            })}
-        </group>
+        <RigidBody type="fixed" colliders={false}>
+            {colliders}
+        </RigidBody>
     );
 }
 

@@ -19,7 +19,7 @@ function WorldRenderer({ children, promiseForRendererOptions }: { children: Reac
     return (
         <group>
             {/* 기본 조명 추가 - PhongMaterial이 제대로 렌더링되려면 필요 */}
-            <ambientLight intensity={1} />
+            {/* <ambientLight intensity={1} />
             <directionalLight 
                 position={[10, 10, 5]} 
                 intensity={1} 
@@ -28,7 +28,7 @@ function WorldRenderer({ children, promiseForRendererOptions }: { children: Reac
             <pointLight 
                 position={[-10, -10, -5]} 
                 intensity={0.5}
-            />
+            /> */}
             
             {/* <Sky sunPosition={[100, 20, 100]} /> */}
             <Environment preset="sunset" />
@@ -41,12 +41,12 @@ function WorldRenderer({ children, promiseForRendererOptions }: { children: Reac
                 <LoadedCollider scene={rendererColliderScene} isBatching={true} /> :
                 <LoadedMesh 
                     scene={rendererScene} 
-                    isBatching={true} 
+                    isBatching={false} 
                     isVisible={true} 
                     enableShadows={false} 
-                    disableReflections={false}
+                    disableReflections={true}
                     usePhongMaterial={false}  // 성능을 위해 PhongMaterial 비활성화
-                    enablePerformanceOptimization={true}  // 성능 최적화 활성화
+                    enablePerformanceOptimization={false}  // 성능 최적화 활성화
                 />
                 
             </group>

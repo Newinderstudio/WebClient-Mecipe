@@ -43,7 +43,7 @@ export default function useVirtualWorldScreen() {
                     path: "/3d/test_virtual_world/virtual_world_collider.glb",
                     isDraco: true,
                 },
-                position: new Vector3(0, 0, 0),
+                position: new Vector3(0, -10, 0),
                 rotation: new Euler(0, 0, 0),
                 scale: new Vector3(1, 1, 1),
             };
