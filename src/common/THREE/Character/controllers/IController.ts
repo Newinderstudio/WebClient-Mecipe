@@ -1,7 +1,6 @@
 
 import { RootState } from "@react-three/fiber";
 import { Euler, Vector3 } from "three";
-import { CharacterManagerOptions } from "../../core/CharacterManager";
 
 export interface PlayerInterface {
   getPlayerPosition: () => Vector3;
@@ -14,14 +13,15 @@ export interface PlayerInterface {
 
 export interface MovementInput {
   direction: Vector3;
-  rotation: Euler;
+  rotation?: Euler;
+  jump: boolean;
 }
 
 export interface IController<T> {
   /**
    * 컨트롤러 초기화
    */
-  initialize(rootState: RootState, options: CharacterManagerOptions): void;
+  initialize(rootState: RootState, options: T): void;
   
   /**
    * 컨트롤러 정리
@@ -31,7 +31,7 @@ export interface IController<T> {
   /**
    * 현재 프레임의 입력 상태를 반환
    */
-  getMovementInput(player: PlayerInterface, props: T): MovementInput;
+  getMovementInput(curPosition: Vector3, curRotation: Euler): MovementInput;
   
   /**
    * 컨트롤러 활성화/비활성화

@@ -1,6 +1,6 @@
 import { getBatchedScene } from "@/util/THREE/three-js-function";
 import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
-import { RigidBody, TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three/rapier";
+import { TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three/rapier";
 import { useMemo } from "react";
 import { BufferGeometry, Group, Mesh } from "three";
 
@@ -60,9 +60,7 @@ function LoadedCollider({ scene, isBatching }: {
 
 
     return (
-        <RigidBody type="fixed" colliders={false}>
-            {colliders}
-        </RigidBody>
+        colliders
     );
 }
 

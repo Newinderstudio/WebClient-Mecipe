@@ -5,13 +5,13 @@ import { KeyboardControls, Stats } from '@react-three/drei'
 import { Suspense } from 'react';
 
 import { Physics } from '@react-three/rapier';
-import CharacterManager from '@/common/THREE/core/CharacterManager';
 import useVirtualWorldScreen from './hooks/useVirtualWorldScreen';
 import GameControlManager from '@/common/THREE/core/GameControlManager';
 import WorldRenderer from '@/common/THREE/world/WorldRenderer';
 import TPSCameraController from '@/common/THREE/camera/TPSCameraController';
 import PerformanceCollector from '@/common/THREE/performance/PerformanceCollector';
 import PerformanceDisplay from '@/common/THREE/performance/PerformanceDisplay';
+import PlayersManager from '@/common/THREE/core/PlayersManager';
 
 export default function VirtualWorldScreen() {
 
@@ -20,6 +20,7 @@ export default function VirtualWorldScreen() {
         keyBoardMap,
         characterOptions,
         gravityArray,
+        controllerOptions,
     } = useVirtualWorldScreen();
 
     return (
@@ -57,7 +58,7 @@ export default function VirtualWorldScreen() {
                             <WorldRenderer
                                 promiseForRendererOptions={promiseForRendererOptions}
                             >
-                                <CharacterManager characterOptions={characterOptions} />
+                                <PlayersManager characterOptions={characterOptions} controllerOptions={controllerOptions} />
                             </WorldRenderer>
                         </Suspense>
                         <TPSCameraController

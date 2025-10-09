@@ -1,3 +1,4 @@
+import { CharacterManagerOptions } from '@/common/THREE/character/WorldPlayer';
 import { WorldRendererResult } from '@/common/THREE/world/WorldRenderer';
 import { useThreeStore } from '@/store/THREE/store';
 import { promiseForGLTFLoader } from '@/util/THREE/three-js-function';
@@ -86,11 +87,11 @@ export default function useVirtualWorldScreen() {
         { name: "right", keys: ["ArrowRight", "d", "D"] },
         { name: "jump", keys: ["Space"] },
         { name: "reset", keys: ["r", "R"] },
-        { name: "special", keys: ["e", "E"] },
+        { name: "test", keys: ["t", "T"] },
     ], []);
 
     // CharacterOptions를 메모이제이션하여 불필요한 리렌더링 방지
-    const characterOptions = useMemo(() => ({
+    const characterOptions: CharacterManagerOptions = useMemo(() => ({
         height: 1,
         radius: 0.2,
         spawnPoint: new Vector3(0, 10, 0),
@@ -100,6 +101,13 @@ export default function useVirtualWorldScreen() {
         rotation: new Euler(0, 0, 0),
         rotationSpeed: 0.2,
         defaultAnimationClip: "Idle"
+    }), []);
+
+    const controllerOptions = useMemo(() => ({
+        offset: 0.01,
+        mass: 3,
+        slopeClimbAngle: Math.PI / 4,
+        slopeSlideAngle: Math.PI / 4,
     }), []);
 
     // gravity 배열도 메모이제이션
@@ -113,5 +121,6 @@ export default function useVirtualWorldScreen() {
         gravity,
         characterOptions,
         gravityArray,
+        controllerOptions,
     }
 }

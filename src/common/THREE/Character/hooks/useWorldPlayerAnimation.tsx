@@ -1,8 +1,9 @@
-import { useCallback, useRef } from "react";
-import { AnimationAction, AnimationClip, AnimationMixer } from "three";
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { useCallback, useEffect, useRef } from "react";
+import { AnimationAction, AnimationClip, AnimationMixer, Object3D } from "three";
 
-export default function useThreeWorldPlayerAnimator() {
+export default function useWorldPlayerAnimation({animations, scene, defaultAnimationClipName}:{animations:AnimationClip[], scene:Object3D, defaultAnimationClipName:string}) {
+
+
     const animationClips = useRef<AnimationClip[]>([]);
     const animatorMixer = useRef<AnimationMixer|null>(null);
     const curAction = useRef<AnimationAction|null>(null);
@@ -25,15 +26,15 @@ export default function useThreeWorldPlayerAnimator() {
         }
     }, []);
 
-    const initAnimator = useCallback((gltf: GLTF, animationClipName?:string) => {
-        animatorMixer.current = new AnimationMixer(gltf.scene);
-        animationClips.current = gltf.animations.map((animation) => {
+    useEffect(() => {
+        animatorMixer.current = new AnimationMixer(scene);
+        animationClips.current = animations.map((animation) => {
             return animation
         });
-        if(animationClipName) {
-            playAnimator(animationClipName, true);
+        if(defaultAnimationClipName) {
+            playAnimator(defaultAnimationClipName, true);
         }
-    }, [playAnimator]);
+    }, [playAnimator, defaultAnimationClipName, animations, scene]);
 
     const updateAnimator = useCallback((delta: number) => {
         if(animatorMixer.current) {
@@ -42,8 +43,8 @@ export default function useThreeWorldPlayerAnimator() {
     }, []);
 
     return {
-        initAnimator,
-        updateAnimator,
         playAnimator,
-    };
+        updateAnimator
+    }
+
 }

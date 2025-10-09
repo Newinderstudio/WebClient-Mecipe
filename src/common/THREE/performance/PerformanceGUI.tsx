@@ -24,7 +24,7 @@ export default function PerformanceGUI() {
             if (event.key === 'p' || event.key === 'P') {
                 setIsVisible(prev => !prev)
             }
-            if (event.key === 't' || event.key === 'T') {
+            if (event.key === 'u' || event.key === 'U') {
                 setShowDetails(prev => !prev)
             }
             if (event.key === 'l' || event.key === 'L') {

@@ -1,5 +1,4 @@
 import { InteractionGroups } from '@dimforge/rapier3d-compat';
-
 export enum ColliderGroupType {
     Default = 1,
     Player = 1 << 2,
