@@ -34,7 +34,7 @@ export default function PlayersManager({characterOptions, controllerOptions}: {c
                 isLocal={true}
                 gltf={gltf}
                 controllerRef={keyboardController}
-                bodyOptions={characterOptions}
+                characterOptions={characterOptions}
                 controllerOptions={controllerOptions}
             />
             {players.map((player) => (
@@ -43,7 +43,7 @@ export default function PlayersManager({characterOptions, controllerOptions}: {c
                     isLocal={false}
                     gltf={gltf}
                     controllerRef={testPlayerControllersRef.current.get(player)!}
-                    bodyOptions={characterOptions}
+                    characterOptions={characterOptions}
                     controllerOptions={controllerOptions}
                 />
             ))}

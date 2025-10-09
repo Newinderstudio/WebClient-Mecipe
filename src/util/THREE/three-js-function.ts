@@ -1,6 +1,4 @@
 import * as THREE from "three";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // 씬 그룹을 받아서 머터리얼별로 배치치된 씬 그룹을 반환
@@ -174,58 +172,6 @@ export function setEnableReflections(material: THREE.Material | THREE.Material[]
             mat.needsUpdate = true;
         }
     });
-}
-
-export type PromiseGroup = Promise<GLTF>;
-// ✅ Promise 캐시 - 같은 파일은 한 번만 로드
-const gltfPromiseCache = new Map<string, PromiseGroup>();
-const gltfCache = new Map<string, GLTF>();
-
-export function promiseForGLTFLoader(path: string, isDraco: boolean, cache:boolean = true): PromiseGroup {
-    const cacheKey = `${path}-${isDraco}`;
-    
-    // ✅ 캐시에 있으면 재사용
-    if (gltfPromiseCache.has(cacheKey)) {
-        console.log("🟢 [promiseForGLTFLoader] 이미 캐시된 프로미스스 반환", path);
-        return gltfPromiseCache.get(cacheKey)!;
-    }
-    
-    console.log("🟡 [promiseForGLTFLoader] 새로 로드 시작", path);
-    
-    const promise = new Promise<GLTF>((resolve, reject) => {
-
-        if(cache && gltfCache.has(cacheKey)) {
-            console.log("⭐ [promiseForGLTFLoader] 캐시에서 GLTF 객체 반환", path);
-            resolve(gltfCache.get(cacheKey)!);
-        }
-
-        const loader = new GLTFLoader();
-        if(isDraco) {
-            const dracoLoader = new DRACOLoader();
-            dracoLoader.setDecoderPath('/examples/jsm/libs/draco/');
-            loader.setDRACOLoader(dracoLoader);
-        }
-        try {
-            loader.load(path, (gltf) => {
-                console.log("✅ [promiseForGLTFLoader] 로드 완료!", path);
-                if(cache) {
-                    gltfCache.set(cacheKey, gltf);
-                }
-                resolve(gltf);
-            }, undefined, (error) => {
-                console.error("🔴 [promiseForGLTFLoader] 로드 실패", error);
-                gltfPromiseCache.delete(cacheKey); // 실패 시 캐시 제거
-                reject(error);
-            });
-        } catch (error) {
-            console.error("🔴 [promiseForGLTFLoader] 로드 실패", error);
-            reject(error);
-        }
-    });
-    
-    // ✅ 캐시에 저장
-    gltfPromiseCache.set(cacheKey, promise);
-    return promise;
 }
 
 // export function createMeshCollider(mesh: THREE.Mesh): Promise<{ collider: Collider, mesh: THREE.Mesh, type: 'static' } | null> {

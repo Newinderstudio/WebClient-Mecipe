@@ -16,7 +16,7 @@ import PlayersManager from '@/common/THREE/core/PlayersManager';
 export default function VirtualWorldScreen() {
 
     const {
-        promiseForRendererOptions,
+        rendererProps,
         keyBoardMap,
         characterOptions,
         gravityArray,
@@ -56,15 +56,15 @@ export default function VirtualWorldScreen() {
                         <Suspense fallback={null}>
                             {/* 옵션 로딩 중이거나 옵션이 없으면 fallback 표시 */}
                             <WorldRenderer
-                                promiseForRendererOptions={promiseForRendererOptions}
+                                rendererProps={rendererProps}
                             >
                                 <PlayersManager characterOptions={characterOptions} controllerOptions={controllerOptions} />
                             </WorldRenderer>
                         </Suspense>
                         <TPSCameraController
-                            minDistance={2}
-                            maxDistance={10}
-                            curDistance={5}
+                            minDistance={0.5}
+                            maxDistance={5}
+                            curDistance={3}
                             sensitivity={0.005}
                             wheelSensitivity={0.5}
                         />

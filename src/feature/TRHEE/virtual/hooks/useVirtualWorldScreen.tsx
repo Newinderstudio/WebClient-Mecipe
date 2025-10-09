@@ -1,8 +1,6 @@
 import { CharacterManagerOptions } from '@/common/THREE/character/WorldPlayer';
-import { WorldRendererResult } from '@/common/THREE/world/WorldRenderer';
 import { useThreeStore } from '@/store/THREE/store';
-import { promiseForGLTFLoader } from '@/util/THREE/three-js-function';
-import { useCallback, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Euler, Vector3 } from 'three';
 
 export interface WorldRendererProps {
@@ -26,15 +24,11 @@ export default function useVirtualWorldScreen() {
     // 옵션 객체를 메모이제이션하여 불필요한 리렌더링 방지
     const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
-    const fetchRendererOptions = useCallback(async () => {
-        try {
-            setIsLoadingOptions(true);
-            
-            // TODO: 실제로는 서버 API 호출
-            // const response = await fetch('/api/world-config');
-            // const data = await response.json();
-            
-            // 임시: 하드코딩된 옵션
+    const [rendererProps, setRendererProps] = useState<WorldRendererProps | undefined>(undefined);
+
+    // 비동기 맵 다운로드 실행 예제
+    useEffect(()=>{
+        const fetchRendererProps = async () => {
             const options: WorldRendererProps = {
                 worldGltfOptions: {
                     path: "/3d/test_virtual_world/virtual_world.glb",
@@ -48,37 +42,11 @@ export default function useVirtualWorldScreen() {
                 rotation: new Euler(0, 0, 0),
                 scale: new Vector3(1, 1, 1),
             };
-            
-            return options;
-        } catch (error) {
-            console.error('Failed to load renderer options:', error);
-        } finally {
+            setRendererProps(options);
             setIsLoadingOptions(false);
         }
+        fetchRendererProps();
     }, []);
-
-    const promiseForRendererOptions = useMemo(() => {
-        if(!fetchRendererOptions) {
-            return new Promise<WorldRendererResult>((resolve, reject) => {
-                reject("fetchRendererOptions is not defined");
-            });
-        }
-        return new Promise<WorldRendererResult>(async (resolve, reject) => {
-            try {
-                const options = await fetchRendererOptions();
-                if (!options) {
-                    reject("options is not defined");
-                    return;
-                }
-                const rendererScene = await promiseForGLTFLoader(options.worldGltfOptions.path, options.worldGltfOptions.isDraco);
-                const rendererColliderScene = await promiseForGLTFLoader(options.colliderGltfOptions.path, options.colliderGltfOptions.isDraco);
-                resolve({ options, rendererScene: rendererScene.scene, rendererColliderScene: rendererColliderScene.scene });
-            } catch (error) {
-                reject(error);
-            }
-
-        });
-    }, [fetchRendererOptions]);
 
     const keyBoardMap = useMemo(() => [
         { name: "forward", keys: ["ArrowUp", "w", "W"] },
@@ -92,7 +60,7 @@ export default function useVirtualWorldScreen() {
 
     // CharacterOptions를 메모이제이션하여 불필요한 리렌더링 방지
     const characterOptions: CharacterManagerOptions = useMemo(() => ({
-        height: 1,
+        height: 1.3,
         radius: 0.2,
         spawnPoint: new Vector3(0, 10, 0),
         playerJumpForce: 2,
@@ -114,7 +82,7 @@ export default function useVirtualWorldScreen() {
     const gravityArray = useMemo(() => gravity.toArray(), [gravity]);
 
     return {
-        promiseForRendererOptions,
+        rendererProps,
         isLoadingOptions,
         keyBoardMap,
 

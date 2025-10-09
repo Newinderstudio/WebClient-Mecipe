@@ -12,25 +12,12 @@ export interface WorldRendererResult {
     rendererColliderScene: Group;
 }
 
-function WorldRenderer({ children, promiseForRendererOptions }: { children: React.ReactNode, promiseForRendererOptions: Promise<WorldRendererResult>}) {
+function WorldRenderer({ children, rendererProps }: { children: React.ReactNode, rendererProps?: WorldRendererProps}) {
 
-    const { options, rendererScene, rendererColliderScene } = useWorldRenderer({ promiseForRendererOptions});
+    const { options, rendererScene, rendererColliderScene } = useWorldRenderer({ rendererProps});
 
     return (
         <group>
-            {/* 기본 조명 추가 - PhongMaterial이 제대로 렌더링되려면 필요 */}
-            {/* <ambientLight intensity={1} />
-            <directionalLight 
-                position={[10, 10, 5]} 
-                intensity={1} 
-                castShadow={false}
-            />
-            <pointLight 
-                position={[-10, -10, -5]} 
-                intensity={0.5}
-            /> */}
-            
-            {/* <Sky sunPosition={[100, 20, 100]} /> */}
             <Environment preset="sunset" />
             <Sky />
             <group

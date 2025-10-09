@@ -36,19 +36,19 @@ export interface WorldPlayerProps<T> {
     isLocal: boolean;
     gltf: GLTF;
     controllerRef: WorldPlayerControllerRef<T>;
-    bodyOptions?: Partial<CharacterManagerOptions>;
+    characterOptions?: Partial<CharacterManagerOptions>;
     controllerOptions?: Partial<WorldPlayerControllerOptions>;
     collisionGroup?: Partial<WorldPlayerCollisionGroupOptions>;
 }
 
 export default function WorldPlayer<T>(props: WorldPlayerProps<T>) {
 
-    const { colliderRef, playerBodyRef, headSocketRef, capsuleColliderProps, headSocketProps, clonedNodes } = useWorldPlayer<T>(props);
+    const { colliderRef, playerBodyRef, headSocketRef, capsuleColliderProps, headSocketProps, clonedNodes, characterOpt } = useWorldPlayer<T>(props);
 
 
     return (
         <CapsuleCollider ref={colliderRef} {...capsuleColliderProps} >
-            <primitive ref={playerBodyRef} object={clonedNodes} >
+            <primitive ref={playerBodyRef} object={clonedNodes} scale={characterOpt.scale} >
                 <group ref={headSocketRef} {...headSocketProps} />
             </primitive>
         </CapsuleCollider>
