@@ -12,6 +12,7 @@ import TPSCameraController from '@/common/THREE/camera/TPSCameraController';
 import PerformanceCollector from '@/common/THREE/performance/PerformanceCollector';
 import PerformanceDisplay from '@/common/THREE/performance/PerformanceDisplay';
 import PlayersManager from '@/common/THREE/core/PlayersManager';
+import VirtualWorldSocket from './components/VirtualWorldSocket';
 
 export default function VirtualWorldScreen() {
 
@@ -30,6 +31,7 @@ export default function VirtualWorldScreen() {
                 height: '100vh',
             }}
         >
+            <VirtualWorldSocket roomId="virtual-world-room-1" enabled={true} /> 
             <KeyboardControls
                 map={keyBoardMap}
             >
