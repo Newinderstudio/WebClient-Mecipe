@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas } from '@react-three/fiber'
-import { KeyboardControls, Stats } from '@react-three/drei'
+import { KeyboardControls } from '@react-three/drei'
 import { Suspense } from 'react';
 
 import { Physics } from '@react-three/rapier';
@@ -40,7 +40,6 @@ export default function VirtualWorldScreen() {
             <KeyboardControls
                 map={keyBoardMap}
             >
-                <Stats />
                 <PerformanceDisplay />
                 <Canvas
                     camera={{ fov: 45 }}

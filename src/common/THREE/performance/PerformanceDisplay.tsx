@@ -14,7 +14,7 @@ export default function PerformanceDisplay() {
     setEnabled
   } = usePerformanceStore()
   
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [showAlerts, setShowAlerts] = useState(true)
 
