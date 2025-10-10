@@ -13,8 +13,17 @@ export interface PlayerInterface {
 
 export interface MovementInput {
   direction: Vector3;
-  rotation?: Euler;
+  rotation: Euler;
   jump: boolean;
+  speed: number;
+}
+
+export interface PlayerControlInterface {
+  setPosition: (position: Vector3) => void;
+  setRotation: (rotation: Euler) => void;
+
+  getPosition: () => Vector3;
+  getRotation: () => Euler;
 }
 
 export interface IController<T> {
@@ -32,6 +41,8 @@ export interface IController<T> {
    * 현재 프레임의 입력 상태를 반환
    */
   getMovementInput(curPosition: Vector3, curRotation: Euler): MovementInput;
+
+  postMovementProcess(playerControl: PlayerControlInterface): void;
   
   /**
    * 컨트롤러 활성화/비활성화

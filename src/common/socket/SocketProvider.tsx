@@ -32,31 +32,38 @@ const SocketContext = createContext<SocketContextValue | null>(null);
 interface SocketProviderProps {
   children: React.ReactNode;
   serverUrl?: string;
+  path?: string;
 }
 
-export function SocketProvider({ children, serverUrl = 'http://localhost:3001' }: SocketProviderProps) {
+export function SocketProvider({ children, serverUrl = 'http://localhost:3001', path = '' }: SocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [socketState, setSocketState] = useState<SocketState>({
     isConnected: false,
     currentRoomId: null,
     clientsInRoom: 0,
+    clientId: null,
   });
   
   const socketRef = useRef<Socket | null>(null);
 
   // Socket 초기화
   useEffect(() => {
+
+    console.log('🔌 Socket connecting to:', serverUrl);
+    console.log('📁 Socket path:', path);
+
     const newSocket = io(serverUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
+      path: "/"+path,
     });
 
     newSocket.on('connect', () => {
       console.log('Socket connected:', newSocket.id);
-      setSocketState(prev => ({ ...prev, isConnected: true }));
+      setSocketState(prev => ({ ...prev, isConnected: true, clientId: newSocket.id ?? null }));
     });
 
     newSocket.on('disconnect', () => {
@@ -65,7 +72,14 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001' }
         isConnected: false,
         currentRoomId: null,
         clientsInRoom: 0,
+        clientId: null,
       });
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error.message);
+      console.error('Server URL:', serverUrl);
+      console.error('Path:', path);
     });
 
     socketRef.current = newSocket;
@@ -76,7 +90,7 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001' }
         socketRef.current.disconnect();
       }
     };
-  }, [serverUrl]);
+  }, [serverUrl, path]);
 
   // Join Room
   const joinRoom = useCallback(async (payload: JoinRoomPayload): Promise<JoinRoomCallback> => {

@@ -1,102 +1,82 @@
-import { Vector3 } from "three";
-import { IController, MovementInput } from "./IController";
+import { RootState } from "@react-three/fiber";
+import { Vector3, Euler } from "three";
+import { IController, MovementInput } from ".";
+import { PlayerTransformData, RoomDataItem, RoomDataType } from "@/common/socket/types";
+import { RefObject } from "react";
+import { PlayerControlInterface } from "./IController";
 
-export interface WebSocketMovementMessage {
-  type: 'movement';
-  direction: {
-    x: number;
-    y: number;
-    z: number;
-  };
+export interface WebSocketControllerProps {
+  clientId: string;
+  dataBufferMapRef: RefObject<Map<string, RoomDataItem[]>>;
 }
 
-export class WebSocketController implements IController<WebSocketMovementMessage> {
-  private enabled: boolean = true;
-  private websocket: WebSocket | null = null;
-  private movementInput: MovementInput = {
-    direction: new Vector3(),
-  };
 
-  constructor(websocketUrl?: string) {
-    if (websocketUrl) {
-      this.connect(websocketUrl);
+export class WebSocketController implements IController<WebSocketControllerProps> {
+    private options?: WebSocketControllerProps;
+    private enabled: boolean = true;
+
+    private recievedMovementMessage: PlayerTransformData = {
+      speed: 0,
+      position: {x: 0, y: 0, z: 0},
+      rotation: {x: 0, y: 0, z: 0},
+    };
+
+    initialize(rootState: RootState, options: WebSocketControllerProps): void {
+        this.options = options;
     }
-  }
-
-  initialize(): void {
-    // WebSocket 연결이 이미 있다면 초기화 완료
-  }
-
-  dispose(): void {
-    this.disconnect();
-  }
-
-  connect(url: string): void {
-    this.disconnect();
-    
-    this.websocket = new WebSocket(url);
-    
-    this.websocket.onopen = () => {
-      console.log('WebSocket connected for character control');
-    };
-    
-    this.websocket.onmessage = (event) => {
-      if (!this.enabled) return;
-      
-      try {
-        const message = JSON.parse(event.data);
-        this.handleMovementMessage(message);
-      } catch (error) {
-        console.error('Failed to parse WebSocket message:', error);
-      }
-    };
-    
-    this.websocket.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-    
-    this.websocket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-  }
-
-  disconnect(): void {
-    if (this.websocket) {
-      this.websocket.close();
-      this.websocket = null;
+    dispose(): void {
+        throw new Error("Method not implemented.");
     }
-  }
-
-  private handleMovementMessage(message: WebSocketMovementMessage): void {
-    if (message.type === 'movement') {
-      this.movementInput = {
-        direction: new Vector3(
-          message.direction.x,
-          message.direction.y,
-          message.direction.z
-        ),
-      };
-    }
-  }
-
-  getMovementInput(): MovementInput {
-    return this.movementInput;
-  }
-
-  setEnabled(enabled: boolean): void {
-    this.enabled = enabled;
-    if (!enabled) {
-      this.movementInput = {
+    getMovementInput(curPosition: Vector3): MovementInput {
+      if (!this.options) return {
         direction: new Vector3(),
+        rotation: new Euler(),
+        jump: false,
+        speed: 0,
+      };
+      const playerTransform = this.getRemoteTransformData();
+      if (!playerTransform) return {
+        direction: new Vector3(),
+        rotation: new Euler(),
+        jump: false,
+        speed: 0,
+      };
+
+      return {
+        direction: new Vector3(playerTransform.position.x, playerTransform.position.y, playerTransform.position.z).sub(curPosition), //.normalize().multiplyScalar(playerTransform.speed),
+        rotation: new Euler(playerTransform.rotation.x, playerTransform.rotation.y, playerTransform.rotation.z),
+        jump: false,
+        speed: playerTransform.speed,
       };
     }
-  }
+    setEnabled(enabled: boolean): void {
+        this.enabled = enabled;
+    }
+    isEnabled(): boolean {
+        return this.enabled;
+    }
 
-  isEnabled(): boolean {
-    return this.enabled;
-  }
+    private getRemoteTransformData(): PlayerTransformData|null {
+      if(!this.options) return null;
+      const myBuffers = this.options.dataBufferMapRef.current.get(this.options.clientId)?.filter(item => item.type === RoomDataType.PLAYER_TRANSFORM);
+      if(!myBuffers) return this.recievedMovementMessage;
+      this.options.dataBufferMapRef.current.delete(this.options.clientId);
+      this.recievedMovementMessage = myBuffers.length > 0 ? myBuffers[myBuffers.length - 1].data as PlayerTransformData : this.recievedMovementMessage;
+      return this.recievedMovementMessage;
+    }
+    postMovementProcess(playerControl: PlayerControlInterface): void {
+      if (!this.options) return;
+      
+      const curPosition = playerControl.getPosition();
+      const recievedPosition = new Vector3(this.recievedMovementMessage.position.x, this.recievedMovementMessage.position.y, this.recievedMovementMessage.position.z);
+      const recievedRotationForCompare = new Vector3(this.recievedMovementMessage.rotation.x, this.recievedMovementMessage.rotation.y, this.recievedMovementMessage.rotation.z);
 
-  isConnected(): boolean {
-    return this.websocket?.readyState === WebSocket.OPEN;
-  }
+      if(recievedPosition.distanceTo(curPosition) > 3) {
+        playerControl.setPosition(recievedPosition);
+      }
+      if(recievedRotationForCompare.distanceTo(new Vector3(curPosition.x, curPosition.y, curPosition.z)) > 0.1) {
+        playerControl.setRotation(new Euler(this.recievedMovementMessage.rotation.x, this.recievedMovementMessage.rotation.y, this.recievedMovementMessage.rotation.z));
+      }
+
+    }
 }

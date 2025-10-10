@@ -9,6 +9,7 @@ export interface JoinRoomPayload {
 
 export interface JoinRoomCallback {
   success: boolean;
+  clientId: string;
   roomId: string;
   clientsInRoom: number;
   message: string;
@@ -21,6 +22,7 @@ export interface LeaveRoomPayload {
 
 export interface LeaveRoomCallback {
   success: boolean;
+  clientId: string;
   leftRoom?: string;
   message: string;
 }
@@ -92,5 +94,17 @@ export interface SocketState {
   isConnected: boolean;
   currentRoomId: string | null;
   clientsInRoom: number;
+  clientId: string | null;
 }
 
+export enum RoomDataType {
+  PLAYER_TRANSFORM = 'playerTransform',
+  PLAYER_ANIMATION = 'playerAnimation',
+  CUSTOM_EVENT = 'customEvent',
+}
+
+export interface PlayerTransformData {
+  speed: number,
+  position: {x: number, y: number, z: number},
+  rotation: {x: number, y: number, z: number},
+}

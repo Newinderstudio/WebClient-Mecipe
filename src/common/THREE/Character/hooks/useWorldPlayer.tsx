@@ -9,6 +9,7 @@ import { useFrame } from "@react-three/fiber";
 import { useThreeStore } from "@/store/THREE/store";
 import useWorldPlayerAnimation from "./useWorldPlayerAnimation";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js"
+import { PlayerControlInterface } from "../controllers/IController";
 
 export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, characterOptions, collisionGroup, controllerRef }: WorldPlayerProps<T>) {
     const rapier = useRapier();
@@ -52,6 +53,17 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
     const characterControllerRef = useRef<KinematicCharacterController | null>(null);
     const colliderRef = useRef<Collider | null>(null);
     const headSocketRef = useRef<THREE.Group | null>(null);
+
+    const playerControl: PlayerControlInterface = useMemo(() => ({
+        setPosition: (position: THREE.Vector3) => {
+            colliderRef.current?.setTranslation(position);
+        },
+        setRotation: (rotation: THREE.Euler) => {
+            playerBodyRef.current?.rotation.set(rotation.x, rotation.y, rotation.z);
+        },
+        getPosition: () => {const pos = colliderRef.current?.translation();  return pos? new THREE.Vector3(pos.x, pos.y, pos.z) : new THREE.Vector3(0, 0, 0)},
+        getRotation: () => playerBodyRef.current?.rotation ?? new THREE.Euler(0, 0, 0),
+    }), [playerBodyRef, colliderRef]);
 
     const headSocketProps = useMemo(() => (
         {
@@ -103,7 +115,7 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
         try {
             const pos = colliderRef.current.translation();
             const rot = playerBodyRef.current.rotation;
-            const { direction, rotation, jump } = controllerRef.current.getMovementInput(new THREE.Vector3(pos.x, pos.y, pos.z), rot);
+            const { direction, rotation, jump, speed } = controllerRef.current.getMovementInput(new THREE.Vector3(pos.x, pos.y, pos.z), rot);
 
             const currentTime = Date.now();
 
@@ -115,14 +127,6 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
 
             const rawGravity = rapier.world.gravity;
             const gravity = new THREE.Vector3(rawGravity.x, rawGravity.y, rawGravity.z);
-
-            if (Math.abs(movement.x) > 0.1 || Math.abs(movement.z) > 0.1) {
-                playAnimator("Walk");
-            } else {
-                playAnimator("Idle");
-            }
-
-            updateAnimator(delta);
 
             const isGrounded = characterControllerRef.current.computedGrounded();
             let tempIsJumping = isJumping
@@ -175,7 +179,17 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
                 THREE.MathUtils.lerp(playerBodyRef.current.position.z, newPos.z, 0.2)
             );
             playerBodyRef.current.position.set(newPos.x, newPos.y, newPos.z);
-            if (rotation) playerBodyRef.current.rotation.set(rotation.x, rotation.y, rotation.z);
+            playerBodyRef.current.rotation.set(rotation.x, rotation.y, rotation.z);
+
+
+            if (speed > 0.1) {
+                playAnimator("Walk");
+            } else {
+                playAnimator("Idle");
+            }
+            updateAnimator(delta);
+
+            controllerRef.current.postMovementProcess(playerControl);
         } catch (error) {
             console.error('Error in moveDirection:', error);
         }

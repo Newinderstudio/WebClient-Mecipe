@@ -174,6 +174,22 @@ export function setEnableReflections(material: THREE.Material | THREE.Material[]
     });
 }
 
+export function getDistanceRawVector(vector1: {x: number, y: number, z: number}, vector2: {x: number, y: number, z: number}, except?: {x?:boolean, y?:boolean, z?:boolean}): number {
+    return Math.sqrt(
+        (except?.x ? 0 : Math.pow(vector1.x - vector2.x, 2)) 
+        + (except?.y ? 0 : Math.pow(vector1.y - vector2.y, 2) )
+        + (except?.z ? 0 : Math.pow(vector1.z - vector2.z, 2))
+    );
+}
+
+export function getSizeRawVector(vector1: {x: number, y: number, z: number}, except?: {x?:boolean, y?:boolean, z?:boolean}): number {
+    return Math.sqrt(
+        (except?.x ? 0 : Math.pow(vector1.x, 2)) 
+        + (except?.y ? 0 : Math.pow(vector1.y, 2)) 
+        + (except?.z ? 0 : Math.pow(vector1.z, 2))
+    );
+}
+
 // export function createMeshCollider(mesh: THREE.Mesh): Promise<{ collider: Collider, mesh: THREE.Mesh, type: 'static' } | null> {
 //     if (!this.rapierWorld) return null;
 

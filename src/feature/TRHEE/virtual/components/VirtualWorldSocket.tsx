@@ -1,12 +1,56 @@
-import { useVirtualWorldSocket } from "./hooks/useVirtualWorldSocket";
+"use client";
 
-export default function VirtualWorldSocket({ roomId , enabled = true }: { roomId: string, enabled?: boolean }) {
+import { useEffect } from 'react';
+import { useSocketStore } from '@/store/socket/store';
 
-    // Socket 통신 설정
-    useVirtualWorldSocket({
-        roomId: roomId, // 원하는 roomId로 변경 가능
-        enabled: enabled,
-    });
+export default function VirtualWorldSocket({ 
+  roomId, 
+  enabled = true,
+  serverUrl = 'http://localhost:4100',
+  path = ''
+}: { 
+  roomId: string;
+  enabled?: boolean;
+  serverUrl?: string;
+  path?: string;
+}) {
+  const initSocket = useSocketStore((state) => state.initSocket);
+  const joinRoom = useSocketStore((state) => state.joinRoom);
+  const leaveRoom = useSocketStore((state) => state.leaveRoom);
+  const disconnect = useSocketStore((state) => state.disconnect);
+  const isConnected = useSocketStore((state) => state.isConnected);
 
-    return null;
+  // Socket 초기화
+  useEffect(() => {
+    if (enabled) {
+      initSocket(serverUrl, path);
+    }
+
+    return () => {
+      disconnect();
+    };
+  }, [enabled, serverUrl, path, initSocket, disconnect]);
+
+  // Room 참가/퇴장
+  useEffect(() => {
+    if (!enabled || !isConnected) return;
+
+    let mounted = true;
+
+    const join = async () => {
+      if (mounted) {
+        const result = await joinRoom(roomId);
+        console.log('Join room result:', result);
+      }
+    };
+
+    join();
+
+    return () => {
+      mounted = false;
+      leaveRoom();
+    };
+  }, [enabled, isConnected, roomId, joinRoom, leaveRoom]);
+
+  return null;
 }

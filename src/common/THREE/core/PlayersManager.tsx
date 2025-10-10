@@ -37,16 +37,20 @@ export default function PlayersManager({characterOptions, controllerOptions}: {c
                 characterOptions={characterOptions}
                 controllerOptions={controllerOptions}
             />
-            {players.map((player) => (
-                <WorldPlayer
-                    key={player}
-                    isLocal={false}
-                    gltf={gltf}
-                    controllerRef={testPlayerControllersRef.current.get(player)!}
-                    characterOptions={characterOptions}
-                    controllerOptions={controllerOptions}
-                />
-            ))}
+            {players.map((player) => {
+                return (
+                    (
+                        <WorldPlayer
+                            key={player.socketId}
+                            isLocal={false}
+                            gltf={gltf}
+                            controllerRef={testPlayerControllersRef.current.get(player.socketId)!}
+                            characterOptions={characterOptions}
+                            controllerOptions={controllerOptions}
+                        />
+                    )
+                )
+            })}
         </group>
     )
 }

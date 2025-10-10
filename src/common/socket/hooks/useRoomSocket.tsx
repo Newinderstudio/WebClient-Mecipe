@@ -179,6 +179,7 @@ export function useRoomSocket({
     currentRoomId: socketState.currentRoomId,
     clientsInRoom: socketState.clientsInRoom,
     isInRoom: isJoinedRef.current,
+    clientId: socketState.clientId,
     join,
     leave,
     broadcast,

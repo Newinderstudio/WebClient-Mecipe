@@ -1,6 +1,7 @@
 import { Euler, Vector3 } from "three";
-import { IController, MovementInput } from "./IController";
+import { IController, MovementInput, PlayerControlInterface } from "./IController";
 import { RootState } from "@react-three/fiber";
+import { PlayerTransformData } from "@/common/socket/types";
 
 type KeyboardControlsState<T extends string = string> = {
   [K in T]: boolean;
@@ -8,6 +9,7 @@ type KeyboardControlsState<T extends string = string> = {
 
 export interface KeyboardControllerProps {
   getKeyboarState: () => KeyboardControlsState<string>
+  boradcastPlayerTransform: (transform: { position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number } }) => void
 }
 
 export class KeyboardLocalController implements IController<KeyboardControllerProps> {
@@ -20,6 +22,13 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
     direction: new Vector3(),
     rotation: new Euler(),
     jump: false,
+    speed: 0,
+  };
+
+  private sendedMovementMessage: PlayerTransformData = {
+    speed: 0,
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
   };
 
   private jumpTrigger = false;
@@ -56,7 +65,7 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
 
     // jumping - 별도 처리
     if (jumpTrigger) {
-      if(!this.jumpTrigger) {
+      if (!this.jumpTrigger) {
         this.movementInput.jump = true;
         this.jumpTrigger = true;
       } else {
@@ -70,6 +79,8 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
     direction.y = 0;
 
     this.movementInput.direction = direction;
+
+    let newRotationY = curRotation.y;
     if (direction.length() > 0.01) {
       // 이동 방향으로부터 Y축 회전 각도 계산
       const targetRotationY = Math.atan2(direction.x, direction.z);
@@ -84,32 +95,40 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
 
       // 설정 가능한 회전 속도로 부드러운 회전 적용
       const rotationSpeed = 0.15;
-      const newRotationY = currentRotationY + angleDiff * rotationSpeed;
-
-      this.movementInput.rotation = new Euler(0, newRotationY, 0);
+      newRotationY = currentRotationY + angleDiff * rotationSpeed;
     }
 
-    // // 플레이어 회전 처리 (이동 방향에 맞게)
-    // if (direction.length() > 0.01) {
-    //   // 이동 방향으로부터 Y축 회전 각도 계산
-    //   const targetRotationY = Math.atan2(direction.x, direction.z);
-
-    //   // 부드러운 회전을 위해 현재 회전에서 목표 회전으로 보간
-    //   const currentRotationY = player.getPlayerRotation().y;
-
-    //   // 각도 차이를 최소화 (0~2π 범위에서)
-    //   let angleDiff = targetRotationY - currentRotationY;
-    //   if (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-    //   if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-
-    //   // 설정 가능한 회전 속도로 부드러운 회전 적용
-    //   const rotationSpeed = this.options.rotationSpeed || 0.15;
-    //   const newRotationY = currentRotationY + angleDiff * rotationSpeed;
-
-    //   this.movementInput.rotation = new Euler(0, newRotationY, 0);
-    // }
+    this.movementInput.rotation = new Euler(0, newRotationY, 0);
+    this.movementInput.speed = this.movementInput.direction.length();
 
     return this.movementInput;
+  }
+
+  postMovementProcess(playerControl: PlayerControlInterface): void {
+
+    if (!this.options || !playerControl) return;
+    const curPosition = playerControl.getPosition();
+    const curRotation = playerControl.getRotation();
+
+    if (this.sendedMovementMessage.position.x !== curPosition.x 
+      || this.sendedMovementMessage.position.y !== curPosition.y 
+      || this.sendedMovementMessage.position.z !== curPosition.z 
+      || this.sendedMovementMessage.rotation.x !== curRotation.x 
+      || this.sendedMovementMessage.rotation.y !== curRotation.y 
+      || this.sendedMovementMessage.rotation.z !== curRotation.z
+      || this.sendedMovementMessage.speed !== this.movementInput.speed
+    ) {
+      this.sendedMovementMessage = {
+        speed: this.movementInput.direction.length(),
+        position: { x: curPosition.x, y: curPosition.y, z: curPosition.z },
+        rotation: { x: curRotation.x, y: curRotation.y, z: curRotation.z },
+      };
+    }
+    else {
+      return;
+    }
+
+    this.options.boradcastPlayerTransform(this.sendedMovementMessage);
   }
 
   setEnabled(enabled: boolean): void {
@@ -120,6 +139,7 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
         direction: new Vector3(),
         rotation: new Euler(),
         jump: false,
+        speed: 0,
       };
     }
   }

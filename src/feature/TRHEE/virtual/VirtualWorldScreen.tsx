@@ -31,7 +31,12 @@ export default function VirtualWorldScreen() {
                 height: '100vh',
             }}
         >
-            <VirtualWorldSocket roomId="virtual-world-room-1" enabled={true} /> 
+            <VirtualWorldSocket 
+                roomId="virtual-world-room-1" 
+                enabled={true} 
+                serverUrl={process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}
+                path={process.env.NEXT_PUBLIC_SOCKET_PATH}
+            /> 
             <KeyboardControls
                 map={keyBoardMap}
             >
