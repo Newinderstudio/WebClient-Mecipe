@@ -38,7 +38,7 @@ export default function useVirtualWorldScreen() {
                     path: "/3d/test_virtual_world/virtual_world_collider.glb",
                     isDraco: true,
                 },
-                position: new Vector3(0, -10, 0),
+                position: new Vector3(0, 0, 0),
                 rotation: new Euler(0, 0, 0),
                 scale: new Vector3(1, 1, 1),
             };
@@ -62,7 +62,7 @@ export default function useVirtualWorldScreen() {
     const characterOptions: CharacterManagerOptions = useMemo(() => ({
         height: 1.3,
         radius: 0.2,
-        spawnPoint: new Vector3(0, 10, 0),
+        spawnPoint: new Vector3(0, 5, 5),
         playerJumpForce: 2,
         playerSpeed: 6,
         scale: new Vector3(0.8, 0.8, 0.8),

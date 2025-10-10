@@ -65,7 +65,6 @@ export default function usePlayersManagers({ gltfPath, isDraco }: { gltfPath: st
                 playerControllersRef.current.delete(user.socketId);
             });
 
-            console.log(newUsers);
             if(newUserList.length === 0 && leftUserList.length === 0) {
                 return prev;
             }

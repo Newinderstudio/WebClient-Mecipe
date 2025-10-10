@@ -60,7 +60,9 @@ function LoadedCollider({ scene, isBatching }: {
 
 
     return (
-        colliders
+        <group>
+            {colliders}
+        </group>
     );
 }
 

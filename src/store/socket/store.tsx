@@ -182,12 +182,21 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     }
 
     return new Promise((resolve) => {
-      socket.emit('joinRoom', { roomId }, (response: { success: boolean; roomId?: string; clientsInRoom?: number; message: string }) => {
+      socket.emit('joinRoom', { roomId }, (response: { success: boolean; roomId?: string; clientsInRoom?: {socketId: string; joinedAt: string}[]; message: string }) => {
         if (response.success) {
-          set({
-            isInRoom: true,
-            currentRoomId: response.roomId || roomId,
-            clientsInRoom: response.clientsInRoom || 1,
+          set(state=>{
+
+            const newUsers = response.clientsInRoom
+              ?.filter(client => !state.users.find(user => user.socketId === client.socketId))
+              .map(client => ({ socketId: client.socketId, joinedAt: client.joinedAt })) ?? [];
+
+            return {
+              isInRoom: true,
+              currentRoomId: response.roomId || roomId,
+              clientsInRoom: response.clientsInRoom?.length || 1,
+              users: [...state.users, ...newUsers],
+              userCount: response.clientsInRoom?.length || 1,
+            }
           });
         }
         resolve(response);

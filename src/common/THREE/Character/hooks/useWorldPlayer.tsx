@@ -2,7 +2,7 @@ import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
 import { Vector3 } from "@dimforge/rapier3d-compat";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CapsuleColliderProps, useRapier } from "@react-three/rapier";
-import { WorldPlayerProps } from "../WorldPlayer";
+import { CharacterManagerOptions, WorldPlayerProps } from "../WorldPlayer";
 import { KinematicCharacterController, Collider } from "@react-three/rapier/node_modules/@dimforge/rapier3d-compat";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
@@ -22,14 +22,16 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
         ...controllerOptions
     }), [controllerOptions]);
 
-    const characterOpt = useMemo(() => ({
+    const characterOpt: CharacterManagerOptions = useMemo(() => ({
         height: 1,
         radius: 0.2,
-        spawnPoint: new Vector3(0, 1.8, 0),
-        rotation: { x: 0, y: 0, z: 0, w: 1 },
-        scale: new Vector3(1, 1, 1),
+        spawnPoint: new THREE.Vector3(0, 1.8, 0),
+        rotation: new THREE.Euler(0, 0, 0),
+        scale: new THREE.Vector3(1, 1, 1),
         playerJumpForce: 10,
         playerSpeed: 6,
+        rotationSpeed: 0.2,
+        defaultAnimationClip: "Idle",
         ...characterOptions
     }), [characterOptions]);
 
@@ -80,6 +82,13 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
         if (!headSocketRef.current || !isLocal) return;
         setHeadSocket(headSocketRef.current);
     }, [isLocal, setHeadSocket]);
+
+    useEffect(()=>{
+        if (colliderRef.current) {
+            colliderRef.current.setTranslation(characterOpt.spawnPoint);
+            colliderRef.current.setRotation({x: characterOpt.rotation.x, y: characterOpt.rotation.y, z: characterOpt.rotation.z, w: 1});
+        }
+    }, [characterOpt]);
 
     useEffect(() => {
         if (rapier.world && !characterControllerRef.current) {

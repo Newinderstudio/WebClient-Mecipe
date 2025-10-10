@@ -47,7 +47,7 @@ export default function WorldPlayer<T>(props: WorldPlayerProps<T>) {
 
 
     return (
-        <CapsuleCollider ref={colliderRef} {...capsuleColliderProps} >
+        <CapsuleCollider ref={colliderRef} {...capsuleColliderProps}>
             <primitive ref={playerBodyRef} object={clonedNodes} scale={characterOpt.scale} >
                 <group ref={headSocketRef} {...headSocketProps} />
             </primitive>
