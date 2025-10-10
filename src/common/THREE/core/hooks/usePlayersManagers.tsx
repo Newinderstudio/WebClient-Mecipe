@@ -20,7 +20,6 @@ export default function usePlayersManagers({ gltfPath, isDraco }: { gltfPath: st
     // Zustand 올바른 사용법: 단일 값은 직접 반환
     const clientId = useSocketStore((state) => state.clientId);
     const users = useSocketStore((state) => state.users);
-    const getPlayerTransforms = useSocketStore((state) => state.getPlayerTransforms);
     const broadcastPlayerTransform = useSocketStore((state) => state.broadcastPlayerTransform);
     const subsribeToRoomData = useSocketStore((state) => state.subscribeToRoomData);
 
@@ -56,22 +55,32 @@ export default function usePlayersManagers({ gltfPath, isDraco }: { gltfPath: st
             const newUserList = newUsers.filter(user => !prev.includes(user));
             const leftUserList = prev.filter(user => !newUsers.includes(user));
 
-            newUserList.forEach(user => {
-                const playerController = new WebSocketController();
-                playerController.initialize(threeState, { clientId: user.socketId, dataBufferMapRef: dataBufferMapRef });
-                playerControllersRef.current.set(user.socketId, { current: playerController });
-            });
-            leftUserList.forEach(user => {
-                playerControllersRef.current.delete(user.socketId);
-            });
-
             if(newUserList.length === 0 && leftUserList.length === 0) {
                 return prev;
             }
 
+            leftUserList.forEach(user => {
+                playerControllersRef.current.delete(user.socketId);
+            });
+            newUserList.forEach(user => {
+                if(playerControllersRef.current.has(user.socketId)) return;
+                const playerController = new WebSocketController();
+                playerController.initialize(threeState, { clientId: user.socketId, dataBufferMapRef: dataBufferMapRef });
+                playerControllersRef.current.set(user.socketId, { current: playerController });
+            });
+
             return newUsers;
         });
-    }, [users, clientId, threeState, getPlayerTransforms]);
+    }, [users, clientId, threeState]);
+
+    // 플레이어 입장 시, 로컬컬 플레이어 위치 브로드캐스트 전송
+    useEffect(()=>{
+        if (!keyboardController.current || players.length === 0) return;
+        const sendedMovementMessage = keyboardController.current?.getSendedMovementMessage();
+        if(sendedMovementMessage) {
+            broadcastPlayerTransform(sendedMovementMessage);
+        }
+    }, [players, broadcastPlayerTransform, keyboardController]);
 
 
     return {

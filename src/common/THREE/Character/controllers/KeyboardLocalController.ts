@@ -147,4 +147,8 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
   isEnabled(): boolean {
     return this.enabled;
   }
+
+  getSendedMovementMessage(): PlayerTransformData {
+    return this.sendedMovementMessage;
+  }
 }
