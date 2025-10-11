@@ -71,7 +71,7 @@ export type UpdateBoardDto = {
     cafeInfoIds?: number[];
 
     boardImages?: CreateBoardImageDto[];
-    removeImageIds?: number[];
+    disabledImageIds?: number[];
 }
 
 // User만 포함된 Board 타입

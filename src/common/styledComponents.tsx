@@ -176,6 +176,7 @@ export const SelectDropDown = (props: React.SelectHTMLAttributes<HTMLSelectEleme
       <select
         value={props.value}
         onChange={props.onChange}
+        disabled={props.disabled}
       >
         {props.children}
       </select>

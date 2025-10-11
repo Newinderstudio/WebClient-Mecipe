@@ -11,12 +11,14 @@ interface RelatedCafeSelectorProps {
     isEditing?: boolean;
     selectedCafeInfos?: CafeInfoResult[];
     onCafeSelect: (cafe: CafeInfoResult[]) => void;
+    isAvaliableCheckMultiple?: boolean;
 }
 
 const RelatedCafeSelector: React.FC<RelatedCafeSelectorProps> = ({
     isEditing = true,
     selectedCafeInfos: initialSelectedCafeInfos,
-    onCafeSelect
+    onCafeSelect,
+    isAvaliableCheckMultiple = true
 }) => {
     const [cafeSearchText, setCafeSearchText] = useState<string>('');
     const [cafes, setCafes] = useState<CafeInfoResult[]>([]);
@@ -64,7 +66,17 @@ const RelatedCafeSelector: React.FC<RelatedCafeSelectorProps> = ({
     }, [cafeSearchText, findAllPlaces]);
 
     const handleCafeSelect = (cafe: CafeInfoResult) => {
-        const newSelectedCafeInfos = selectedCafeInfos.includes(cafe) ? selectedCafeInfos.filter(selectedCafe => selectedCafe.id !== cafe.id) : [...selectedCafeInfos, cafe];
+
+        let newSelectedCafeInfos: CafeInfoResult[] = [];
+        if (isAvaliableCheckMultiple) {
+            newSelectedCafeInfos = selectedCafeInfos.includes(cafe) ? selectedCafeInfos.filter(selectedCafe => selectedCafe.id !== cafe.id) : [...selectedCafeInfos, cafe];
+        } else {
+            if(selectedCafeInfos.findIndex(selectedCafe => selectedCafe.id === cafe.id) !== -1) {
+                newSelectedCafeInfos = [];
+            } else {
+                newSelectedCafeInfos = [cafe];
+            }
+        }
         setSelectedCafeInfos(newSelectedCafeInfos);
         onCafeSelect(newSelectedCafeInfos);
     }

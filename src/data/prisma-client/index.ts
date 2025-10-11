@@ -103,7 +103,7 @@ export type CafeBoard = {
 
     Board?: Board
     CafeInfo?: CafeInfo
-  }
+}
 
 /**
  * Model RegionCategory
@@ -270,7 +270,7 @@ export type CafeCouponGroup = {
     CafeCoupons?: CafeCoupon[]
     CafeCouponGoupPartners?: CafeCouponGoupPartner[]
 }
-  
+
 /**
  * Model CafeCouponGoupPartner
  * 
@@ -282,7 +282,7 @@ export type CafeCouponGoupPartner = {
     CafeCouponGroup?: CafeCouponGroup
     CafeInfo?: CafeInfo
 }
-  
+
 /**
  * Model ProxyUser
  * 
@@ -299,7 +299,7 @@ export type ProxyUser = {
     User?: User
     CafeCoupons?: CafeCoupon[]
 }
-  
+
 /**
  * Model CafeCoupon
  * 
@@ -321,7 +321,7 @@ export type CafeCoupon = {
     CafeCouponQRCodes?: CafeCouponQRCode[]
     CafeCouponHistories?: CafeCouponHistory[]
 }
-  
+
 /**
  * Model CafeCouponHistory
  * 
@@ -339,7 +339,7 @@ export type CafeCouponHistory = {
     CafeCoupon?: CafeCoupon
     Actor?: User
 }
-  
+
 /**
  * Model CafeCouponQRCode
  * 
@@ -355,6 +355,97 @@ export type CafeCouponQRCode = {
     CafeCoupon?: CafeCoupon
 }
 
+/**
+ * Model ProductCategory
+ * 
+ */
+export type ProductCategory = {
+    id?: number
+    createdAt?: Date
+    name: string
+    description: string | null
+    isDisable: boolean
+    code: string
+
+    Products?: Product[]
+    AncestorCategories?: ClosureProductCategory[]
+    DescendantCategories?: ClosureProductCategory[]
+}
+
+/**
+ * Model ClosureProductCategory
+ * 
+ */
+export type ClosureProductCategory = {
+    ancestor: number
+    descendant: number
+    depth: number
+
+    AncestorCategory?: ProductCategory
+    DescendantCategory?: ProductCategory
+}
+
+/**
+ * Model Product
+ * 
+ */
+export type Product = {
+    id?: number
+    createdAt?: Date
+    updatedAt?: Date
+    name: string
+    code: string
+    description: string | null
+    price: number
+    originalPrice: number | null
+    stockQuantity: number
+    minOrderQuantity: number
+    isDisable: boolean
+    isAvailable: boolean
+    categoryId: number
+    cafeInfoId: number | null
+    productRedirectUrl: string | null
+    isSignature: boolean;
+
+    ProductCategory?: ProductCategory
+    CafeInfo?: CafeInfo
+    WishlistProducts?: WishlistProduct[]
+    ProductImages?: ProductImage[]
+}
+
+/**
+ * Model WishlistProduct
+ * 
+ */
+export type WishlistProduct = {
+    id?: number
+    createdAt?: Date
+    productId: number
+    proxyUserId: number
+
+    product?: Product
+    ProxyUser?: ProxyUser
+}
+
+/**
+ * Model ProductImage
+ * 
+ */
+export type ProductImage = {
+    id?: number
+    createdAt?: Date
+    url: string
+    thumbnailUrl: string
+    width: number
+    height: number
+    size: number
+    isDisable: boolean
+    productId: number
+
+    isThumb: boolean
+
+    Product?: Product
+}
 
 /**
  * Enums
@@ -416,26 +507,26 @@ export const ProxyUserType = {
     WEB: 'WEB',
     ZEPETO: 'ZEPETO',
     WEV_VIEWER: 'WEV_VIEWER'
-  };
-  
-  export type ProxyUserType = (typeof ProxyUserType)[keyof typeof ProxyUserType]
+};
 
-  export const CafeCouponEventType = {
+export type ProxyUserType = (typeof ProxyUserType)[keyof typeof ProxyUserType]
+
+export const CafeCouponEventType = {
     CREATED: 'CREATED',
     USED: 'USED',
     REVOKED: 'REVOKED',
     EXPIRED: 'EXPIRED',
     UPDATE: 'UPDATE'
-  };
-  
-  export type CafeCouponEventType = (typeof CafeCouponEventType)[keyof typeof CafeCouponEventType]
-  
-  
-  export const CafeCouponStatus = {
+};
+
+export type CafeCouponEventType = (typeof CafeCouponEventType)[keyof typeof CafeCouponEventType]
+
+
+export const CafeCouponStatus = {
     ACTIVE: 'ACTIVE',
     USED: 'USED',
     REVOKED: 'REVOKED',
     EXPIRED: 'EXPIRED'
-  };
-  
-  export type CafeCouponStatus = (typeof CafeCouponStatus)[keyof typeof CafeCouponStatus]
+};
+
+export type CafeCouponStatus = (typeof CafeCouponStatus)[keyof typeof CafeCouponStatus]

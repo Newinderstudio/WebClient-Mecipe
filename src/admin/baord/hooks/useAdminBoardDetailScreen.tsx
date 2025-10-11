@@ -49,7 +49,7 @@ export const useAdminBoardDetailScreen = () => {
   const [selectedCafeInfos, setSelectedCafeInfos] = useState<CafeInfoResult[]>([]);
   const [prevSelectedCafeInfos, setPrevSelectedCafeInfos] = useState<CafeInfoResult[]>([]);
 
-  const { data: board, isLoading: isLoadingBoard, error: boardError } = useFindOneBoardQuery({ id: boardId });
+  const { data: board, isLoading: isLoadingBoard, error: boardError, refetch: refetchBoard } = useFindOneBoardQuery({ id: boardId });
   const [updateBoard, { isLoading: isUpdating }] = useUpdateBoardMutation();
   const [createBoardImage, { isLoading: isCreatingImage }] = useCreateBoardImageMutation();
   const [isUpdatingBoard, setIsUpdatingBoard] = useState(false);
@@ -195,20 +195,21 @@ export const useAdminBoardDetailScreen = () => {
           boardType: board.boardType === formData.boardType ? undefined : formData.boardType,
           startDay: board.startDay === formData.startDay ? undefined : koreaStartTime,
           endDay: board.endDay === formData.endDay ? undefined : koreaEndTime,
-          removeImageIds: removeImageIds.length > 0 ? removeImageIds : undefined,
+          disabledImageIds: removeImageIds.length > 0 ? removeImageIds : undefined,
           boardImages,
           cafeInfoIds
         }
       });
 
       alert('게시판이 성공적으로 수정되었습니다.');
-      setIsEditing(false);
+      refetchBoard();
     } catch (error) {
       console.error('게시판 수정 실패:', error);
       if (imageUrls.length > 0 && token) deleteImage(token, imageUrls);
       alert('게시판 수정에 실패했습니다.');
     } finally {
       setIsUpdatingBoard(false);
+      setIsEditing(false);
     }
   };
 
