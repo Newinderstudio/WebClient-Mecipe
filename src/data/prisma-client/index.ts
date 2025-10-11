@@ -448,6 +448,61 @@ export type ProductImage = {
 }
 
 /**
+ * Model MetaViewerInfo
+ * 
+ */
+export type MetaViewerInfo = {
+    id: number
+    createdAt: Date
+    code: string
+    isDisable: boolean
+    cafeInfoId: number
+
+    CafeInfo: CafeInfo
+
+    MetaViewerMaps: MetaViewerMap[]
+    ActiveMaps?: MetaViewerActiveMap  // 1:1 관계
+    
+}
+
+/**
+ * Model MetaViewerMap
+ * 
+ */
+export type MetaViewerMap = {
+    id: number
+    createdAt: Date
+    type: MetaMapType
+    version: number
+    url: string
+    size: number
+    metaViewerInfoId: number
+
+    MetaViewerInfo?: MetaViewerInfo
+    
+    // 활성 맵으로 사용되는 경우의 역참조
+    ActiveRenderFor: MetaViewerActiveMap[] 
+    ActiveColliderFor: MetaViewerActiveMap[] 
+}
+
+/**
+ * Model MetaViewerActiveMap
+ * 
+ */
+export type MetaViewerActiveMap = {
+    id: number
+    updatedAt: Date
+    metaViewerInfoId: number
+    activeRenderMapId: number
+    activeColliderMapId: number
+
+    MetaViewerInfo: MetaViewerInfo
+    ActiveRenderMap: MetaViewerMap
+    ActiveColliderMap: MetaViewerMap
+}
+
+
+/**
  * Enums
  */
 
@@ -530,3 +585,10 @@ export const CafeCouponStatus = {
 };
 
 export type CafeCouponStatus = (typeof CafeCouponStatus)[keyof typeof CafeCouponStatus]
+
+export const MetaMapType = {
+    RENDER: 'RENDER',
+    COLLIDER: 'COLLIDER'
+};
+
+export type MetaMapType = (typeof MetaMapType)[keyof typeof MetaMapType]

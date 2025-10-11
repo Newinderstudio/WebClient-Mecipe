@@ -45,6 +45,9 @@ export const navArray:NavItem[] = [
   { title: '게시판관리', children: [
     { name: '게시판관리', url: '/admin/board' },
   ] },
+  { title: '메타뷰어관리', children: [
+    { name: '메타뷰어관리', url: '/admin/metaviewerinfos' },
+  ] },
 ];
 
 export function useAdminHeader(): hookMember {
