@@ -178,7 +178,7 @@ export function convertToPhongMaterial(material: THREE.Material): THREE.MeshPhon
  * @param scene 변환할 씬
  * @returns 변환된 머터리얼들의 배열
  */
-export function convertSceneMaterialsToPhong(scene: THREE.Group): THREE.MeshPhongMaterial[] {
+export function convertSceneMaterialsToPhong(scene: THREE.Object3D): THREE.MeshPhongMaterial[] {
     const convertedMaterials: THREE.MeshPhongMaterial[] = [];
     const materialMap = new Map<string, THREE.MeshPhongMaterial>(); // 중복 방지용
     

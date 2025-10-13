@@ -463,7 +463,7 @@ export type MetaViewerInfo = {
     CafeInfo: CafeInfo
 
     MetaViewerMaps: MetaViewerMap[]
-    ActiveMaps?: MetaViewerActiveMap  // 1:1 관계
+    ActiveMaps: MetaViewerActiveMap  // 1:1 관계
     
 }
 
@@ -482,7 +482,7 @@ export type MetaViewerMap = {
     isDraco: boolean
     metaViewerInfoId: number
 
-    MetaViewerInfo?: MetaViewerInfo
+    MetaViewerInfo: MetaViewerInfo
     
     // 활성 맵으로 사용되는 경우의 역참조
     ActiveRenderFor: MetaViewerActiveMap[] 

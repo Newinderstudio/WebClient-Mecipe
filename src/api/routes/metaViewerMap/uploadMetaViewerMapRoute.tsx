@@ -1,14 +1,14 @@
 import fetchCompat from '@/util/fetchCompat';
 import { put, del } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { encryptGlbBuffer } from '@/util/encryptGlbFile';
+import { encryptGlbBuffer } from '@/util/encrypt-aes-gcm-paced';
 
 export async function POST(request: Request): Promise<NextResponse> {
     console.log('uploadMetaViewerMapRoute', request);
     const token = request.headers.get('Authorization')?.split(' ')[1];
-    const auth = await fetchCompat('GET', 'auth/me', token);
+    const auth = await fetchCompat<{authToken: boolean}>('GET', 'auth/me', token);
 
-    if (auth?.authToken !== true) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!auth || auth.authToken !== true) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const prefix = searchParams.get('prefix') ?? 'metaviewer';
@@ -16,6 +16,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     const nickname = searchParams.get('nickname') ?? 'nickname'; // nickname
 
     const uploadedUrls: string[] = [];
+
+    const glbEncryptionKey = process.env.GLB_ENCRYPTION_KEY;
+    if (!glbEncryptionKey) {
+        console.error('GLB_ENCRYPTION_KEY is not set');
+        return NextResponse.json({ error: 'KEY is not set' }, { status: 500 });
+    }
 
     try {
         const formData = await request.formData();
@@ -31,7 +37,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         
         // 2. 파일 암호화
         console.log('서버에서 파일 암호화 시작:', mapFile.name);
-        const encryptedBuffer = encryptGlbBuffer(fileBuffer);
+        const encryptedBuffer = encryptGlbBuffer(fileBuffer, glbEncryptionKey);
         console.log('서버에서 파일 암호화 완료');
         
         // 3. 암호화된 파일 업로드

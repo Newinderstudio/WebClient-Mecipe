@@ -156,7 +156,7 @@ export function createInstancedMesh(
  * @param options 최적화 옵션
  */
 export function optimizeScenePerformance(
-    scene: THREE.Group,
+    scene: THREE.Object3D,
     camera: THREE.Camera,
     options: {
         enableLOD?: boolean;
@@ -164,7 +164,7 @@ export function optimizeScenePerformance(
         maxDrawDistance?: number;
         enableFrustumCulling?: boolean;
     } = {}
-): THREE.Group {
+): THREE.Object3D {
     const {
         enableLOD = true,
         enableInstancing = true,
@@ -216,7 +216,7 @@ export function optimizeScenePerformance(
  * @param scene 모니터링할 씬
  * @returns 성능 통계
  */
-export function getPerformanceStats(scene: THREE.Group): {
+export function getPerformanceStats(scene: THREE.Object3D): {
     totalMeshes: number;
     totalVertices: number;
     totalFaces: number;

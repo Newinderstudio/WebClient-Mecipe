@@ -3,7 +3,7 @@
 import { FlexCenter, FlexRow } from "@/common/styledComponents";
 import { forwardRef, useCallback, useImperativeHandle, useState } from "react";
 import { StyledButton } from "@/common/styledAdmin";
-import fetchMetaViewerMap from "@/util/fetchMetaViewerMap";
+import {uploadMetaViewerMapFile} from "@/util/fetchMetaViewerMap";
 
 interface Props {
     label: string;
@@ -39,7 +39,7 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                 setUploadStatus('파일 업로드 및 암호화 중...');
                 console.log('파일 업로드 시작:', selectedFile.name);
                 
-                const result = await fetchMetaViewerMap(
+                const result = await uploadMetaViewerMapFile(
                     token,
                     selectedFile,
                     props.mapType,

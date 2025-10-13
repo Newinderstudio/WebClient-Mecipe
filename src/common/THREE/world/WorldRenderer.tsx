@@ -1,5 +1,7 @@
+"use client";
+
 import { Environment, Sky } from "@react-three/drei";
-import { WorldRendererProps } from "@/feature/TRHEE/virtual/hooks/useVirtualWorldScreen";
+import { WorldRendererProps } from "@/feature/TRHEE/virtual/components/hooks/useVirtualWorld";
 import LoadedCollider from "./LoadedCollider";
 import useWorldRenderer from "./hooks/useWorldRenderer";
 import LoadedMesh from "./LoadedMesh";
@@ -12,9 +14,9 @@ export interface WorldRendererResult {
     rendererColliderScene: Group;
 }
 
-function WorldRenderer({ children, rendererProps }: { children: React.ReactNode, rendererProps?: WorldRendererProps}) {
+function WorldRenderer({ children, rendererProps, encrypted }: { children: React.ReactNode, rendererProps: WorldRendererProps|undefined, encrypted: boolean }) {
 
-    const { options, rendererScene, rendererColliderScene } = useWorldRenderer({ rendererProps});
+    const { options, rendererScene, rendererColliderScene } = useWorldRenderer({ rendererProps, encrypted });
 
     return (
         <group>

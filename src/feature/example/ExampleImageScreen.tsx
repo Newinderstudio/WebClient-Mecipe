@@ -35,6 +35,7 @@ export default function AvatarUploadPage() {
                 `uploadImage?filename=${file.name}`,
                 hookMember.token,
                 formData,
+                undefined,
                 true
               );
 

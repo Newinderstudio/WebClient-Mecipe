@@ -20,12 +20,14 @@ export interface ControllerOptions {
     slopeClimbAngle: number;
     slopeSlideAngle: number;
 }
-export default function PlayersManager({characterOptions, controllerOptions}: {characterOptions: PlayersManagerOptions, controllerOptions: Partial<ControllerOptions>}) {
+export default function PlayersManager({characterOptions, controllerOptions}: {characterOptions: PlayersManagerOptions|undefined, controllerOptions: Partial<ControllerOptions>}) {
 
     const characterGltfPath = "/3d/test_virtual_world/character.glb";
     const characterGltfIsDraco = true;
 
     const { gltf, keyboardController, players, testPlayerControllersRef } = usePlayersManagers({gltfPath: characterGltfPath, isDraco: characterGltfIsDraco});
+
+    if(!characterOptions) return null;
 
     return (
         <group>

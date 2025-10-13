@@ -2,11 +2,11 @@ import { getBatchedScene } from "@/util/THREE/three-js-function";
 import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
 import { TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three/rapier";
 import { useMemo } from "react";
-import { BufferGeometry, Group, Mesh } from "three";
+import { BufferGeometry, Mesh, Object3D } from "three";
 
 
 function LoadedCollider({ scene, isBatching }: {
-    scene: Group;
+    scene: Object3D;
     isBatching: boolean;
 }) {
 
@@ -39,11 +39,6 @@ function LoadedCollider({ scene, isBatching }: {
             
             return [vertices, indices];
         });
-
-        console.log(`[LoadedCollider] triArgs`, args.map((arg) => ({
-            vertices: arg[0].length,
-            indices: arg[1].length,
-        })));
 
         return args;
     }, [scene, isBatching]);

@@ -1,9 +1,8 @@
 import { RootState } from "@react-three/fiber";
 import { Vector3, Euler } from "three";
-import { IController, MovementInput } from ".";
+import { IController, MovementInput, PlayerControlInterface } from "./IController";
 import { PlayerTransformData, RoomDataItem, RoomDataType } from "@/common/socket/types";
 import { RefObject } from "react";
-import { PlayerControlInterface } from "./IController";
 
 export interface WebSocketControllerProps {
   clientId: string;

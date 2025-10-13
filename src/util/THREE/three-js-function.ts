@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // 씬 그룹을 받아서 머터리얼별로 배치치된 씬 그룹을 반환
-export function getBatchedScene(sceneGroup: THREE.Group): THREE.Group {
+export function getBatchedScene(sceneGroup: THREE.Object3D): THREE.Object3D {
     const materialMap = new Map<string, { 
         material: THREE.Material, 
         geometries: THREE.BufferGeometry[], 

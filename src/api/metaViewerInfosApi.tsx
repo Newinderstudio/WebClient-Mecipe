@@ -130,12 +130,9 @@ export const metaViewerInfosApi = createApi({
                 method: 'GET',
                 url: `admin/${arg.metaViewerInfoId}/maps`,
             }),
-            providesTags: (result) => result
-                ? [
-                    ...result.map(map => ({ type: 'MetaViewerMap' as const, id: map.id })),
-                    { type: 'MetaViewerMap', id: 'LIST' }
-                ]
-                : [{ type: 'MetaViewerMap', id: 'LIST' }],
+            providesTags: (result) => result ? result.map(map => ({ type: 'MetaViewerMap', id: map.id })) : [
+                { type: 'MetaViewerMap', id: 'LIST' },
+            ],
         }),
 
         // ==================== 3. MetaViewerActiveMap 관리 ====================
@@ -175,16 +172,14 @@ export const metaViewerInfosApi = createApi({
             invalidatesTags: [{ type: 'MetaViewerActiveMap', id: 'LIST' }],
         }),
 
-        // ==================== 4. 사용자 조회 ====================
-
-        // 4.1 Code로 MetaViewerInfo 조회
-        findMetaViewerInfoByCode: builder.query<MetaViewerInfoResult, { code: string }>({
+        // 2.4 MetaViewerMap 목록 조회
+        findOneMetaViewerInfoByCode: builder.query<MetaViewerInfoWithWorldData, { code: string }>({
             query: (arg) => ({
                 method: 'GET',
                 url: `code/${arg.code}`,
             }),
             providesTags: (result) => result ? [
-                { type: "MetaViewerInfo", id: result.id },
+            { type: 'MetaViewerInfo', id: result.id }
             ] : [
                 "MetaViewerInfo",
             ],
@@ -201,6 +196,9 @@ export const {
     useFindOneMetaViewerInfoQuery,
     useRemoveMetaViewerInfoMutation,
 
+    // Public
+    useFindOneMetaViewerInfoByCodeQuery,
+
     // MetaViewerMap 관련
     useCreateMetaViewerMapMutation,
     useUpdateMetaViewerMapMutation,
@@ -211,9 +209,6 @@ export const {
     useCreateMetaViewerActiveMapMutation,
     useUpdateMetaViewerActiveMapMutation,
     useRemoveMetaViewerActiveMapMutation,
-
-    // 사용자 조회
-    useFindMetaViewerInfoByCodeQuery,
 } = metaViewerInfosApi;
 
 // 응답 타입 정의
@@ -235,3 +230,5 @@ export interface DeleteResponse {
 export type MetaViewerInfoResult = MakePrimitiveRequiredWithObject<MetaViewerInfo>;
 export type MetaViewerMapResult = MakePrimitiveRequiredWithObject<MetaViewerMap>;
 export type MetaViewerActiveMapResult = MakePrimitiveRequiredWithObject<MetaViewerActiveMap>;
+
+export type MetaViewerInfoWithWorldData = MetaViewerInfo;

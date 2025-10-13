@@ -15,7 +15,7 @@ import { MapFileUploadComponentHandler } from '../components/MapFileUploadCompon
 import { useTypedSelector } from '@/store';
 import { CafeInfoResult } from '@/api/cafeInfosApi';
 import { WorldData } from '@/api/dto/metaViwerInfosApiDto';
-import { deleteMetaViewerMap } from '@/util/fetchMetaViewerMap';
+import { deleteMetaViewerMapFile } from '@/util/fetchMetaViewerMap';
 
 interface Props {
   id: number;
@@ -267,7 +267,7 @@ export default function useAdminMetaViewerInfosDetailScreen({ id: detailId }: Pr
         // DB 등록 실패 시 업로드된 파일 삭제
         console.error('DB 등록 실패, 파일 삭제 중:', uploadedMapData.url);
         try {
-          await deleteMetaViewerMap(token, [uploadedMapData.url]);
+          await deleteMetaViewerMapFile(token, [uploadedMapData.url]);
           console.log('파일 롤백 완료');
         } catch (deleteError) {
           console.error('파일 삭제 실패 (고아 파일 발생):', deleteError);

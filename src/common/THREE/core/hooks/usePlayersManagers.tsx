@@ -4,9 +4,10 @@ import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { KeyboardLocalController } from "../../character/controllers/KeyboardLocalController";
 import { RoomUser, useSocketStore } from "@/store/socket/store";
 import { RoomDataItem, RoomDataType } from "@/common/socket/types";
-import { WebSocketController } from "../../character/controllers";
+import { WebSocketController } from "../../character/controllers/WebSocketController";
 
 export default function usePlayersManagers({ gltfPath, isDraco }: { gltfPath: string, isDraco: boolean }) {
+
     const [, get] = useKeyboardControls();
     const threeState = useThree();
     const keyboardController = useRef<KeyboardLocalController>(null);

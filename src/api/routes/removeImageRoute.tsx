@@ -4,9 +4,9 @@ import { del } from "@vercel/blob";
 
 export async function DELETE(request: Request): Promise<NextResponse> {
     const token = request.headers.get('Authorization')?.split(' ')[1];
-    const auth = await fetchCompat('GET', 'auth/me', token);
+    const auth = await fetchCompat<{authToken: boolean}>('GET', 'auth/me', token);
 
-    if (auth?.authToken !== true) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!auth || auth.authToken !== true) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const rawUrls = searchParams.get('urls'); // urls = http://a,https://b,..

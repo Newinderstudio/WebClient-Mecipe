@@ -1,6 +1,6 @@
 import { GLTF } from "three-stdlib";
 import { CapsuleCollider } from "@react-three/rapier";
-import { IController } from "./controllers";
+import { IController } from "./controllers/IController";
 import useWorldPlayer from "./hooks/useWorldPlayer";
 import { Euler, Vector3 } from "three";
 

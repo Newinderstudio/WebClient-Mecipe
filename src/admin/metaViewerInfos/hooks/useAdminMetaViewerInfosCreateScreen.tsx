@@ -10,7 +10,7 @@ import { MapFileUploadComponentHandler, MapUploadData } from '../components/MapF
 import { useTypedSelector } from '@/store';
 import { CafeInfoResult } from '@/api/cafeInfosApi';
 import { WorldData } from '@/api/dto/metaViwerInfosApiDto';
-import { deleteMetaViewerMap } from '@/util/fetchMetaViewerMap';
+import { deleteMetaViewerMapFile } from '@/util/fetchMetaViewerMap';
 
 interface hookMember {
   onClickRouterList: () => void;
@@ -202,7 +202,7 @@ export function useAdminMetaViewerInfosCreateScreen(): hookMember {
         
         if (urlsToDelete.length > 0) {
           console.log('파일 롤백 시작:', urlsToDelete);
-          await deleteMetaViewerMap(token, urlsToDelete);
+          await deleteMetaViewerMapFile(token, urlsToDelete);
           console.log('파일 롤백 완료');
         }
         

@@ -27,6 +27,7 @@
     "browser-image-compression": "^2.0.2",
     "crypto": "^1.0.1",
     "dayjs": "^1.11.13",
+    "idb": "^8.0.3",
     "image-size": "^2.0.2",
     "next": "15.3.5",
     "next-redux-wrapper": "^8.1.0",

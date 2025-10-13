@@ -1,13 +1,12 @@
 import { getBatchedScene, setDisableReflections, setEnableReflections } from "@/util/THREE/three-js-function";
-import { convertSceneMaterialsToPhong } from "@/util/THREE/phong-material-function";
 import { optimizeScenePerformance, getPerformanceStats } from "@/util/THREE/performance-optimization";
 import { useMemo, useRef } from "react";
-import { Group, Material, Mesh } from "three";
+import { Material, Mesh, Object3D } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 
 
-function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflections, usePhongMaterial = false, enablePerformanceOptimization = true }: {
-    scene: Group;
+function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflections, enablePerformanceOptimization = true }: {
+    scene: Object3D;
     isBatching: boolean;
     isVisible: boolean;
     enableShadows: boolean;
@@ -16,6 +15,9 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
     enablePerformanceOptimization?: boolean;
 }) {
     const { camera } = useThree();
+    const cameraRef = useRef(camera);
+    cameraRef.current = camera;  // 항상 최신 camera 유지
+    
     const performanceStatsRef = useRef<{
         totalMeshes: number;
         totalVertices: number;
@@ -27,20 +29,12 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
     const renderScene = useMemo(() => {
         let targetScene = scene;
         
-        // PhongMaterial로 변환하는 경우 - 배치 처리 전에 변환
-        if (usePhongMaterial) {
-            console.log('[LoadedMesh] Converting materials to PhongMaterial before batching');
-            const phongMaterials = convertSceneMaterialsToPhong(scene);
-            console.log('[LoadedMesh] Converted materials:', phongMaterials.length);
-        }
-        
         // 배치 처리 (변환된 머터리얼로)
         targetScene = isBatching ? getBatchedScene(scene) : scene;
         
         // 성능 최적화 적용
         if (enablePerformanceOptimization) {
-            console.log('[LoadedMesh] Applying performance optimizations');
-            targetScene = optimizeScenePerformance(targetScene, camera, {
+            targetScene = optimizeScenePerformance(targetScene, cameraRef.current, {
                 enableLOD: true,
                 enableInstancing: false, // 배치와 충돌 방지
                 maxDrawDistance: 1000,
@@ -51,7 +45,7 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
         const meaterials = new Set<Material>();
         
         // 머터리얼 수집 및 최적화 설정
-        targetScene.children.forEach((node) => {
+        targetScene.traverse((node) => {  // children.forEach 대신 traverse 사용
             node.receiveShadow = node.castShadow = enableShadows;
             if (node instanceof Mesh && node.material) {
                 meaterials.add(node.material);
@@ -68,13 +62,9 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
 
         // 성능 통계 수집
         performanceStatsRef.current = getPerformanceStats(targetScene);
-        
-        console.log('[LoadedMesh] Performance stats:', performanceStatsRef.current);
-        console.log('[LoadedMesh] renderScene children length:', targetScene.children.length);
-        console.log('[LoadedMesh] Materials count:', meaterials.size);
 
-        return targetScene;
-    }, [scene, enableShadows, disableReflections, isBatching, usePhongMaterial, enablePerformanceOptimization, camera])
+        return targetScene;  // ✅ wrapper 제거, targetScene 직접 반환
+    }, [scene, isBatching, enablePerformanceOptimization, enableShadows, disableReflections])  // ✅ scene, camera 제거
 
     // 성능 모니터링 (개발 모드에서만)
     useFrame(() => {
