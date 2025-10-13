@@ -458,6 +458,8 @@ export type MetaViewerInfo = {
     isDisable: boolean
     cafeInfoId: number
 
+    worldData: Record<string, unknown>
+
     CafeInfo: CafeInfo
 
     MetaViewerMaps: MetaViewerMap[]
@@ -476,6 +478,8 @@ export type MetaViewerMap = {
     version: number
     url: string
     size: number
+
+    isDraco: boolean
     metaViewerInfoId: number
 
     MetaViewerInfo?: MetaViewerInfo

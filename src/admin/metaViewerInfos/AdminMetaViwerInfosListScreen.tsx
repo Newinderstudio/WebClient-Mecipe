@@ -9,12 +9,12 @@ import {
 import { Flex, FlexRow } from '@/common/styledComponents';
 import AdminTable from '@/common/table/AdminTable';
 import { fenxyBlue } from '@/util/constants/style';
-import { useMetaViewerInfosListScreen } from './hooks/useMetaViewerInfosListScreen';
+import { useAdminMetaViewerInfosListScreen } from './hooks/useAdminMetaViewerInfosListScreen';
 import GetSeoulTime from '@/common/time/GetSeoulTime';
 import { MetaViewerInfoResult } from '@/api/metaViewerInfosApi';
 
 const MetaViewerInfosListScreen = () => {
-    const hookMember = useMetaViewerInfosListScreen();
+    const hookMember = useAdminMetaViewerInfosListScreen();
     return (
         <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', width:'100%' }}>
             <div style={{ marginLeft: 240, padding: 20, minWidth: 1100 }}>
@@ -149,6 +149,20 @@ const MetaViewerInfosListScreen = () => {
                                                     fontWeight: 'bold'
                                                 }}>
                                                     {data.ActiveMaps ? '설정됨' : '미설정'}
+                                                </div>
+                                            );
+                                        },
+                                    },
+                                    {
+                                        name: 'World Data',
+                                        minWidth: 120,
+                                        cell: ({ data }: { data: MetaViewerInfoResult }) => {
+                                            return (
+                                                <div style={{
+                                                    color: data.worldData && Object.keys(data.worldData).length > 0 ? '#4CAF50' : '#999',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {data.worldData && Object.keys(data.worldData).length > 0 ? '설정됨' : '미설정'}
                                                 </div>
                                             );
                                         },

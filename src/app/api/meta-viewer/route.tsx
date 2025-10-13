@@ -1,1 +1,1 @@
-export { POST } from "@/api/routes/metaViewerMap/uploadMetaViewerMapRoute";
+export { POST, config } from "@/api/routes/metaViewerMap/uploadMetaViewerMapRoute";

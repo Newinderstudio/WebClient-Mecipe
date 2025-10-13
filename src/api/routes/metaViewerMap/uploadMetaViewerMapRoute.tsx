@@ -1,8 +1,10 @@
 import fetchCompat from '@/util/fetchCompat';
 import { put, del } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { encryptGlbBuffer } from '@/util/encryptGlbFile';
 
 export async function POST(request: Request): Promise<NextResponse> {
+    console.log('uploadMetaViewerMapRoute', request);
     const token = request.headers.get('Authorization')?.split(' ')[1];
     const auth = await fetchCompat('GET', 'auth/me', token);
 
@@ -11,6 +13,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const prefix = searchParams.get('prefix') ?? 'metaviewer';
     const mapType = searchParams.get('mapType') ?? 'map'; // render or collider
+    const nickname = searchParams.get('nickname') ?? 'nickname'; // nickname
 
     const uploadedUrls: string[] = [];
 
@@ -22,21 +25,30 @@ export async function POST(request: Request): Promise<NextResponse> {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        // 파일 확장자 추출 (주로 .glb 파일)
-        const fileExtension = mapFile.name.split('.').pop() || 'glb';
-        const filename = `${prefix}/${mapType}/${Date.now()}.${fileExtension}`;
-        
+        // 1. 파일을 Buffer로 변환
         const arrayBuffer = await mapFile.arrayBuffer();
-        const blob = await put(filename, arrayBuffer, {
+        const fileBuffer = Buffer.from(arrayBuffer);
+        
+        // 2. 파일 암호화
+        console.log('서버에서 파일 암호화 시작:', mapFile.name);
+        const encryptedBuffer = encryptGlbBuffer(fileBuffer);
+        console.log('서버에서 파일 암호화 완료');
+        
+        // 3. 암호화된 파일 업로드
+        // 파일 확장자에 .enc 추가
+        const originalExtension = mapFile.name.split('.').pop() || 'glb';
+        const filename = `${prefix}/${mapType}/${nickname}-${Date.now()}.${originalExtension}.enc`;
+        
+        const blob = await put(filename, encryptedBuffer, {
             access: 'public',
-            contentType: mapFile.type || 'model/gltf-binary',
+            contentType: 'application/octet-stream', // 암호화된 파일
         });
         
         uploadedUrls.push(blob.url);
 
         return NextResponse.json({
             url: blob.url,
-            size: mapFile.size,
+            size: encryptedBuffer.length, // 암호화된 파일 크기
         });
 
     } catch (error) {

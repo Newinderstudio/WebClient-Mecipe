@@ -10,15 +10,17 @@ import {
 } from '@/common/styledAdmin';
 import { Flex, FlexRow } from '@/common/styledComponents';
 import { fenxyBlue } from '@/util/constants/style';
-import useMetaViewerInfosDetailScreen from './hooks/useMetaViewerInfosDetailScreen';
+import useAdminMetaViewerInfosDetailScreen from './hooks/useAdminMetaViewerInfosDetailScreen';
 import MapFileUploadComponent from './components/MapFileUploadComponent';
+import RelatedCafeSelector from '@/admin/baord/components/RelatedCafeSelector';
+import WorldDataInputComponent from './components/WorldDataInputComponent';
 
 type Params = Promise<{ id: string }>;
 
 function MetaViewerInfosDetailScreen(props: { params: Params }) {
     const { id } = use(props.params);
 
-    const hookMember = useMetaViewerInfosDetailScreen({ id: Number(id) });
+    const hookMember = useAdminMetaViewerInfosDetailScreen({ id: Number(id) });
     return (
         <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
             <div style={{ marginLeft: 240, padding: 20, minWidth: 1100 }}>
@@ -77,24 +79,6 @@ function MetaViewerInfosDetailScreen(props: { params: Params }) {
                         </Flex>
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
                             <TheadSmall>
-                                카페 ID<span>*</span>
-                            </TheadSmall>
-                            <FlexRow style={{ color: '#999', lineHeight: '28px' }}>
-                                <InputStyle
-                                    style={{
-                                        flexGrow: 1,
-                                    }}
-                                    type="text"
-                                    value={hookMember.cafeInfoId}
-                                    placeholder="카페 ID"
-                                    onChange={(e) => {
-                                        hookMember.onChangeCafeInfoId(e.target.value)
-                                    }}
-                                />
-                            </FlexRow>
-                        </Flex>
-                        <Flex style={{ width: 'calc(50% - 15px)' }}>
-                            <TheadSmall>
                                 활성화 상태<span>*</span>
                             </TheadSmall>
                             <Flex style={{ color: '#999' }}>
@@ -117,6 +101,18 @@ function MetaViewerInfosDetailScreen(props: { params: Params }) {
                         </Flex>
                     </Flex>
                 </BorderRoundedContent>
+
+                <RelatedCafeSelector
+                    isEditing={true}
+                    selectedCafeInfos={hookMember.selectedCafe ? [hookMember.selectedCafe] : []}
+                    onCafeSelect={hookMember.onChangeCafe}
+                    isAvaliableCheckMultiple={false}
+                />
+
+                <WorldDataInputComponent
+                    worldData={hookMember.worldData}
+                    onChange={hookMember.onChangeWorldData}
+                />
 
                 {/* 새 맵 추가 섹션 */}
                 <BorderRoundedContent style={{ padding: 30, marginBottom: 20 }}>
@@ -178,6 +174,22 @@ function MetaViewerInfosDetailScreen(props: { params: Params }) {
                                 mapType={hookMember.newMapType === 'RENDER' ? 'render' : 'collider'}
                                 displayId="newMapFile"
                             />
+                        </Flex>
+                        <Flex style={{ width: 'calc(50% - 15px)' }}>
+                            <TheadSmall>
+                                Draco 압축 사용
+                            </TheadSmall>
+                            <FlexRow style={{ alignItems: 'center', padding: '10px 0' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={hookMember.newMapIsDraco}
+                                    onChange={(e) => hookMember.onChangeNewMapIsDraco(e.target.checked)}
+                                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                />
+                                <span style={{ marginLeft: '10px', color: '#666' }}>
+                                    Draco 압축 사용됨
+                                </span>
+                            </FlexRow>
                         </Flex>
                     </Flex>
                 </BorderRoundedContent>
@@ -271,6 +283,7 @@ function MetaViewerInfosDetailScreen(props: { params: Params }) {
                                             <div><strong>ID:</strong> {map.id} {hookMember.activeRenderMapId === map.id && <span style={{ color: '#4CAF50', marginLeft: 10 }}>✓ 활성</span>}</div>
                                             <div><strong>버전:</strong> {map.version}</div>
                                             <div><strong>크기:</strong> {map.size.toLocaleString()} bytes</div>
+                                            <div><strong>Draco:</strong> {map.isDraco ? '✓ 사용' : '미사용'}</div>
                                             <div style={{ wordBreak: 'break-all' }}><strong>URL:</strong> {map.url}</div>
                                         </div>
                                     ))
@@ -296,6 +309,7 @@ function MetaViewerInfosDetailScreen(props: { params: Params }) {
                                             <div><strong>ID:</strong> {map.id} {hookMember.activeColliderMapId === map.id && <span style={{ color: '#4CAF50', marginLeft: 10 }}>✓ 활성</span>}</div>
                                             <div><strong>버전:</strong> {map.version}</div>
                                             <div><strong>크기:</strong> {map.size.toLocaleString()} bytes</div>
+                                            <div><strong>Draco:</strong> {map.isDraco ? '✓ 사용' : '미사용'}</div>
                                             <div style={{ wordBreak: 'break-all' }}><strong>URL:</strong> {map.url}</div>
                                         </div>
                                     ))

@@ -18,7 +18,7 @@ export interface MapUploadData {
 }
 
 export interface MapFileUploadComponentHandler {
-    uploadMap: (token: string, version: number) => Promise<MapUploadData | null>;
+    uploadMap: (token: string, nickname: string, version: number) => Promise<MapUploadData | null>;
     hasFile: () => boolean;
     clear: () => void;
 }
@@ -28,18 +28,27 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
         const [selectedFile, setSelectedFile] = useState<File | null>(null);
         const [fileName, setFileName] = useState<string>('');
         const [isUploading, setIsUploading] = useState(false);
+        const [uploadStatus, setUploadStatus] = useState<string>('');
 
-        const uploadMap = useCallback(async (token: string, version: number): Promise<MapUploadData | null> => {
+        const uploadMap = useCallback(async (token: string, nickname: string, version: number): Promise<MapUploadData | null> => {
             if (!selectedFile) return null;
 
             setIsUploading(true);
             try {
+                // 파일 업로드 (서버에서 자동으로 암호화됨)
+                setUploadStatus('파일 업로드 및 암호화 중...');
+                console.log('파일 업로드 시작:', selectedFile.name);
+                
                 const result = await fetchMetaViewerMap(
                     token,
                     selectedFile,
-                    props.mapType
+                    props.mapType,
+                    'metaviewer',
+                    nickname
                 );
 
+                console.log('파일 업로드 완료:', result.url);
+                setUploadStatus('');
                 return {
                     url: result.url,
                     size: result.size,
@@ -47,6 +56,7 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                 };
             } catch (error) {
                 console.error('Upload error:', error);
+                setUploadStatus('');
                 throw error;
             } finally {
                 setIsUploading(false);
@@ -114,8 +124,8 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                                 <div style={{ fontSize: '2rem', marginBottom: 5 }}>
                                     {isUploading ? '⏳' : '📁'}
                                 </div>
-                                <span style={{ fontSize: '0.9rem' }}>
-                                    {isUploading ? '업로드 중...' : `${props.label} 선택`}
+                                <span style={{ fontSize: '0.8rem', whiteSpace: 'pre-line', textAlign: 'center' }}>
+                                    {isUploading ? (uploadStatus || '업로드 중...') : `${props.label} 선택`}
                                 </span>
                             </div>
                         </FlexCenter>

@@ -13,6 +13,9 @@ import {
 import { MetaMapType } from '@/data/prisma-client';
 import { MapFileUploadComponentHandler } from '../components/MapFileUploadComponent';
 import { useTypedSelector } from '@/store';
+import { CafeInfoResult } from '@/api/cafeInfosApi';
+import { WorldData } from '@/api/dto/metaViwerInfosApiDto';
+import { deleteMetaViewerMap } from '@/util/fetchMetaViewerMap';
 
 interface Props {
   id: number;
@@ -29,8 +32,9 @@ interface hookMember {
 
   // MetaViewerInfo fields
   code: string;
-  cafeInfoId: string;
+  selectedCafe: CafeInfoResult | undefined;
   isDisable: boolean;
+  worldData: Partial<WorldData>;
 
   // MetaViewerMap 목록
   metaViewerMaps: MetaViewerMapResult[] | undefined;
@@ -45,26 +49,29 @@ interface hookMember {
   // 새 맵 추가
   newMapType: string;
   newMapVersion: string;
+  newMapIsDraco: boolean;
 
   handleSubmitInfo: (e: React.FormEvent) => void;
   handleSubmitNewMap: (e: React.FormEvent) => void;
   handleUpdateActiveMap: (e: React.FormEvent) => void;
 
   onChangeCode: (txt: string) => void;
-  onChangeCafeInfoId: (txt: string) => void;
+  onChangeCafe: (cafes: CafeInfoResult[]) => void;
   onChangeIsDisable: (val: boolean) => void;
+  onChangeWorldData: (data: Partial<WorldData>) => void;
 
   onChangeActiveRenderMapId: (id: string) => void;
   onChangeActiveColliderMapId: (id: string) => void;
 
   onChangeNewMapType: (txt: string) => void;
   onChangeNewMapVersion: (txt: string) => void;
+  onChangeNewMapIsDraco: (val: boolean) => void;
 
   token: string | undefined;
   newMapHandlerRef: React.RefObject<MapFileUploadComponentHandler | null>;
 }
 
-export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props): hookMember {
+export default function useAdminMetaViewerInfosDetailScreen({ id: detailId }: Props): hookMember {
   const router = useRouter();
 
   const token = useTypedSelector((state) => state.account.accessToken);
@@ -78,8 +85,22 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
 
   const [metaViewerInfoId, setMetaViewerInfoId] = useState<number>();
   const [code, setCode] = useState('');
-  const [cafeInfoId, setCafeInfoId] = useState('');
+  const [selectedCafe, setSelectedCafe] = useState<CafeInfoResult>();
   const [isDisable, setIsDisable] = useState(false);
+  const [worldData, setWorldData] = useState<Partial<WorldData>>({
+    playerHeight: 1.7,
+    playerRadius: 0.3,
+    spawnPoint: { x: 0, y: 0, z: 0 },
+    playerJumpForce: 5,
+    playerSpeed: 5,
+    playerScale: { x: 1, y: 1, z: 1 },
+    playerRotation: { x: 0, y: 0, z: 0 },
+    playerRotationSpeed: 1,
+    defaultAnimationClip: 'idle',
+    worldPosition: { x: 0, y: 0, z: 0 },
+    worldRotation: { x: 0, y: 0, z: 0 },
+    worldScale: { x: 1, y: 1, z: 1 },
+  });
 
   const [metaViewerMaps, setMetaViewerMaps] = useState<MetaViewerMapResult[]>();
   const [renderMaps, setRenderMaps] = useState<MetaViewerMapResult[]>([]);
@@ -92,6 +113,7 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
   // 새 맵 추가 필드
   const [newMapType, setNewMapType] = useState('RENDER');
   const [newMapVersion, setNewMapVersion] = useState('1');
+  const [newMapIsDraco, setNewMapIsDraco] = useState(false);
 
   const newMapHandlerRef = useRef<MapFileUploadComponentHandler>(null);
 
@@ -99,8 +121,14 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
     if (!initialData) return;
     setMetaViewerInfoId(initialData.id);
     setCode(initialData.code);
-    setCafeInfoId(String(initialData.cafeInfoId));
+    if (initialData.CafeInfo) {
+      setSelectedCafe(initialData.CafeInfo as CafeInfoResult);
+    }
     setIsDisable(initialData.isDisable);
+    
+    if (initialData.worldData) {
+      setWorldData(initialData.worldData as Partial<WorldData>);
+    }
 
     if (initialData.ActiveMaps) {
       setActiveMapId(initialData.ActiveMaps.id);
@@ -135,12 +163,12 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
       return;
     }
 
-    if (cafeInfoId.length <= 0 || isNaN(Number(cafeInfoId))) {
+    if (!selectedCafe) {
       setModalContent(
         <div style={{ textAlign: 'center' }}>
-          <span style={{ fontWeight: 'bold' }}>카페 ID</span>
+          <span style={{ fontWeight: 'bold' }}>카페 선택</span>
           <br />
-          유효한 카페 ID를 입력하여 주세요
+          카페를 선택하여 주세요
         </div>,
       );
       setModalDisplayState('flex');
@@ -152,15 +180,21 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
         id: detailId,
         body: {
           code,
-          cafeInfoId: Number(cafeInfoId),
+          cafeInfoId: selectedCafe.id,
           isDisable,
+          worldData: worldData as WorldData,
         }
       }).unwrap();
 
       if (result) {
         setCode(result.code);
-        setCafeInfoId(String(result.cafeInfoId));
+        if (result.CafeInfo) {
+          setSelectedCafe(result.CafeInfo as CafeInfoResult);
+        }
         setIsDisable(result.isDisable);
+        if (result.worldData) {
+          setWorldData(result.worldData as Partial<WorldData>);
+        }
         alert('MetaViewerInfo가 수정되었습니다!');
       }
     } catch (err) {
@@ -201,30 +235,45 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
       return;
     }
 
+    let uploadedMapData: { url: string; size: number; version: number } | null = null;
+
     try {
-      // 맵 파일 업로드
-      const mapData = await newMapHandlerRef.current.uploadMap(token, Number(newMapVersion));
-      if (!mapData) throw new Error("맵 업로드 실패");
+      // 1. 맵 파일 업로드 (암호화 포함)
+      uploadedMapData = await newMapHandlerRef.current.uploadMap(token, `${code}-${newMapVersion}`, Number(newMapVersion));
+      if (!uploadedMapData) throw new Error("맵 업로드 실패");
 
-      // 맵 등록
-      await createMetaViewerMap({
-        metaViewerInfoId: detailId,
-        body: {
-          type: newMapType as 'RENDER' | 'COLLIDER',
-          url: mapData.url,
-          size: mapData.size,
-          version: mapData.version,
+      try {
+        // 2. DB에 맵 등록
+        await createMetaViewerMap({
+          metaViewerInfoId: detailId,
+          body: {
+            type: newMapType as 'RENDER' | 'COLLIDER',
+            url: uploadedMapData.url,
+            size: uploadedMapData.size,
+            version: uploadedMapData.version,
+            isDraco: newMapIsDraco,
+          }
+        }).unwrap();
+
+        // 맵 목록 갱신
+        refetchMaps();
+
+        // 입력 필드 초기화
+        newMapHandlerRef.current.clear();
+        setNewMapVersion('1');
+
+        alert('새 맵이 추가되었습니다!');
+      } catch (dbError) {
+        // DB 등록 실패 시 업로드된 파일 삭제
+        console.error('DB 등록 실패, 파일 삭제 중:', uploadedMapData.url);
+        try {
+          await deleteMetaViewerMap(token, [uploadedMapData.url]);
+          console.log('파일 롤백 완료');
+        } catch (deleteError) {
+          console.error('파일 삭제 실패 (고아 파일 발생):', deleteError);
         }
-      }).unwrap();
-
-      // 맵 목록 갱신
-      refetchMaps();
-
-      // 입력 필드 초기화
-      newMapHandlerRef.current.clear();
-      setNewMapVersion('1');
-
-      alert('새 맵이 추가되었습니다!');
+        throw dbError;
+      }
     } catch (err) {
       console.error(err)
       alert('맵 추가 중 오류가 발생했습니다: ' + (err as Error).message);
@@ -298,8 +347,9 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
 
     // MetaViewerInfo data
     code,
-    cafeInfoId,
+    selectedCafe,
     isDisable,
+    worldData,
 
     // Maps data
     metaViewerMaps,
@@ -314,20 +364,25 @@ export default function useMetaViewerInfosDetailScreen({ id: detailId }: Props):
     // New map
     newMapType,
     newMapVersion,
+    newMapIsDraco,
 
     handleSubmitInfo,
     handleSubmitNewMap,
     handleUpdateActiveMap,
 
     onChangeCode: (txt: string) => { setCode(txt) },
-    onChangeCafeInfoId: (txt: string) => { setCafeInfoId(txt) },
+    onChangeCafe: (cafes: CafeInfoResult[]) => { 
+      setSelectedCafe(cafes.length > 0 ? cafes[0] : undefined);
+    },
     onChangeIsDisable: (val: boolean) => { setIsDisable(val) },
+    onChangeWorldData: (data: Partial<WorldData>) => { setWorldData(data) },
 
     onChangeActiveRenderMapId: (id: string) => { setActiveRenderMapId(Number(id)) },
     onChangeActiveColliderMapId: (id: string) => { setActiveColliderMapId(Number(id)) },
 
     onChangeNewMapType: (txt: string) => { setNewMapType(txt) },
     onChangeNewMapVersion: (txt: string) => { setNewMapVersion(txt) },
+    onChangeNewMapIsDraco: (val: boolean) => { setNewMapIsDraco(val) },
 
     token,
     newMapHandlerRef,

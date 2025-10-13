@@ -10,11 +10,13 @@ import {
 } from '@/common/styledAdmin';
 import { Flex, FlexRow } from '@/common/styledComponents';
 import { fenxyBlue } from '@/util/constants/style';
-import { useMetaViewerInfosCreateScreen } from './hooks/useMetaViewerInfosCreateScreen';
+import { useAdminMetaViewerInfosCreateScreen } from './hooks/useAdminMetaViewerInfosCreateScreen';
 import MapFileUploadComponent from './components/MapFileUploadComponent';
+import RelatedCafeSelector from '@/admin/baord/components/RelatedCafeSelector';
+import WorldDataInputComponent from './components/WorldDataInputComponent';
 
 const MetaViewerInfosCreateScreen = () => {
-    const hookMember = useMetaViewerInfosCreateScreen();
+    const hookMember = useAdminMetaViewerInfosCreateScreen();
     return (
         <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
             <div style={{ marginLeft: 240, padding: 20, minWidth: 1100 }}>
@@ -70,24 +72,6 @@ const MetaViewerInfosCreateScreen = () => {
                         </Flex>
                         <Flex style={{ width: 'calc(50% - 15px)' }}>
                             <TheadSmall>
-                                카페 ID<span>*</span>
-                            </TheadSmall>
-                            <FlexRow style={{ color: '#999', lineHeight: '28px' }}>
-                                <InputStyle
-                                    style={{
-                                        flexGrow: 1,
-                                    }}
-                                    type="text"
-                                    value={hookMember.cafeInfoId}
-                                    placeholder="카페 ID (숫자)"
-                                    onChange={(e) => {
-                                        hookMember.onChangeCafeInfoId(e.target.value)
-                                    }}
-                                />
-                            </FlexRow>
-                        </Flex>
-                        <Flex style={{ width: 'calc(50% - 15px)' }}>
-                            <TheadSmall>
                                 활성화 상태<span>*</span>
                             </TheadSmall>
                             <Flex style={{ color: '#999' }}>
@@ -110,6 +94,18 @@ const MetaViewerInfosCreateScreen = () => {
                         </Flex>
                     </Flex>
                 </BorderRoundedContent>
+
+                <RelatedCafeSelector
+                    isEditing={true}
+                    selectedCafeInfos={hookMember.selectedCafe ? [hookMember.selectedCafe] : []}
+                    onCafeSelect={hookMember.onChangeCafe}
+                    isAvaliableCheckMultiple={false}
+                />
+
+                <WorldDataInputComponent
+                    worldData={hookMember.worldData}
+                    onChange={hookMember.onChangeWorldData}
+                />
 
                 <BorderRoundedContent style={{ padding: 30, marginBottom: 20 }}>
                     <div style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 20, color: '#333' }}>
@@ -141,6 +137,22 @@ const MetaViewerInfosCreateScreen = () => {
                                     }}
                                 />
                             </Flex>
+                        </Flex>
+                        <Flex style={{ width: 'calc(50% - 15px)' }}>
+                            <TheadSmall>
+                                Draco 압축 사용
+                            </TheadSmall>
+                            <FlexRow style={{ alignItems: 'center', padding: '10px 0' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={hookMember.renderMapIsDraco}
+                                    onChange={(e) => hookMember.onChangeRenderMapIsDraco(e.target.checked)}
+                                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                />
+                                <span style={{ marginLeft: '10px', color: '#666' }}>
+                                    Draco 압축 사용됨
+                                </span>
+                            </FlexRow>
                         </Flex>
                     </Flex>
                 </BorderRoundedContent>
@@ -175,6 +187,22 @@ const MetaViewerInfosCreateScreen = () => {
                                     }}
                                 />
                             </Flex>
+                        </Flex>
+                        <Flex style={{ width: 'calc(50% - 15px)' }}>
+                            <TheadSmall>
+                                Draco 압축 사용
+                            </TheadSmall>
+                            <FlexRow style={{ alignItems: 'center', padding: '10px 0' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={hookMember.colliderMapIsDraco}
+                                    onChange={(e) => hookMember.onChangeColliderMapIsDraco(e.target.checked)}
+                                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                />
+                                <span style={{ marginLeft: '10px', color: '#666' }}>
+                                    Draco 압축 사용됨
+                                </span>
+                            </FlexRow>
                         </Flex>
                     </Flex>
                 </BorderRoundedContent>

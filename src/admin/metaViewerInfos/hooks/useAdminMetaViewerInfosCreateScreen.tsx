@@ -1,15 +1,16 @@
 import { useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react';
-import { 
+import {
   useCreateMetaViewerInfoMutation,
-  useCreateMetaViewerMapMutation,
-  useCreateMetaViewerActiveMapMutation,
   MetaViewerInfoResult,
   useRemoveMetaViewerInfoMutation
 } from '@/api/metaViewerInfosApi';
 import { MetaMapType } from '@/data/prisma-client';
-import { MapFileUploadComponentHandler } from '../components/MapFileUploadComponent';
+import { MapFileUploadComponentHandler, MapUploadData } from '../components/MapFileUploadComponent';
 import { useTypedSelector } from '@/store';
+import { CafeInfoResult } from '@/api/cafeInfosApi';
+import { WorldData } from '@/api/dto/metaViwerInfosApiDto';
+import { deleteMetaViewerMap } from '@/util/fetchMetaViewerMap';
 
 interface hookMember {
   onClickRouterList: () => void;
@@ -20,43 +21,63 @@ interface hookMember {
 
   // MetaViewerInfo fields
   code: string;
-  cafeInfoId: string;
+  selectedCafe: CafeInfoResult | undefined;
   isDisable: boolean;
+  worldData: Partial<WorldData>;
 
   // MetaViewerMap fields
   renderMapVersion: string;
+  renderMapIsDraco: boolean;
   colliderMapVersion: string;
+  colliderMapIsDraco: boolean;
 
   handleSubmit: (e: React.FormEvent) => void;
 
   onChangeCode: (txt: string) => void;
-  onChangeCafeInfoId: (txt: string) => void;
+  onChangeCafe: (cafes: CafeInfoResult[]) => void;
   onChangeIsDisable: (val: boolean) => void;
+  onChangeWorldData: (data: Partial<WorldData>) => void;
 
   onChangeRenderMapVersion: (txt: string) => void;
+  onChangeRenderMapIsDraco: (val: boolean) => void;
   onChangeColliderMapVersion: (txt: string) => void;
+  onChangeColliderMapIsDraco: (val: boolean) => void;
 
   token: string | undefined;
   renderMapHandlerRef: React.RefObject<MapFileUploadComponentHandler | null>;
   colliderMapHandlerRef: React.RefObject<MapFileUploadComponentHandler | null>;
 }
 
-export function useMetaViewerInfosCreateScreen(): hookMember {
+export function useAdminMetaViewerInfosCreateScreen(): hookMember {
   const router = useRouter();
 
   const token = useTypedSelector((state) => state.account.accessToken);
 
   const [createMetaViewerInfo] = useCreateMetaViewerInfoMutation();
-  const [createMetaViewerMap] = useCreateMetaViewerMapMutation();
-  const [createMetaViewerActiveMap] = useCreateMetaViewerActiveMapMutation();
   const [removeMetaViewerInfo] = useRemoveMetaViewerInfoMutation();
 
   const [code, setCode] = useState('');
-  const [cafeInfoId, setCafeInfoId] = useState('');
+  const [selectedCafe, setSelectedCafe] = useState<CafeInfoResult>();
   const [isDisable, setIsDisable] = useState(false);
+  const [worldData, setWorldData] = useState<Partial<WorldData>>({
+    playerHeight: 1.3,
+    playerRadius: 0.2,
+    spawnPoint: { x: 0, y: 0, z: 0 },
+    playerJumpForce: 2,
+    playerSpeed: 6,
+    playerScale: { x: 1, y: 1, z: 1 },
+    playerRotation: { x: 0, y: 0, z: 0 },
+    playerRotationSpeed: 1,
+    defaultAnimationClip: 'idle',
+    worldPosition: { x: 0, y: 0, z: 0 },
+    worldRotation: { x: 0, y: 0, z: 0 },
+    worldScale: { x: 1, y: 1, z: 1 },
+  });
 
   const [renderMapVersion, setRenderMapVersion] = useState('1');
+  const [renderMapIsDraco, setRenderMapIsDraco] = useState(false);
   const [colliderMapVersion, setColliderMapVersion] = useState('1');
+  const [colliderMapIsDraco, setColliderMapIsDraco] = useState(false);
 
   const renderMapHandlerRef = useRef<MapFileUploadComponentHandler>(null);
   const colliderMapHandlerRef = useRef<MapFileUploadComponentHandler>(null);
@@ -81,12 +102,12 @@ export function useMetaViewerInfosCreateScreen(): hookMember {
       return;
     }
 
-    if (cafeInfoId.length <= 0 || isNaN(Number(cafeInfoId))) {
+    if (!selectedCafe) {
       setModalContent(
         <div style={{ textAlign: 'center' }}>
-          <span style={{ fontWeight: 'bold' }}>카페 ID</span>
+          <span style={{ fontWeight: 'bold' }}>카페 선택</span>
           <br />
-          유효한 카페 ID를 입력하여 주세요
+          카페를 선택하여 주세요
         </div>,
       );
       setModalDisplayState('flex');
@@ -130,62 +151,71 @@ export function useMetaViewerInfosCreateScreen(): hookMember {
     }
 
     let metaViewerInfo: MetaViewerInfoResult | undefined;
+    let renderMapData: MapUploadData | null = null;
+    let colliderMapData: MapUploadData | null = null;
     try {
-      // 1. MetaViewerInfo 생성
+
+      // 1. Render 맵 업로드 및 등록
+      renderMapData = await renderMapHandlerRef.current.uploadMap(token, `${code}-${renderMapVersion}`, Number(renderMapVersion));
+      if (!renderMapData) throw new Error("렌더 맵 업로드 실패");
+
+      // 2. Collider 맵 업로드 및 등록
+      colliderMapData = await colliderMapHandlerRef.current.uploadMap(token, `${code}-${colliderMapVersion}`, Number(colliderMapVersion));
+      if (!colliderMapData) throw new Error("콜라이더 맵 업로드 실패");
+
+      // 3. MetaViewerInfo 생성
       metaViewerInfo = await createMetaViewerInfo({
         body: {
           code,
-          cafeInfoId: Number(cafeInfoId),
+          cafeInfoId: selectedCafe.id,
           isDisable,
-        }
-      }).unwrap();
+          worldData: worldData as WorldData,
 
-      if (!metaViewerInfo) throw new Error("MetaViewerInfo 생성 에러");
-
-      // 2. Render 맵 업로드 및 등록
-      const renderMapData = await renderMapHandlerRef.current.uploadMap(token, Number(renderMapVersion));
-      if (!renderMapData) throw new Error("렌더 맵 업로드 실패");
-
-      const renderMap = await createMetaViewerMap({
-        metaViewerInfoId: metaViewerInfo.id,
-        body: {
-          type: MetaMapType.RENDER,
-          url: renderMapData.url,
-          size: renderMapData.size,
-          version: renderMapData.version,
-        }
-      }).unwrap();
-
-      // 3. Collider 맵 업로드 및 등록
-      const colliderMapData = await colliderMapHandlerRef.current.uploadMap(token, Number(colliderMapVersion));
-      if (!colliderMapData) throw new Error("콜라이더 맵 업로드 실패");
-
-      const colliderMap = await createMetaViewerMap({
-        metaViewerInfoId: metaViewerInfo.id,
-        body: {
-          type: MetaMapType.COLLIDER,
-          url: colliderMapData.url,
-          size: colliderMapData.size,
-          version: colliderMapData.version,
-        }
-      }).unwrap();
-
-      // 4. ActiveMap 설정
-      await createMetaViewerActiveMap({
-        body: {
-          metaViewerInfoId: metaViewerInfo.id,
-          activeRenderMapId: renderMap.id,
-          activeColliderMapId: colliderMap.id,
+          activeRenderMap: {
+            type: MetaMapType.RENDER,
+            url: renderMapData.url,
+            size: renderMapData.size,
+            version: renderMapData.version,
+            isDraco: renderMapIsDraco,
+          },
+          activeColliderMap: {
+            type: MetaMapType.COLLIDER,
+            url: colliderMapData.url,
+            size: colliderMapData.size,
+            version: colliderMapData.version,
+            isDraco: colliderMapIsDraco,
+          },
         }
       }).unwrap();
 
       alert('MetaViewerInfo가 생성되었습니다!');
       router.back();
     } catch (err) {
-      console.error(err)
-      if (metaViewerInfo) {
-        await removeMetaViewerInfo({ id: metaViewerInfo.id });
+      console.error('생성 실패:', err);
+      
+      // 롤백 처리
+      try {
+        // 1. 업로드된 파일 삭제
+        const urlsToDelete: string[] = [];
+        if (renderMapData) urlsToDelete.push(renderMapData.url);
+        if (colliderMapData) urlsToDelete.push(colliderMapData.url);
+        
+        if (urlsToDelete.length > 0) {
+          console.log('파일 롤백 시작:', urlsToDelete);
+          await deleteMetaViewerMap(token, urlsToDelete);
+          console.log('파일 롤백 완료');
+        }
+        
+        // 2. MetaViewerInfo 삭제 (생성된 경우)
+        if (metaViewerInfo) {
+          console.log('MetaViewerInfo 롤백 시작:', metaViewerInfo.id);
+          await removeMetaViewerInfo({ id: metaViewerInfo.id });
+          console.log('MetaViewerInfo 롤백 완료');
+        }
+      } catch (rollbackError) {
+        console.error('롤백 실패 (고아 데이터 발생 가능):', rollbackError);
       }
+      
       alert('생성 중 오류가 발생했습니다: ' + (err as Error).message);
     }
   }
@@ -208,18 +238,26 @@ export function useMetaViewerInfosCreateScreen(): hookMember {
 
     // data
     code,
-    cafeInfoId,
+    selectedCafe,
     isDisable,
+    worldData,
     renderMapVersion,
+    renderMapIsDraco,
     colliderMapVersion,
+    colliderMapIsDraco,
 
     handleSubmit,
 
     onChangeCode: (txt: string) => { setCode(txt) },
-    onChangeCafeInfoId: (txt: string) => { setCafeInfoId(txt) },
+    onChangeCafe: (cafes: CafeInfoResult[]) => {
+      setSelectedCafe(cafes.length > 0 ? cafes[0] : undefined);
+    },
     onChangeIsDisable: (val: boolean) => { setIsDisable(val) },
+    onChangeWorldData: (data: Partial<WorldData>) => { setWorldData(data) },
     onChangeRenderMapVersion: (txt: string) => { setRenderMapVersion(txt) },
+    onChangeRenderMapIsDraco: (val: boolean) => { setRenderMapIsDraco(val) },
     onChangeColliderMapVersion: (txt: string) => { setColliderMapVersion(txt) },
+    onChangeColliderMapIsDraco: (val: boolean) => { setColliderMapIsDraco(val) },
 
     token,
     renderMapHandlerRef,

@@ -21,7 +21,7 @@ interface hookMember {
   onClickReset: () => void;
 }
 
-export function useMetaViewerInfosListScreen(): hookMember {
+export function useAdminMetaViewerInfosListScreen(): hookMember {
   const router = useRouter();
 
   const [findAllMetaViewerInfos] = useFindAllMetaViewerInfosMutation();

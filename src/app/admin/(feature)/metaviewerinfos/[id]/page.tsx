@@ -1,2 +1,2 @@
-export { default } from '@/admin/metaViewerInfos/MetaViewerInfosDetailScreen';
+export { default } from '@/admin/metaViewerInfos/AdminMetaViewerInfosDetailScreen';
 
