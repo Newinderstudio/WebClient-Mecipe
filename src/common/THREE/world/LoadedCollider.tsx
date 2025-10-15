@@ -1,4 +1,4 @@
-import { getBatchedScene } from "@/util/THREE/three-js-function";
+import { getSimpleBatchedSceneGroupByMaterial } from "@/util/THREE/three-js-function";
 import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
 import { TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three/rapier";
 import { useMemo } from "react";
@@ -9,6 +9,8 @@ export interface LoadedColliderProps {
     isBatching: boolean;
 }
 
+type TrimeshArgsWithName = [...TrimeshArgs, string];
+
 function LoadedCollider({ scene, isBatching }: LoadedColliderProps) {
 
     const triArgs = useMemo(() => {
@@ -16,7 +18,7 @@ function LoadedCollider({ scene, isBatching }: LoadedColliderProps) {
 
         console.log('Computing trimesh colliders...');
         
-        const targetScene = isBatching ? getBatchedScene(scene) : scene;
+        const targetScene = isBatching ? getSimpleBatchedSceneGroupByMaterial(scene, ['OuterCollider']) : scene;
 
         const meshes: Mesh[] = [];
         targetScene.traverse((node) => {
@@ -25,7 +27,9 @@ function LoadedCollider({ scene, isBatching }: LoadedColliderProps) {
             }
         });
 
-        const args: TrimeshArgs[] = meshes.map((node) => {
+        const args: TrimeshArgsWithName[] = meshes.map((node) => {
+
+            const nodeName = node.name;
             // 중요: geometry를 clone해서 원본을 변형하지 않음!
             const geometry = node.geometry.clone();
             geometry.applyMatrix4(node.matrixWorld);
@@ -38,7 +42,7 @@ function LoadedCollider({ scene, isBatching }: LoadedColliderProps) {
             // 메모리 정리
             geometry.dispose();
             
-            return [vertices, indices];
+            return [vertices, indices, nodeName];
         });
 
         return args;
@@ -46,14 +50,19 @@ function LoadedCollider({ scene, isBatching }: LoadedColliderProps) {
 
     const colliders = useMemo(() => {
         return triArgs?.map((triArg, index) => {
+            const [vertices, indices, nodeName] = triArg;
+
+            const collisionGroups = nodeName == 'OuterCollider' ? 
+            colliderGroup(ColliderGroupType.Barrier, ColliderGroupType.Player)
+            : colliderGroup(ColliderGroupType.Default, ColliderGroupType.Player);
+
             const props: TrimeshColliderProps = {
-                args: triArg,
-                collisionGroups: colliderGroup(ColliderGroupType.Default, ColliderGroupType.Player)
+                args: [vertices, indices],
+                collisionGroups: collisionGroups
             };
             return <TrimeshCollider key={index} {...props} />
         });
     }, [triArgs]);
-
 
     return (
         <group>

@@ -1,4 +1,4 @@
-import { getBatchedScene, setDisableReflections, setEnableReflections } from "@/util/THREE/three-js-function";
+import { getSimpleBatchedSceneGroupByMaterial, setDisableReflections, setEnableReflections } from "@/util/THREE/three-js-function";
 import { optimizeScenePerformance, getPerformanceStats } from "@/util/THREE/performance-optimization";
 import { useMemo, useRef } from "react";
 import { Material, Mesh, Object3D } from "three";
@@ -30,7 +30,7 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
         let targetScene = scene;
         
         // 배치 처리 (변환된 머터리얼로)
-        targetScene = isBatching ? getBatchedScene(scene) : scene;
+        targetScene = isBatching ? getSimpleBatchedSceneGroupByMaterial(scene) : scene;
         
         // 성능 최적화 적용
         if (enablePerformanceOptimization) {

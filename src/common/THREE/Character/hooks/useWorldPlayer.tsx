@@ -1,4 +1,4 @@
-import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
+import { ColliderGroupType, colliderGroup, getGroupTypeFlag } from "@/util/THREE/three-types";
 import { Vector3 } from "@dimforge/rapier3d-compat";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CapsuleColliderProps, useRapier } from "@react-three/rapier";
@@ -24,7 +24,7 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
 
     const colGroup = useMemo(() => ({
         collisionGroup: ColliderGroupType.Player,
-        collisionMask: ColliderGroupType.Default,
+        collisionMask: getGroupTypeFlag(ColliderGroupType.Default, ColliderGroupType.Barrier),
         ...collisionGroup
     }), [collisionGroup]);
 

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // 씬 그룹을 받아서 머터리얼별로 배치치된 씬 그룹을 반환
-export function getBatchedScene(sceneGroup: THREE.Object3D): THREE.Object3D {
+export function getSimpleBatchedSceneGroupByMaterial(sceneGroup: THREE.Object3D, excludeNames?: string[]): THREE.Object3D {
     const materialMap = new Map<string, { 
         material: THREE.Material, 
         geometries: THREE.BufferGeometry[], 
@@ -10,9 +10,14 @@ export function getBatchedScene(sceneGroup: THREE.Object3D): THREE.Object3D {
         instanceCount: number 
     }>();
 
+    const excludeNamesMeshList: THREE.Mesh[] = [];
     // 첫 번째 패스: 머터리얼별로 지오메트리 수집
     sceneGroup.traverse((child) => {
         if (child instanceof THREE.Mesh) {
+            if(excludeNames?.includes(child.name)) {
+                excludeNamesMeshList.push(child);
+                return;
+            }
             const mat = child.material;
             const key = Array.isArray(mat) ? mat.map(m => m.uuid).join('-') : mat.uuid;
 
@@ -80,14 +85,15 @@ export function getBatchedScene(sceneGroup: THREE.Object3D): THREE.Object3D {
             merged.computeBoundingSphere();
             
             const mesh = new THREE.Mesh(merged, material);
-            mesh.frustumCulled = true; // 프러스텀 컬링 활성화
-            mesh.castShadow = false; // 그림자 캐스팅 비활성화
-            mesh.receiveShadow = false; // 그림자 수신 비활성화
             
             optimizedScene.add(mesh);
             totalBatches++;
             totalInstances += chunk.length;
         }
+    });
+
+    excludeNamesMeshList.forEach((mesh) => {
+        optimizedScene.add(mesh);
     });
 
     console.log(`[getBatchedScene] Optimization complete: ${totalBatches} batches, ${totalInstances} instances from ${materialMap.size} materials`);
