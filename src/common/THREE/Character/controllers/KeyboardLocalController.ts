@@ -2,6 +2,7 @@ import { Euler, Vector3 } from "three";
 import { IController, MovementInput, PlayerControlInterface } from "./IController";
 import { RootState } from "@react-three/fiber";
 import { PlayerTransformData } from "@/common/socket/socket-message-types";
+import { useVirtualControlsStore } from "@/store/THREE/virtualControlsStore";
 
 type KeyboardControlsState<T extends string = string> = {
   [K in T]: boolean;
@@ -51,11 +52,19 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
 
     const { forward: forwardTrigger, backward: backwardTrigger, left: leftTrigger, right: rightTrigger, jump: jumpTrigger } = this.options.getKeyboarState();
 
-    // 키 입력 별 방향
-    const forward = forwardTrigger ? 1 : 0;
-    const backward = backwardTrigger ? 1 : 0;
-    const left = leftTrigger ? 1 : 0;
-    const right = rightTrigger ? 1 : 0;
+    // ✅ 조이스틱 입력 가져오기
+    const virtualControls = useVirtualControlsStore.getState();
+    const joystick = virtualControls.joystick;
+    const virtualJump = virtualControls.jump;
+
+    // ✅ 키보드 + 조이스틱 입력 병합
+    const forward = (forwardTrigger ? 1 : 0) + (joystick.forward ? 1 : 0) + (joystick.y > 0 ? joystick.y : 0);
+    const backward = (backwardTrigger ? 1 : 0) + (joystick.backward ? 1 : 0) + (joystick.y < 0 ? -joystick.y : 0);
+    const left = (leftTrigger ? 1 : 0) + (joystick.left ? 1 : 0) + (joystick.x < 0 ? -joystick.x : 0);
+    const right = (rightTrigger ? 1 : 0) + (joystick.right ? 1 : 0) + (joystick.x > 0 ? joystick.x : 0);
+
+    // ✅ 점프도 병합
+    const combinedJump = jumpTrigger || virtualJump;
 
     const direction = new Vector3();
 
@@ -63,8 +72,8 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
     this.sideVector.set(left - right, 0, 0)
     direction.subVectors(this.frontVector, this.sideVector).normalize().applyEuler(this.rootState.camera.rotation)
 
-    // jumping - 별도 처리
-    if (jumpTrigger) {
+    // jumping - 별도 처리 (키보드 + 조이스틱 버튼)
+    if (combinedJump) {
       if (!this.jumpTrigger) {
         this.movementInput.jump = true;
         this.jumpTrigger = true;

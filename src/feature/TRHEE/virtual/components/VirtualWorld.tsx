@@ -11,6 +11,7 @@ import TPSCameraController from '@/common/THREE/camera/TPSCameraController';
 import PerformanceCollector from '@/common/THREE/performance/PerformanceCollector';
 import PerformanceDisplay from '@/common/THREE/performance/PerformanceDisplay';
 import VirtualWorldSocket from './VirtualWorldSocket';
+import VirtualTouchControl from '@/common/THREE/input/VirtualTouchControl';
 
 export default function VirtualWorld({ worldCode }: { worldCode: string }) {
 
@@ -70,6 +71,8 @@ export default function VirtualWorld({ worldCode }: { worldCode: string }) {
                 </Canvas>
             </KeyboardControls>
 
+            {/* ✅ 모바일 터치 컨트롤 */}
+            <VirtualTouchControl />
         </div>
     )
 }
