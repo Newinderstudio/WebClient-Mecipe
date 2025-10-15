@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { io, Socket } from 'socket.io-client';
-import { BroadcastRoomDataRequest, ClientMessage, BroadcastDatType, UserDisconnectedResponse, UserJoinedResponse, UserLeftResponse, BroadcastRoomDataResponse, JoinRoomRequest, JoinRoomAck, LeaveRoomAck, LeaveRoomRequest, PlayerTransformData, PlayerAnimationData } from "@/common/socket/socket-message-types";
-import { ClientToServerListenerType, ServerToClientListenerType } from "@/common/socket/socket-event-type";
+import { BroadcastRoomDataRequest, ClientMessage, BroadcastDatType, UserDisconnectedResponse, UserJoinedResponse, UserLeftResponse, BroadcastRoomDataResponse, JoinRoomRequest, JoinRoomAck, LeaveRoomAck, LeaveRoomRequest, PlayerTransformData, PlayerAnimationData } from "@/util/socket/socket-message-types";
+import { ClientToServerListenerType, ServerToClientListenerType } from "@/util/socket/socket-event-type";
 
 export interface RoomUser {
   clientId: string;

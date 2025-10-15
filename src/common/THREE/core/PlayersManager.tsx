@@ -1,5 +1,5 @@
 import { Euler, Vector3 } from "three";
-import WorldPlayer from "../character/WorldPlayer";
+import WorldPlayer from "../Character/WorldPlayer";
 import usePlayersManagers from "./hooks/usePlayersManagers";
 
 export interface PlayersManagerOptions {
@@ -22,7 +22,7 @@ export interface ControllerOptions {
 }
 export default function PlayersManager({characterOptions, controllerOptions}: {characterOptions: PlayersManagerOptions, controllerOptions: ControllerOptions}) {
 
-    const characterGltfPath = "/3d/test_virtual_world/character.glb";
+    const characterGltfPath = "/3d/models/character.glb";
     const characterGltfIsDraco = true;
 
     const { gltf, keyboardController, players, characterBaseOptions, characterInitialPoint } = usePlayersManagers({gltfPath: characterGltfPath, isDraco: characterGltfIsDraco, characterOptions});

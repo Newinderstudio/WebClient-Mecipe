@@ -1,7 +1,7 @@
 import { Euler, Vector3 } from "three";
 import { IController, MovementInput, PlayerControlInterface } from "./IController";
 import { RootState } from "@react-three/fiber";
-import { PlayerTransformData } from "@/common/socket/socket-message-types";
+import { PlayerTransformData } from "@/util/socket/socket-message-types";
 import { useVirtualControlsStore } from "@/store/THREE/virtualControlsStore";
 
 type KeyboardControlsState<T extends string = string> = {

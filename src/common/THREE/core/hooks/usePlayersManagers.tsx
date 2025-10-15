@@ -1,11 +1,11 @@
 import { useGLTF, useKeyboardControls } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { KeyboardLocalController } from "../../character/controllers/KeyboardLocalController";
+import { KeyboardLocalController } from "../../Character/controllers/KeyboardLocalController";
 import { RoomUser, useSocketStore } from "@/store/socket/store";
-import { ClientMessage, BroadcastDatType } from "@/common/socket/socket-message-types";
-import { WebSocketController } from "../../character/controllers/WebSocketController";
-import { CharacterBaseOptions, CharacterInitialPoint, CharacterOptions } from "../../character/WorldPlayer";
+import { ClientMessage, BroadcastDatType } from "@/util/socket/socket-message-types";
+import { WebSocketController } from "../../Character/controllers/WebSocketController";
+import { CharacterBaseOptions, CharacterInitialPoint, CharacterOptions } from "../../Character/WorldPlayer";
 import { Euler, Vector3 } from "three";
 
 export interface PlayerInfo extends RoomUser {

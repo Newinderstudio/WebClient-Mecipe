@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import * as THREE from 'three'
 
 export interface PerformanceMetrics {
   fps: number
@@ -127,7 +126,7 @@ export const usePerformanceStore = create<PerformanceState>((set, get) => ({
     set({ metrics: updatedMetrics })
     
     // 성능 알림 체크
-    currentState.checkPerformanceAlerts(updatedMetrics)
+    // currentState.checkPerformanceAlerts(updatedMetrics)
   },
 
   addAlert: (alert) => {

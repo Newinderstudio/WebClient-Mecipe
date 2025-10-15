@@ -1,6 +1,6 @@
 import { RootState } from "@react-three/fiber";
 import { Vector3, Euler } from "three";
-import { IController, MovementInput } from ".";
+import { IController, MovementInput, PlayerControlInterface } from "./IController";
 
 export type TestPlayerControllerProps = unknown;
 
@@ -24,7 +24,11 @@ export class TestPlayerController implements IController<TestPlayerControllerPro
             direction: randomDirection,
             rotation: randomRotation,
             jump: false,
+            speed: 1,
         };
+    }
+    postMovementProcess(playerControl: PlayerControlInterface): void {
+        console.log("postMovementProcess", playerControl);
     }
     setEnabled(enabled: boolean): void {
         this.enabled = enabled;
