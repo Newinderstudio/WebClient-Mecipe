@@ -1,10 +1,14 @@
-import { CharacterManagerOptions } from '@/common/THREE/character/WorldPlayer';
 import { useThreeStore } from '@/store/THREE/store';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Euler, Vector3 } from 'three';
 import { useFindOneMetaViewerInfoByCodeQuery } from '@/api/metaViewerInfosApi';
+import { ControllerOptions, PlayersManagerOptions } from '@/common/THREE/core/PlayersManager';
+import { WorldRendererProps } from '@/common/THREE/world/WorldRenderer';
 
-export interface WorldRendererProps {
+/**
+ * @description: 하위 컴포넌트 리렌더링 방지를 위해 다수의의 훅 멤버 메모이제이션
+ */
+export interface WorldGltfOptions {
     worldGltfOptions: {
         path: string;
         isDraco: boolean;
@@ -24,15 +28,12 @@ export default function useVirtualWorld(worldCode: string) {
 
     const { data: worldData } = useFindOneMetaViewerInfoByCodeQuery({ code: worldCode });
 
-    const [rendererProps, setRendererProps] = useState<WorldRendererProps | undefined>(undefined);
-    const [characterOptions, setCharacterOptions] = useState<CharacterManagerOptions | undefined>(undefined);
-
-    useEffect(() => {
-        if (!worldData) return;
+    const gltfOptions:WorldGltfOptions | undefined = useMemo(() => {
+        if(!worldData) return undefined;
         const worldPosition = worldData.worldData.worldPosition as { x: number; y: number; z: number };
         const worldRotation = worldData.worldData.worldRotation as { x: number; y: number; z: number };
         const worldScale = worldData.worldData.worldScale as { x: number; y: number; z: number };
-        setRendererProps({
+        return {
             worldGltfOptions: {
                 path: worldData.ActiveMaps.ActiveRenderMap.url,
                 isDraco: worldData.ActiveMaps.ActiveRenderMap.isDraco,
@@ -44,9 +45,11 @@ export default function useVirtualWorld(worldCode: string) {
             position: worldPosition? new Vector3(worldPosition.x, worldPosition.y, worldPosition.z) : new Vector3(0, 0, 0),
             rotation: worldRotation? new Euler(worldRotation.x, worldRotation.y, worldRotation.z) : new Euler(0, 0, 0),
             scale: worldScale? new Vector3(worldScale.x, worldScale.y, worldScale.z) : new Vector3(1, 1, 1),
-        });
+        };
+    }, [worldData]);
 
-
+    const characterOptions:PlayersManagerOptions | undefined = useMemo(() => {
+        if(!worldData) return undefined;
         const playerHeight = worldData.worldData.playerHeight as number;
         const playerRadius = worldData.worldData.playerRadius as number;
         const playerScale = worldData.worldData.playerScale as { x: number; y: number; z: number };
@@ -56,7 +59,7 @@ export default function useVirtualWorld(worldCode: string) {
         const playerJumpForce = worldData.worldData.playerJumpForce as number;
         const playerSpeed = worldData.worldData.playerSpeed as number;
         const spawnPoint = worldData.worldData.spawnPoint as { x: number; y: number; z: number };
-        setCharacterOptions({
+        return {
             height: playerHeight? playerHeight : 1.3,
             radius: playerRadius? playerRadius : 0.2,
             spawnPoint: spawnPoint? new Vector3(spawnPoint.x, spawnPoint.y, spawnPoint.z) : new Vector3(0, 5, 5),
@@ -66,7 +69,7 @@ export default function useVirtualWorld(worldCode: string) {
             rotation: playerRotation? new Euler(playerRotation.x, playerRotation.y, playerRotation.z) : new Euler(0, 0, 0),
             rotationSpeed: playerRotationSpeed? playerRotationSpeed : 0.2,
             defaultAnimationClip: defaultAnimationClip? defaultAnimationClip : "Idle"
-        });
+        };
     }, [worldData]);
 
     const keyBoardMap = useMemo(() => [
@@ -79,7 +82,7 @@ export default function useVirtualWorld(worldCode: string) {
         { name: "test", keys: ["t", "T"] },
     ], []);
 
-    const controllerOptions = useMemo(() => ({
+    const controllerOptions:ControllerOptions = useMemo(() => ({
         offset: 0.01,
         mass: 3,
         slopeClimbAngle: Math.PI / 4,
@@ -89,13 +92,24 @@ export default function useVirtualWorld(worldCode: string) {
     // gravity 배열도 메모이제이션
     const gravityArray = useMemo(() => gravity.toArray(), [gravity]);
 
+    const worldRenderProps:WorldRendererProps | undefined = useMemo(() => {
+        if(!gltfOptions || !characterOptions || !controllerOptions) return undefined;
+        return {
+            rendererProps: gltfOptions,
+            characterOptions,
+            controllerOptions,
+            encrypted: true,
+        }
+    }, [characterOptions, controllerOptions, gltfOptions]);
+
     return {
-        rendererProps,
+        gltfOptions,
         keyBoardMap,
 
         gravity,
         characterOptions,
         gravityArray,
         controllerOptions,
+        worldRenderProps,
     }
 }

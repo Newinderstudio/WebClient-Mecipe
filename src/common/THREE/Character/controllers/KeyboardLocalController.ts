@@ -1,7 +1,7 @@
 import { Euler, Vector3 } from "three";
 import { IController, MovementInput, PlayerControlInterface } from "./IController";
 import { RootState } from "@react-three/fiber";
-import { PlayerTransformData } from "@/common/socket/types";
+import { PlayerTransformData } from "@/common/socket/socket-message-types";
 
 type KeyboardControlsState<T extends string = string> = {
   [K in T]: boolean;
@@ -9,7 +9,7 @@ type KeyboardControlsState<T extends string = string> = {
 
 export interface KeyboardControllerProps {
   getKeyboarState: () => KeyboardControlsState<string>
-  boradcastPlayerTransform: (transform: { position: { x: number; y: number; z: number }; rotation: { x: number; y: number; z: number } }) => void
+  broadcastPlayerTransform: (transform: PlayerTransformData) => void
 }
 
 export class KeyboardLocalController implements IController<KeyboardControllerProps> {
@@ -128,7 +128,7 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
       return;
     }
 
-    this.options.boradcastPlayerTransform(this.sendedMovementMessage);
+    this.options.broadcastPlayerTransform(this.sendedMovementMessage);
   }
 
   setEnabled(enabled: boolean): void {

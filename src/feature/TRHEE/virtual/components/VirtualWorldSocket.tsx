@@ -40,7 +40,7 @@ export default function VirtualWorldSocket({
     const join = async () => {
       if (mounted) {
         const result = await joinRoom(roomId);
-        console.log('Join room result:', result);
+        console.log('Join room result:', result.message);
       }
     };
 

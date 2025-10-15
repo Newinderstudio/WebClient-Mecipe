@@ -1,45 +1,43 @@
-"use client";
-
 import { Environment, Sky } from "@react-three/drei";
-import { WorldRendererProps } from "@/feature/TRHEE/virtual/components/hooks/useVirtualWorld";
+import { WorldGltfOptions } from "@/feature/TRHEE/virtual/components/hooks/useVirtualWorld";
 import LoadedCollider from "./LoadedCollider";
 import useWorldRenderer from "./hooks/useWorldRenderer";
 import LoadedMesh from "./LoadedMesh";
-import React from "react";
-import { Group } from "three";
+import React, { Suspense } from "react";
+import SuspendRenerer from "./SuspendRenerer";
+import PlayersManager, { ControllerOptions, PlayersManagerOptions } from "../core/PlayersManager";
 
-export interface WorldRendererResult {
-    options: WorldRendererProps;
-    rendererScene: Group;
-    rendererColliderScene: Group;
+
+export interface WorldRendererProps {
+    rendererProps: WorldGltfOptions;
+    encrypted: boolean;
+    characterOptions: PlayersManagerOptions;
+    controllerOptions: ControllerOptions;
 }
 
-function WorldRenderer({ children, rendererProps, encrypted }: { children: React.ReactNode, rendererProps: WorldRendererProps|undefined, encrypted: boolean }) {
+function WorldRenderer({ rendererProps, encrypted, characterOptions, controllerOptions }: WorldRendererProps) {
 
-    const { options, rendererScene, rendererColliderScene } = useWorldRenderer({ rendererProps, encrypted });
+    const hookMemeber = useWorldRenderer({ rendererProps, encrypted });
 
     return (
         <group>
             <Environment preset="sunset" />
             <Sky />
             <group
-                position={options.position}
-                rotation={options.rotation}
-                scale={options.scale}
+                position={rendererProps.position}
+                rotation={rendererProps.rotation}
+                scale={rendererProps.scale}
             >
-                <LoadedCollider scene={rendererColliderScene} isBatching={true} /> :
-                <LoadedMesh 
-                    scene={rendererScene} 
-                    isBatching={false} 
-                    isVisible={true} 
-                    enableShadows={false} 
-                    disableReflections={true}
-                    usePhongMaterial={false}  // 성능을 위해 PhongMaterial 비활성화
-                    enablePerformanceOptimization={false}  // 성능 최적화 활성화
-                />
-                
+                <Suspense fallback={null}>
+                    <SuspendRenerer promise={hookMemeber.promiseForColliderRenderer} Component={LoadedCollider} />
+                    <PlayersManager characterOptions={characterOptions} controllerOptions={controllerOptions} />
+                </Suspense>
+                <Suspense fallback={null}>
+                    <SuspendRenerer promise={hookMemeber.promiseForMeshRenderer} Component={LoadedMesh} />
+                </Suspense>
+
+
             </group>
-            {children}
         </group>
 
     )

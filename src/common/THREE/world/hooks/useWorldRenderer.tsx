@@ -1,46 +1,53 @@
-import { use, useEffect, useMemo } from "react";
-import { WorldRendererResult } from "../WorldRenderer";
+import { useEffect, useMemo } from "react";
 import { useThree } from "@react-three/fiber";
-import { WorldRendererProps } from "@/feature/TRHEE/virtual/components/hooks/useVirtualWorld";
+import { WorldGltfOptions } from "@/feature/TRHEE/virtual/components/hooks/useVirtualWorld";
 import { promiseForGLTFLoader } from "@/util/THREE/promiseForGLTFLoader";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
-// import { PCFSoftShadowMap } from "three";
+import { LoadedMeshProps } from "../LoadedMesh";
+import { LoadedColliderProps } from "../LoadedCollider";
 
-export default function useWorldRenderer({ rendererProps, encrypted }: { rendererProps?: WorldRendererProps, encrypted?: boolean }) {
+export default function useWorldRenderer({ rendererProps, encrypted }: { rendererProps: WorldGltfOptions, encrypted: boolean }) {
 
-    // Promise를 캐시하여 매 렌더링마다 새로운 Promise가 생성되지 않도록 함
-    const worldPromise = useMemo(() => {
-        if (typeof window === 'undefined' || !rendererProps) {
-            return new Promise<WorldRendererResult>(() => {
-                // 서버에서는 아무것도 하지 않음 (Suspense가 fallback 표시)
-            });
-        }
-
-        return (async () => {
+    const promiseForMeshRenderer = useMemo(() => {
+        return new Promise<LoadedMeshProps>(async (resolve) => {
             try {
-                const rendererGLTF = await promiseForGLTFLoader(rendererProps.worldGltfOptions.path, rendererProps.worldGltfOptions.isDraco, {cache: true, encrypted});
-                const rendererColliderGLTF = await promiseForGLTFLoader(rendererProps.colliderGltfOptions.path, rendererProps.colliderGltfOptions.isDraco, {cache: true, encrypted});
+                const rendererGLTF = await promiseForGLTFLoader(rendererProps.worldGltfOptions.path, rendererProps.worldGltfOptions.isDraco, { cache: true, encrypted });
 
                 // ✅ scene을 clone하여 read-only 문제 해결
                 const clonedScene = SkeletonUtils.clone(rendererGLTF.scene);
-                const clonedColliderScene = SkeletonUtils.clone(rendererColliderGLTF.scene);
-                return {
-                    options: rendererProps,
-                    rendererScene: clonedScene,
-                    rendererColliderScene: clonedColliderScene,
-                };
-            }
-            catch (error) {
+                resolve({
+                    scene: clonedScene,
+                    isBatching: false,
+                    isVisible: true,
+                    enableShadows: false,
+                    disableReflections: true,
+                    enablePerformanceOptimization: false,
+                });
+            } catch (error) {
                 console.error("❌ [useWorldRenderer] Error:", error);
                 throw error;
             }
-        })();
-    }, [
-        rendererProps,
-        encrypted
-    ]);
+        });
+    }, [rendererProps, encrypted]);
 
-    const result = use(worldPromise);
+    const promiseForColliderRenderer = useMemo(() => {
+        return new Promise<LoadedColliderProps>(async (resolve) => {
+            try {
+                const rendererGLTF = await promiseForGLTFLoader(rendererProps.colliderGltfOptions.path, rendererProps.colliderGltfOptions.isDraco, { cache: true, encrypted });
+
+                // ✅ scene을 clone하여 read-only 문제 해결
+                const clonedScene = SkeletonUtils.clone(rendererGLTF.scene);
+                resolve({
+                    scene: clonedScene,
+                    isBatching: true,
+                });
+            } catch (error) {
+                console.error("❌ [useWorldRenderer] Error:", error);
+                throw error;
+            }
+        });
+    }, [rendererProps, encrypted]);
+
 
     const { gl } = useThree();
 
@@ -50,6 +57,7 @@ export default function useWorldRenderer({ rendererProps, encrypted }: { rendere
     }, [gl]);
 
     return {
-        ...result,
+        promiseForMeshRenderer,
+        promiseForColliderRenderer,
     }
 }

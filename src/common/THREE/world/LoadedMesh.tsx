@@ -5,15 +5,15 @@ import { Material, Mesh, Object3D } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 
 
-function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflections, enablePerformanceOptimization = true }: {
+export interface LoadedMeshProps {
     scene: Object3D;
     isBatching: boolean;
     isVisible: boolean;
     enableShadows: boolean;
     disableReflections: boolean;
-    usePhongMaterial?: boolean;
     enablePerformanceOptimization?: boolean;
-}) {
+}
+function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflections, enablePerformanceOptimization = true }: LoadedMeshProps) {
     const { camera } = useThree();
     const cameraRef = useRef(camera);
     cameraRef.current = camera;  // 항상 최신 camera 유지
@@ -63,8 +63,8 @@ function LoadedMesh({ scene, isBatching, isVisible, enableShadows, disableReflec
         // 성능 통계 수집
         performanceStatsRef.current = getPerformanceStats(targetScene);
 
-        return targetScene;  // ✅ wrapper 제거, targetScene 직접 반환
-    }, [scene, isBatching, enablePerformanceOptimization, enableShadows, disableReflections])  // ✅ scene, camera 제거
+        return targetScene;
+    }, [scene, isBatching, enablePerformanceOptimization, enableShadows, disableReflections])
 
     // 성능 모니터링 (개발 모드에서만)
     useFrame(() => {

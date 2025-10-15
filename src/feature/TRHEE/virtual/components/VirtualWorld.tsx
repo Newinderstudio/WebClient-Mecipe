@@ -2,7 +2,6 @@
 
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
-import { Suspense } from 'react';
 
 import { Physics } from '@react-three/rapier';
 import useVirtualWorld from './hooks/useVirtualWorld';
@@ -11,17 +10,14 @@ import WorldRenderer from '@/common/THREE/world/WorldRenderer';
 import TPSCameraController from '@/common/THREE/camera/TPSCameraController';
 import PerformanceCollector from '@/common/THREE/performance/PerformanceCollector';
 import PerformanceDisplay from '@/common/THREE/performance/PerformanceDisplay';
-import PlayersManager from '@/common/THREE/core/PlayersManager';
 import VirtualWorldSocket from './VirtualWorldSocket';
 
 export default function VirtualWorld({ worldCode }: { worldCode: string }) {
 
     const {
-        rendererProps,
         keyBoardMap,
-        characterOptions,
         gravityArray,
-        controllerOptions,
+        worldRenderProps,
     } = useVirtualWorld(worldCode);
 
     return (
@@ -32,7 +28,7 @@ export default function VirtualWorld({ worldCode }: { worldCode: string }) {
             }}
         >
             <VirtualWorldSocket
-                roomId="virtual-world-room-1"
+                roomId={worldCode}
                 enabled={true}
                 serverUrl={process.env.NEXT_PUBLIC_SOCKET_SERVER_URL}
                 path={process.env.NEXT_PUBLIC_SOCKET_PATH}
@@ -59,15 +55,9 @@ export default function VirtualWorld({ worldCode }: { worldCode: string }) {
                         timeStep={1.0 / 30.0}  // 더 높은 정확도
                         gravity={gravityArray}
                     >
-                        <Suspense fallback={null}>
-                            {/* 옵션 로딩 중이거나 옵션이 없으면 fallback 표시 */}
-                            <WorldRenderer
-                                rendererProps={rendererProps}
-                                encrypted={true}
-                            >
-                                <PlayersManager characterOptions={characterOptions} controllerOptions={controllerOptions} />
-                            </WorldRenderer>
-                        </Suspense>
+                        {worldRenderProps && <WorldRenderer
+                            {...worldRenderProps}
+                        />}
                         <TPSCameraController
                             minDistance={0.5}
                             maxDistance={5}

@@ -2,11 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import {
-  UserJoinedPayload,
-  UserLeftPayload,
+  UserJoinedResponse,
+  UserLeftResponse,
   RoomDataPayload,
-  RoomDataItem,
-} from '../types';
+  ClientMessage,
+} from '../socket-message-types';
 
 interface RoomUser {
   socketId: string;
@@ -18,10 +18,10 @@ interface RoomUser {
  */
 export function useRoomDataHandler() {
   const [users, setUsers] = useState<Map<string, RoomUser>>(new Map());
-  const [roomDataHistory, setRoomDataHistory] = useState<RoomDataItem[]>([]);
+  const [roomDataHistory, setRoomDataHistory] = useState<ClientMessage[]>([]);
 
   // 사용자 참가 핸들러
-  const handleUserJoined = useCallback((payload: UserJoinedPayload) => {
+  const handleUserJoined = useCallback((payload: UserJoinedResponse) => {
     setUsers(prev => {
       const newUsers = new Map(prev);
       newUsers.set(payload.socketId, {
@@ -33,7 +33,7 @@ export function useRoomDataHandler() {
   }, []);
 
   // 사용자 퇴장 핸들러
-  const handleUserLeft = useCallback((payload: UserLeftPayload) => {
+  const handleUserLeft = useCallback((payload: UserLeftResponse) => {
     setUsers(prev => {
       const newUsers = new Map(prev);
       newUsers.delete(payload.socketId);
@@ -57,17 +57,17 @@ export function useRoomDataHandler() {
   }, []);
 
   // 특정 타입의 데이터만 필터링
-  const getDataByType = useCallback((type: string): RoomDataItem[] => {
+  const getDataByType = useCallback((type: string): ClientMessage[] => {
     return roomDataHistory.filter(item => item.type === type);
   }, [roomDataHistory]);
 
   // 최근 데이터 가져오기
-  const getRecentData = useCallback((count: number = 10): RoomDataItem[] => {
+  const getRecentData = useCallback((count: number = 10): ClientMessage[] => {
     return roomDataHistory.slice(-count);
   }, [roomDataHistory]);
 
   // 특정 클라이언트의 데이터만 가져오기
-  const getDataByClient = useCallback((clientId: string): RoomDataItem[] => {
+  const getDataByClient = useCallback((clientId: string): ClientMessage[] => {
     return roomDataHistory.filter(item => item.clientId === clientId);
   }, [roomDataHistory]);
 

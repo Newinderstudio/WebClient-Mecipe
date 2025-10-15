@@ -2,7 +2,7 @@ import { ColliderGroupType, colliderGroup } from "@/util/THREE/three-types";
 import { Vector3 } from "@dimforge/rapier3d-compat";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CapsuleColliderProps, useRapier } from "@react-three/rapier";
-import { CharacterManagerOptions, WorldPlayerProps } from "../WorldPlayer";
+import { WorldPlayerProps } from "../WorldPlayer";
 import { KinematicCharacterController, Collider } from "@react-three/rapier/node_modules/@dimforge/rapier3d-compat";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
@@ -11,7 +11,7 @@ import useWorldPlayerAnimation from "./useWorldPlayerAnimation";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js"
 import { PlayerControlInterface } from "../controllers/IController";
 
-export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, characterOptions, collisionGroup, controllerRef }: WorldPlayerProps<T>) {
+export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, characterBaseOptions, characterInitialPoint, collisionGroup, controllerRef }: WorldPlayerProps<T>) {
     const rapier = useRapier();
 
     const ctrlOpt = useMemo(() => ({
@@ -22,19 +22,6 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
         ...controllerOptions
     }), [controllerOptions]);
 
-    const characterOpt: CharacterManagerOptions = useMemo(() => ({
-        height: 1,
-        radius: 0.2,
-        spawnPoint: new THREE.Vector3(0, 1.8, 0),
-        rotation: new THREE.Euler(0, 0, 0),
-        scale: new THREE.Vector3(1, 1, 1),
-        playerJumpForce: 10,
-        playerSpeed: 6,
-        rotationSpeed: 0.2,
-        defaultAnimationClip: "Idle",
-        ...characterOptions
-    }), [characterOptions]);
-
     const colGroup = useMemo(() => ({
         collisionGroup: ColliderGroupType.Player,
         collisionMask: ColliderGroupType.Default,
@@ -42,7 +29,7 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
     }), [collisionGroup]);
 
     const clone = useMemo(() => SkeletonUtils.clone(gltf.scene), [gltf.scene])
-    const { playAnimator, updateAnimator } = useWorldPlayerAnimation({ animations: gltf.animations, scene: clone, defaultAnimationClipName: characterOpt?.defaultAnimationClip || "Idle" });
+    const { playAnimator, updateAnimator } = useWorldPlayerAnimation({ animations: gltf.animations, scene: clone, defaultAnimationClipName: characterBaseOptions.defaultAnimationClip || "Idle" });
 
     const setHeadSocket = useThreeStore(state => state.setHeadSocket);
 
@@ -60,23 +47,26 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
         setPosition: (position: THREE.Vector3) => {
             colliderRef.current?.setTranslation(position);
         },
+        setBodyPosition: (position: THREE.Vector3) => {
+            playerBodyRef.current?.position.set(position.x, position.y, position.z);
+        },
         setRotation: (rotation: THREE.Euler) => {
             playerBodyRef.current?.rotation.set(rotation.x, rotation.y, rotation.z);
         },
         getPosition: () => {const pos = colliderRef.current?.translation();  return pos? new THREE.Vector3(pos.x, pos.y, pos.z) : new THREE.Vector3(0, 0, 0)},
         getRotation: () => playerBodyRef.current?.rotation ?? new THREE.Euler(0, 0, 0),
-    }), [playerBodyRef, colliderRef]);
+    }), []);
 
     const headSocketProps = useMemo(() => (
         {
-            position: new THREE.Vector3(0, characterOpt.height - characterOpt.radius, 0),
+            position: new THREE.Vector3(0, characterBaseOptions.height - characterBaseOptions.radius, 0),
         }
-    ), [characterOpt]);
+    ), [characterBaseOptions]);
 
     const capsuleColliderProps: CapsuleColliderProps = useMemo(() => ({
-        args: [characterOpt.height / 2 - characterOpt.radius, characterOpt.radius],
+        args: [characterBaseOptions.height / 2 - characterBaseOptions.radius, characterBaseOptions.radius],
         collisionGroups: colliderGroup(colGroup.collisionGroup, colGroup.collisionMask),
-    }), [characterOpt, colGroup]);
+    }), [characterBaseOptions, colGroup]);
 
     useEffect(() => {
         if (!headSocketRef.current || !isLocal) return;
@@ -84,11 +74,22 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
     }, [isLocal, setHeadSocket]);
 
     useEffect(()=>{
-        if (colliderRef.current) {
-            colliderRef.current.setTranslation(characterOpt.spawnPoint);
-            colliderRef.current.setRotation({x: characterOpt.rotation.x, y: characterOpt.rotation.y, z: characterOpt.rotation.z, w: 1});
+
+        if(!capsuleColliderProps) return;
+
+        const newPos = characterInitialPoint.spawnPoint;
+        const rotation = characterInitialPoint.rotation;
+        playerControl.setPosition(newPos);
+        playerControl.setBodyPosition(newPos);
+        playerControl.setRotation(rotation);
+
+    }, [characterInitialPoint, playerControl, capsuleColliderProps]);
+
+    useEffect(()=>{
+        if (playerBodyRef.current) {
+            playerBodyRef.current.scale.set(characterBaseOptions.scale.x, characterBaseOptions.scale.y, characterBaseOptions.scale.z);
         }
-    }, [characterOpt]);
+    }, [characterBaseOptions]);
 
     useEffect(() => {
         if (rapier.world && !characterControllerRef.current) {
@@ -108,7 +109,6 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
             if (characterControllerRef.current && rapier.world) {
                 rapier.world.removeCharacterController(characterControllerRef.current);
                 characterControllerRef.current = null;
-                console.log("characterController remove");
             }
         };
     }, [ctrlOpt, rapier.world]);
@@ -120,10 +120,11 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
     }, [isJumped, isJumping, setJumpStartTime]);
 
     useFrame((_, delta) => {
-        if (!characterControllerRef.current || !rapier.world || !colliderRef.current || !controllerRef.current || !characterOpt || !playerBodyRef.current) return;
+        if (!characterControllerRef.current || !rapier.world || !colliderRef.current || !controllerRef?.current || !characterBaseOptions || !playerBodyRef.current) return;
         try {
             const pos = colliderRef.current.translation();
             const rot = playerBodyRef.current.rotation;
+
             const { direction, rotation, jump, speed } = controllerRef.current.getMovementInput(new THREE.Vector3(pos.x, pos.y, pos.z), rot);
 
             const currentTime = Date.now();
@@ -132,7 +133,7 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
                 setIsJumped(false);
             }
 
-            const movement = direction.clone().multiplyScalar(characterOpt.playerSpeed);
+            const movement = direction.clone().multiplyScalar(characterBaseOptions.playerSpeed);
 
             const rawGravity = rapier.world.gravity;
             const gravity = new THREE.Vector3(rawGravity.x, rawGravity.y, rawGravity.z);
@@ -158,7 +159,7 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
 
                 const jumpDecay = Math.max(0, 1 - Math.pow(jumpDuration / 1000, 2)) * 8;
                 if (jumpDuration < 1000) {
-                    movement.add(new Vector3(0, characterOpt.playerJumpForce * jumpDecay, 0));
+                    movement.add(new Vector3(0, characterBaseOptions.playerJumpForce * jumpDecay, 0));
                 }
             }
 
@@ -181,7 +182,7 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
 
             colliderRef.current.setTranslation(newPos);
 
-            newPos.y -= characterOpt.height / 2;
+            newPos.y -= characterBaseOptions.height / 2;
             newPos = new THREE.Vector3(
                 THREE.MathUtils.lerp(playerBodyRef.current.position.x, newPos.x, 0.2),
                 THREE.MathUtils.lerp(playerBodyRef.current.position.y, newPos.y, 0.2),
@@ -212,7 +213,6 @@ export default function useWorldPlayer<T>({ gltf, isLocal, controllerOptions, ch
         headSocketProps,
         capsuleColliderProps,
         clonedNodes: clone,
-        characterOpt,
     }
 
 

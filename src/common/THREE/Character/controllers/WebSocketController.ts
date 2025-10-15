@@ -1,19 +1,18 @@
 import { RootState } from "@react-three/fiber";
 import { Vector3, Euler } from "three";
 import { IController, MovementInput, PlayerControlInterface } from "./IController";
-import { PlayerTransformData, RoomDataItem, RoomDataType } from "@/common/socket/types";
+import { PlayerTransformData, ClientMessage, BroadcastDatType } from "@/common/socket/socket-message-types";
 import { RefObject } from "react";
 
 export interface WebSocketControllerProps {
   clientId: string;
-  dataBufferMapRef: RefObject<Map<string, RoomDataItem[]>>;
+  dataBufferMapRef: RefObject<Map<string, ClientMessage[]>>;
 }
 
 
 export class WebSocketController implements IController<WebSocketControllerProps> {
     private options?: WebSocketControllerProps;
     private enabled: boolean = true;
-
     private recievedMovementMessage: PlayerTransformData = {
       speed: 0,
       position: {x: 0, y: 0, z: 0},
@@ -26,6 +25,7 @@ export class WebSocketController implements IController<WebSocketControllerProps
     dispose(): void {
         throw new Error("Method not implemented.");
     }
+
     getMovementInput(curPosition: Vector3): MovementInput {
       if (!this.options) return {
         direction: new Vector3(),
@@ -57,15 +57,15 @@ export class WebSocketController implements IController<WebSocketControllerProps
 
     private getRemoteTransformData(): PlayerTransformData|null {
       if(!this.options) return null;
-      const myBuffers = this.options.dataBufferMapRef.current.get(this.options.clientId)?.filter(item => item.type === RoomDataType.PLAYER_TRANSFORM);
+      const myBuffers = this.options.dataBufferMapRef.current.get(this.options.clientId)?.filter(item => item.type === BroadcastDatType.PLAYER_TRANSFORM);
       if(!myBuffers) return this.recievedMovementMessage;
       this.options.dataBufferMapRef.current.delete(this.options.clientId);
       this.recievedMovementMessage = myBuffers.length > 0 ? myBuffers[myBuffers.length - 1].data as PlayerTransformData : this.recievedMovementMessage;
       return this.recievedMovementMessage;
     }
     postMovementProcess(playerControl: PlayerControlInterface): void {
-      if (!this.options) return;
-      
+      if (!this.options || !playerControl) return;
+
       const curPosition = playerControl.getPosition();
       const recievedPosition = new Vector3(this.recievedMovementMessage.position.x, this.recievedMovementMessage.position.y, this.recievedMovementMessage.position.z);
       const recievedRotationForCompare = new Vector3(this.recievedMovementMessage.rotation.x, this.recievedMovementMessage.rotation.y, this.recievedMovementMessage.rotation.z);

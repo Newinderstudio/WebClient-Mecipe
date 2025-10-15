@@ -3,28 +3,29 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import {
-  JoinRoomPayload,
-  JoinRoomCallback,
-  LeaveRoomPayload,
-  LeaveRoomCallback,
-  BroadcastRoomDataPayload,
-  BroadcastRoomDataCallback,
-  UserJoinedPayload,
-  UserLeftPayload,
-  RoomDataPayload,
-  SocketEvent,
+  JoinRoomRequest,
+  BroadcastRoomDataRequest,
+  BroadcastRoomDataAck,
+  UserJoinedResponse,
+  UserLeftResponse,
   SocketState,
-} from './types';
+  RoomDataResponse,
+  JoinRoomAck,
+  LeaveRoomRequest,
+  LeaveRoomAck,
+} from './socket-message-types';
+
+import { ClientToServerListenerType, ServerToClientListenerType } from './socket-event-type';
 
 interface SocketContextValue {
   socket: Socket | null;
   socketState: SocketState;
-  joinRoom: (payload: JoinRoomPayload) => Promise<JoinRoomCallback>;
-  leaveRoom: (payload: LeaveRoomPayload) => Promise<LeaveRoomCallback>;
-  broadcastRoomData: (payload: BroadcastRoomDataPayload) => Promise<BroadcastRoomDataCallback>;
-  onUserJoined: (callback: (payload: UserJoinedPayload) => void) => () => void;
-  onUserLeft: (callback: (payload: UserLeftPayload) => void) => () => void;
-  onRoomData: (callback: (payload: RoomDataPayload) => void) => () => void;
+  joinRoom: (payload: JoinRoomRequest) => Promise<JoinRoomAck>;
+  leaveRoom: (payload: LeaveRoomRequest) => Promise<LeaveRoomAck>;
+  broadcastRoomData: (payload: BroadcastRoomDataRequest) => Promise<BroadcastRoomDataAck>;
+  onUserJoined: (callback: (payload: UserJoinedResponse) => void) => () => void;
+  onUserLeft: (callback: (payload: UserLeftResponse) => void) => () => void;
+  onRoomData: (callback: (payload: RoomDataResponse) => void) => () => void;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
@@ -61,12 +62,12 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
       path: "/"+path,
     });
 
-    newSocket.on('connect', () => {
+    newSocket.on(ServerToClientListenerType.CONNECT, () => {
       console.log('Socket connected:', newSocket.id);
       setSocketState(prev => ({ ...prev, isConnected: true, clientId: newSocket.id ?? null }));
     });
 
-    newSocket.on('disconnect', () => {
+    newSocket.on(ServerToClientListenerType.DISCONNECT, () => {
       console.log('Socket disconnected');
       setSocketState({
         isConnected: false,
@@ -76,7 +77,7 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
       });
     });
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on(ServerToClientListenerType.CONNECT_ERROR, (error) => {
       console.error('❌ Socket connection error:', error.message);
       console.error('Server URL:', serverUrl);
       console.error('Path:', path);
@@ -93,7 +94,7 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
   }, [serverUrl, path]);
 
   // Join Room
-  const joinRoom = useCallback(async (payload: JoinRoomPayload): Promise<JoinRoomCallback> => {
+  const joinRoom = useCallback(async (payload: JoinRoomRequest): Promise<JoinRoomAck> => {
     return new Promise((resolve, reject) => {
       if (!socketRef.current) {
         reject(new Error('Socket not connected'));
@@ -101,14 +102,14 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
       }
 
       socketRef.current.emit(
-        SocketEvent.JOIN_ROOM,
+        ClientToServerListenerType.USER_JOINED,
         payload,
-        (response: JoinRoomCallback) => {
+        (response: JoinRoomAck) => {
           if (response.success) {
             setSocketState(prev => ({
               ...prev,
               currentRoomId: response.roomId,
-              clientsInRoom: response.clientsInRoom,
+              clientsInRoom: response.clientsInRoom.length,
             }));
           }
           resolve(response);
@@ -118,7 +119,7 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
   }, []);
 
   // Leave Room
-  const leaveRoom = useCallback(async (payload: LeaveRoomPayload): Promise<LeaveRoomCallback> => {
+  const leaveRoom = useCallback(async (payload: LeaveRoomRequest): Promise<LeaveRoomAck> => {
     return new Promise((resolve, reject) => {
       if (!socketRef.current) {
         reject(new Error('Socket not connected'));
@@ -126,9 +127,9 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
       }
 
       socketRef.current.emit(
-        SocketEvent.LEAVE_ROOM,
+        ClientToServerListenerType.USER_LEFT,
         payload,
-        (response: LeaveRoomCallback) => {
+        (response: LeaveRoomAck) => {
           if (response.success) {
             setSocketState(prev => ({
               ...prev,
@@ -144,7 +145,7 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
 
   // Broadcast Room Data
   const broadcastRoomData = useCallback(
-    async (payload: BroadcastRoomDataPayload): Promise<BroadcastRoomDataCallback> => {
+    async (payload: BroadcastRoomDataRequest): Promise<BroadcastRoomDataAck> => {
       return new Promise((resolve, reject) => {
         if (!socketRef.current) {
           reject(new Error('Socket not connected'));
@@ -152,9 +153,9 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
         }
 
         socketRef.current.emit(
-          SocketEvent.BROADCAST_ROOM_DATA,
+          ClientToServerListenerType.ROOM_BROADCAST,
           payload,
-          (response: BroadcastRoomDataCallback) => {
+          (response: BroadcastRoomDataAck) => {
             resolve(response);
           }
         );
@@ -164,28 +165,28 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
   );
 
   // User Joined 이벤트 리스너
-  const onUserJoined = useCallback((callback: (payload: UserJoinedPayload) => void) => {
+  const onUserJoined = useCallback((callback: (payload: UserJoinedResponse) => void) => {
     if (!socketRef.current) return () => {};
 
-    const handler = (payload: UserJoinedPayload) => {
+    const handler = (payload: UserJoinedResponse) => {
       console.log('User joined:', payload);
       callback(payload);
     };
 
-    socketRef.current.on(SocketEvent.USER_JOINED, handler);
+    socketRef.current.on(ServerToClientListenerType.USER_JOINED, handler);
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.off(SocketEvent.USER_JOINED, handler);
+        socketRef.current.off(ServerToClientListenerType.USER_JOINED, handler);
       }
     };
   }, []);
 
   // User Left 이벤트 리스너
-  const onUserLeft = useCallback((callback: (payload: UserLeftPayload) => void) => {
+  const onUserLeft = useCallback((callback: (payload: UserLeftResponse) => void) => {
     if (!socketRef.current) return () => {};
 
-    const handler = (payload: UserLeftPayload) => {
+    const handler = (payload: UserLeftResponse) => {
       console.log('User left:', payload);
       setSocketState(prev => ({
         ...prev,
@@ -194,29 +195,29 @@ export function SocketProvider({ children, serverUrl = 'http://localhost:3001', 
       callback(payload);
     };
 
-    socketRef.current.on(SocketEvent.USER_LEFT, handler);
+    socketRef.current.on(ServerToClientListenerType.USER_LEFT, handler);
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.off(SocketEvent.USER_LEFT, handler);
+        socketRef.current.off(ServerToClientListenerType.USER_LEFT, handler);
       }
     };
   }, []);
 
   // Room Data 이벤트 리스너
-  const onRoomData = useCallback((callback: (payload: RoomDataPayload) => void) => {
+  const onRoomData = useCallback((callback: (payload: RoomDataResponse) => void) => {
     if (!socketRef.current) return () => {};
 
-    const handler = (payload: RoomDataPayload) => {
+    const handler = (payload: RoomDataResponse) => {
       console.log('Room data received:', payload);
       callback(payload);
     };
 
-    socketRef.current.on(SocketEvent.ROOM_DATA, handler);
+    socketRef.current.on(ServerToClientListenerType.ROOM_DATA, handler);
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.off(SocketEvent.ROOM_DATA, handler);
+        socketRef.current.off(ServerToClientListenerType.ROOM_DATA, handler);
       }
     };
   }, []);

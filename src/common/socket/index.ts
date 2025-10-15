@@ -6,5 +6,5 @@ export { SocketProvider, useSocketContext } from './SocketProvider';
 export { useSocket } from './hooks/useSocket';
 export { useRoomSocket } from './hooks/useRoomSocket';
 export { useRoomDataHandler } from './hooks/useRoomDataHandler';
-export * from './types';
+export * from './socket-message-types';
 

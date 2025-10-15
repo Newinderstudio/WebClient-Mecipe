@@ -1,20 +1,22 @@
 import { create } from "zustand";
 import { io, Socket } from 'socket.io-client';
-import { RoomDataItem } from "@/common/socket/types";
+import { BroadcastRoomDataRequest, ClientMessage, BroadcastDatType, UserDisconnectedResponse, UserJoinedResponse, UserLeftResponse, BroadcastRoomDataResponse, JoinRoomRequest, JoinRoomAck, LeaveRoomAck, LeaveRoomRequest, PlayerTransformData, PlayerAnimationData } from "@/common/socket/socket-message-types";
+import { ClientToServerListenerType, ServerToClientListenerType } from "@/common/socket/socket-event-type";
 
 export interface RoomUser {
-  socketId: string;
+  clientId: string;
   joinedAt: string;
 }
 
 // 실시간 데이터는 ref로 관리 (전역 상태 밖에서)
-let roomDataHistoryRef: RoomDataItem[] = [];
-const roomDataListeners = new Set<(data: RoomDataItem[]) => void>();
+let roomDataHistoryRef: ClientMessage[] = [];
+const roomDataListeners = new Set<(data: ClientMessage[]) => void>();
+const initializeEnvironmentListeners = new Set<(data: ClientMessage[]) => void>();
 
 interface SocketStore {
   // Socket 인스턴스
   socket: Socket | null;
-  
+
   // Socket 상태
   isConnected: boolean;
   clientId: string | null;
@@ -26,30 +28,33 @@ interface SocketStore {
   users: RoomUser[];
   userCount: number;
 
+  // Initialize Environment 데이터
+  initializeEnvironment: ClientMessage[];
+
   // Socket 초기화
   initSocket: (serverUrl: string, path: string) => void;
-  
+
   // Room 관리
-  joinRoom: (roomId: string) => Promise<{success: boolean; message: string}>;
-  leaveRoom: () => Promise<{success: boolean; message: string}>;
-  
+  joinRoom: (roomId: string) => Promise<{ success: boolean; message: string }>;
+  leaveRoom: () => Promise<{ success: boolean; message: string }>;
+
   // 데이터 브로드캐스트
-  broadcastPlayerTransform: (transform: { 
-    position: { x: number; y: number; z: number }; 
-    rotation: { x: number; y: number; z: number };
-  }) => void;
+  broadcastPlayerTransform: (transform: PlayerTransformData) => void;
   broadcastPlayerAnimation: (animation: string) => void;
   broadcastCustomEvent: (type: string, data: unknown) => void;
-  
+
   // 실시간 데이터 이벤트 구독 (ref 기반)
-  subscribeToRoomData: (callback: (data: RoomDataItem[]) => void) => () => void;
+  subscribeToRoomData: (callback: (data: ClientMessage[]) => void) => () => void;
   
+  // Initialize Environment 이벤트 구독
+  subscribeInitializeEnvironment: (callback: (data: ClientMessage[]) => void) => () => void;
+
   // 데이터 조회 (ref에서 직접 읽기, 리렌더링 없음)
-  getPlayerTransforms: () => RoomDataItem[];
-  getPlayerAnimations: () => RoomDataItem[];
-  getRecentData: (count?: number) => RoomDataItem[];
+  getPlayerTransforms: () => ClientMessage[];
+  getPlayerAnimations: () => ClientMessage[];
+  getRecentData: (count?: number) => ClientMessage[];
   clearHistory: () => void;
-  
+
   // 초기화
   disconnect: () => void;
 }
@@ -63,6 +68,7 @@ const initialState = {
   isInRoom: false,
   users: [],
   userCount: 0,
+  initializeEnvironment: [],
 };
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
@@ -88,18 +94,18 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     // 연결 이벤트
-    newSocket.on('connect', () => {
+    newSocket.on(ServerToClientListenerType.CONNECT, () => {
       console.log('✅ Socket connected:', newSocket.id);
-      set({ 
+      set({
         socket: newSocket,
-        isConnected: true, 
-        clientId: newSocket.id 
+        isConnected: true,
+        clientId: newSocket.id
       });
     });
 
     // 연결 해제 이벤트
-    newSocket.on('disconnect', () => {
-      console.log('❌ Socket disconnected');
+    newSocket.on(ServerToClientListenerType.DISCONNECT, (reason: string) => {
+      console.log('❌ Socket disconnected:', reason);
       set({
         isConnected: false,
         currentRoomId: null,
@@ -109,37 +115,63 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       });
     });
 
+
     // 연결 오류 이벤트
-    newSocket.on('connect_error', (error) => {
+    newSocket.on(ServerToClientListenerType.CONNECT_ERROR, (error) => {
       console.error('❌ Socket connection error:', error.message);
     });
 
+    // User 연결 해제 이벤트
+    newSocket.on(ServerToClientListenerType.USER_DISCONNECTED, (payload: UserDisconnectedResponse) => {
+      console.log(`👋 Socket disconnected: ${payload.socketId}`);
+      set((state) => {
+        const users = state.users.filter(u => u.clientId !== payload.socketId);
+        const userCount = users.length;
+        return {
+          users: users,
+          userCount: userCount,
+        }
+      });
+    });
+
     // User Joined 이벤트
-    newSocket.on('userJoined', (payload: { socketId: string; roomId: string; timestamp: string }) => {
-      console.log('👤 User joined:', payload);
-      set((state) => ({
-        users: [...state.users, { socketId: payload.socketId, joinedAt: payload.timestamp }],
-        userCount: state.userCount + 1,
-      }));
+    newSocket.on(ServerToClientListenerType.USER_JOINED, (payload: UserJoinedResponse) => {
+      console.log('👤 User joined:', payload.socketId);
+      set((state) => {
+        const users: RoomUser[] = [];
+        if (!users.find(u => u.clientId === payload.socketId)) {
+          users.push({ clientId: payload.socketId, joinedAt: payload.timestamp });
+        }
+
+        const userCount = users.length;
+        return {
+          users: [...state.users, ...users],
+          userCount: userCount,
+        }
+      });
     });
 
     // User Left 이벤트
-    newSocket.on('userLeft', (payload: { socketId: string; roomId: string; timestamp: string }) => {
+    newSocket.on(ServerToClientListenerType.USER_LEFT, (payload: UserLeftResponse) => {
       console.log('👋 User left:', payload);
-      set((state) => ({
-        users: state.users.filter(u => u.socketId !== payload.socketId),
-        userCount: Math.max(0, state.userCount - 1),
-      }));
+      set((state) => {
+        const users = state.users.filter(u => u.clientId !== payload.socketId);
+        const userCount = users.length;
+        return {
+          users: users,
+          userCount: userCount,
+        }
+      });
     });
 
-    
+
     // User Disconnected 이벤트
-    newSocket.on('userDisconnected', (payload: { socketId: string; roomId: string; timestamp: string }) => {
+    newSocket.on(ServerToClientListenerType.USER_DISCONNECTED, (payload: UserDisconnectedResponse) => {
       console.log('🛑 User disconnected:', payload);
       set((state) => {
-        const users = state.users.filter(u => u.socketId !== payload.socketId);
+        const users = state.users.filter(u => u.clientId !== payload.socketId);
         const userCount = Math.max(0, state.userCount - 1);
-        if(userCount === state.userCount && users.every(u => state.users.includes(u))) {
+        if (userCount === state.userCount && users.every(u => state.users.includes(u))) {
           return {
             users: state.users,
             userCount: state.userCount,
@@ -153,17 +185,22 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     // Room Data 이벤트 (ref로 관리, 전역 상태 변경 없음!)
-    newSocket.on('roomBroadcast', (payload: { roomId: string; timestamp: number; data: RoomDataItem[] }) => {
+    newSocket.on(ServerToClientListenerType.ROOM_BROADCAST, (payload: BroadcastRoomDataResponse) => {
       // ref에만 저장 (리렌더링 없음)
-      roomDataHistoryRef = [...roomDataHistoryRef, ...payload.data];
-      
+      roomDataHistoryRef = [...roomDataHistoryRef, ...payload.messages];
+
       // 최대 100개까지만 유지
       if (roomDataHistoryRef.length > 100) {
         roomDataHistoryRef = roomDataHistoryRef.slice(-100);
       }
-      
       // 구독자들에게 알림
-      roomDataListeners.forEach(listener => listener(payload.data));
+      roomDataListeners.forEach(listener => listener(payload.messages));
+    });
+
+    newSocket.on(ServerToClientListenerType.INITIALIZE_ENV, (payload: BroadcastRoomDataResponse) => {
+      set({ initializeEnvironment: payload.messages });
+      // 구독자들에게 알림. 초기화 목적
+      initializeEnvironmentListeners.forEach(listener => listener(payload.messages));
     });
 
     set({ socket: newSocket });
@@ -172,7 +209,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   // Room 참가
   joinRoom: async (roomId: string) => {
     const { socket, isInRoom } = get();
-    
+
     if (!socket || !socket.connected) {
       return { success: false, message: 'Socket not connected' };
     }
@@ -182,24 +219,23 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     }
 
     return new Promise((resolve) => {
-      socket.emit('joinRoom', { roomId }, (response: { success: boolean; roomId?: string; clientsInRoom?: {socketId: string; joinedAt: string}[]; message: string }) => {
-        if (response.success) {
-          set(state=>{
+      const request: JoinRoomRequest = { roomId };
+      socket.emit(ClientToServerListenerType.USER_JOINED, request, (ack: JoinRoomAck) => {
+        if (ack.success) {
+          set(() => {
+            const users = ack.clientsInRoom.map(client => ({ clientId: client.socketId, joinedAt: client.joinAt }));
 
-            const newUsers = response.clientsInRoom
-              ?.filter(client => !state.users.find(user => user.socketId === client.socketId))
-              .map(client => ({ socketId: client.socketId, joinedAt: client.joinedAt })) ?? [];
-
+            const userCount = users.length;
             return {
               isInRoom: true,
-              currentRoomId: response.roomId || roomId,
-              clientsInRoom: response.clientsInRoom?.length || 1,
-              users: [...state.users, ...newUsers],
-              userCount: response.clientsInRoom?.length || 1,
+              currentRoomId: ack.roomId || roomId,
+              clientsInRoom: ack.clientsInRoom?.length || 1,
+              users: users,
+              userCount: userCount,
             }
           });
         }
-        resolve(response);
+        resolve(ack);
       });
     });
   },
@@ -207,7 +243,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   // Room 나가기
   leaveRoom: async () => {
     const { socket, isInRoom } = get();
-    
+
     if (!socket || !socket.connected) {
       return { success: false, message: 'Socket not connected' };
     }
@@ -217,7 +253,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     }
 
     return new Promise((resolve) => {
-      socket.emit('leaveRoom', {}, (response: { success: boolean; message: string }) => {
+      const request: LeaveRoomRequest = {};
+      socket.emit(ClientToServerListenerType.USER_LEFT, request, (response: LeaveRoomAck) => {
         if (response.success) {
           set({
             isInRoom: false,
@@ -234,50 +271,61 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   broadcastPlayerTransform: (transform) => {
     const { socket, isInRoom } = get();
     if (!socket || !isInRoom) return;
-    
-    socket.emit('boradcastRoomData', { 
-      type: 'playerTransform', 
-      data: transform 
-    });
+
+    const request: BroadcastRoomDataRequest<PlayerTransformData> = {
+      type: BroadcastDatType.PLAYER_TRANSFORM,
+      data: transform
+    };
+
+    socket.emit(ClientToServerListenerType.ROOM_BROADCAST, request);
   },
 
   // Animation 브로드캐스트
   broadcastPlayerAnimation: (animation) => {
     const { socket, isInRoom } = get();
     if (!socket || !isInRoom) return;
-    
-    socket.emit('boradcastRoomData', { 
-      type: 'playerAnimation', 
-      data: { animation } 
-    });
+
+    const request: BroadcastRoomDataRequest<PlayerAnimationData> = {
+      type: BroadcastDatType.PLAYER_ANIMATION,
+      data: { animation }
+    };
+
+    socket.emit(ClientToServerListenerType.ROOM_BROADCAST, request);
   },
 
   // 커스텀 이벤트 브로드캐스트
   broadcastCustomEvent: (type, data) => {
     const { socket, isInRoom } = get();
     if (!socket || !isInRoom) return;
-    
-    socket.emit('boradcastRoomData', { type, data });
+
+    socket.emit(ClientToServerListenerType.ROOM_BROADCAST, { type, data });
   },
 
   // 실시간 데이터 이벤트 구독
   subscribeToRoomData: (callback) => {
     roomDataListeners.add(callback);
-    
+
     // 정리 함수 반환
     return () => {
       roomDataListeners.delete(callback);
     };
   },
 
+  subscribeInitializeEnvironment: (callback) => {
+    initializeEnvironmentListeners.add(callback);
+    return () => {
+      initializeEnvironmentListeners.delete(callback);
+    };
+  },
+
   // Transform 데이터 조회 (ref에서 직접 읽기)
   getPlayerTransforms: () => {
-    return roomDataHistoryRef.filter(item => item.type === 'playerTransform');
+    return roomDataHistoryRef.filter(item => item.type === BroadcastDatType.PLAYER_TRANSFORM);
   },
 
   // Animation 데이터 조회 (ref에서 직접 읽기)
   getPlayerAnimations: () => {
-    return roomDataHistoryRef.filter(item => item.type === 'playerAnimation');
+    return roomDataHistoryRef.filter(item => item.type === BroadcastDatType.PLAYER_ANIMATION);
   },
 
   // 최근 데이터 조회 (ref에서 직접 읽기)
@@ -297,7 +345,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.disconnect();
       set(initialState);
     }
-    
+
     // ref 초기화
     roomDataHistoryRef = [];
     roomDataListeners.clear();

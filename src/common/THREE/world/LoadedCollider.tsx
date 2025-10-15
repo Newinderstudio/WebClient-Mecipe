@@ -4,11 +4,12 @@ import { TrimeshArgs, TrimeshCollider, TrimeshColliderProps } from "@react-three
 import { useMemo } from "react";
 import { BufferGeometry, Mesh, Object3D } from "three";
 
-
-function LoadedCollider({ scene, isBatching }: {
+export interface LoadedColliderProps {
     scene: Object3D;
     isBatching: boolean;
-}) {
+}
+
+function LoadedCollider({ scene, isBatching }: LoadedColliderProps) {
 
     const triArgs = useMemo(() => {
         if (!scene || isBatching === undefined) return;

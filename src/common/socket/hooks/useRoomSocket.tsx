@@ -3,20 +3,21 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useSocketContext } from '../SocketProvider';
 import {
-  JoinRoomPayload,
-  LeaveRoomPayload,
-  BroadcastRoomDataPayload,
-  UserJoinedPayload,
-  UserLeftPayload,
-  RoomDataPayload,
-} from '../types';
+  JoinRoomRequest,
+  BroadcastRoomDataRequest,
+  UserJoinedResponse,
+  UserLeftResponse,
+  RoomDataResponse,
+  LeaveRoomRequest,
+  BroadcastDatType,
+} from '../socket-message-types';
 
 interface UseRoomSocketOptions {
   roomId: string;
   autoJoin?: boolean;
-  onUserJoined?: (payload: UserJoinedPayload) => void;
-  onUserLeft?: (payload: UserLeftPayload) => void;
-  onRoomData?: (payload: RoomDataPayload) => void;
+  onUserJoined?: (payload: UserJoinedResponse) => void;
+  onUserLeft?: (payload: UserLeftResponse) => void;
+  onRoomData?: (payload: RoomDataResponse) => void;
 }
 
 /**
@@ -33,7 +34,7 @@ export function useRoomSocket({
     socketState,
     joinRoom,
     leaveRoom,
-    broadcastRoomData,
+    broadcastRoomData: broadcastRoomData,
     onUserJoined: subscribeUserJoined,
     onUserLeft: subscribeUserLeft,
     onRoomData: subscribeRoomData,
@@ -60,7 +61,7 @@ export function useRoomSocket({
     }
 
     try {
-      const payload: JoinRoomPayload = { roomId: roomIdRef.current };
+      const payload: JoinRoomRequest = { roomId: roomIdRef.current };
       const response = await joinRoom(payload);
       
       if (response.success) {
@@ -85,7 +86,7 @@ export function useRoomSocket({
     }
 
     try {
-      const payload: LeaveRoomPayload = {};
+      const payload: LeaveRoomRequest = {};
       const response = await leaveRoom(payload);
       
       if (response.success) {
@@ -104,14 +105,14 @@ export function useRoomSocket({
 
   // 데이터 브로드캐스트
   const broadcast = useCallback(
-    async (type: string, data: unknown) => {
+    async (type: BroadcastDatType, data: unknown) => {
       if (!isJoinedRef.current) {
         console.warn('Not in a room, cannot broadcast');
         return;
       }
 
       try {
-        const payload: BroadcastRoomDataPayload = { type, data };
+        const payload: BroadcastRoomDataRequest = { type, data };
         const response = await broadcastRoomData(payload);
         
         if (!response.success) {

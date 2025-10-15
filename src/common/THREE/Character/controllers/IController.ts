@@ -1,4 +1,3 @@
-
 import { RootState } from "@react-three/fiber";
 import { Euler, Vector3 } from "three";
 
@@ -21,6 +20,7 @@ export interface MovementInput {
 export interface PlayerControlInterface {
   setPosition: (position: Vector3) => void;
   setRotation: (rotation: Euler) => void;
+  setBodyPosition: (position: Vector3) => void;
 
   getPosition: () => Vector3;
   getRotation: () => Euler;
