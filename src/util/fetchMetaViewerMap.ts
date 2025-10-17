@@ -1,39 +1,43 @@
+import { uploadChunkedFile } from './uploadChunkedFile';
+
 export interface UploadMapResult {
   url: string;
   size: number;
 }
 
+/**
+ * 대용량 파일 업로드 (청크 방식)
+ * - 파일을 4MB 청크로 분할하여 업로드
+ * - Next.js API의 4.5MB body size 제한 우회
+ * - 서버에서 암호화 처리 (키 안전)
+ */
 export async function uploadMetaViewerMapFile(
   token: string,
   file: File,
   mapType: 'render' | 'collider',
   prefix: string,
-  nickname: string
+  nickname: string,
+  onProgress?: (progress: number, stage: string) => void
 ): Promise<UploadMapResult> {
-  const form = new FormData();
-  form.append('mapFile', file);
+  try {
+    const result = await uploadChunkedFile({
+      token,
+      file,
+      mapType,
+      prefix,
+      nickname,
+      chunkSize: 4 * 1024 * 1024, // 4MB
+      onProgress,
+    });
 
-  const queryParams = new URLSearchParams();
-  queryParams.append('prefix', prefix);
-  queryParams.append('mapType', mapType);
-  queryParams.append('nickname', nickname);
-
-  const url = `/api/meta-viewer/upload?${queryParams.toString()}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: form,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Upload failed');
+    return {
+      url: result.url,
+      size: result.size,
+    };
+  } catch (error) {
+    console.error('Upload failed:', error);
+    throw error;
   }
-
-  return await response.json();
 }
 
 export const deleteMetaViewerMapFile = async (token: string, urls: string[]) => {

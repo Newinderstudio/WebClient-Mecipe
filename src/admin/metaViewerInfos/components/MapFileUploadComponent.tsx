@@ -29,14 +29,16 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
         const [fileName, setFileName] = useState<string>('');
         const [isUploading, setIsUploading] = useState(false);
         const [uploadStatus, setUploadStatus] = useState<string>('');
+        const [uploadProgress, setUploadProgress] = useState<number>(0);
 
         const uploadMap = useCallback(async (token: string, nickname: string, version: number): Promise<MapUploadData | null> => {
             if (!selectedFile) return null;
 
             setIsUploading(true);
+            setUploadProgress(0);
+            setUploadStatus('업로드 준비 중...');
+            
             try {
-                // 파일 업로드 (서버에서 자동으로 암호화됨)
-                setUploadStatus('파일 업로드 및 암호화 중...');
                 console.log('파일 업로드 시작:', selectedFile.name);
                 
                 const result = await uploadMetaViewerMapFile(
@@ -44,11 +46,17 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                     selectedFile,
                     props.mapType,
                     'metaviewer',
-                    nickname
+                    nickname,
+                    (progress, stage) => {
+                        setUploadProgress(progress);
+                        setUploadStatus(stage);
+                        console.log(`진행률: ${progress}% - ${stage}`);
+                    }
                 );
 
                 console.log('파일 업로드 완료:', result.url);
                 setUploadStatus('');
+                setUploadProgress(0);
                 return {
                     url: result.url,
                     size: result.size,
@@ -56,7 +64,8 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                 };
             } catch (error) {
                 console.error('Upload error:', error);
-                setUploadStatus('');
+                setUploadStatus('업로드 실패');
+                setUploadProgress(0);
                 throw error;
             } finally {
                 setIsUploading(false);
@@ -114,18 +123,47 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                                 backgroundColor: '#0003',
                                 position: 'relative',
                                 border: '2px dashed #999',
+                                overflow: 'hidden',
                             }}>
+                            {/* 진행률 바 배경 */}
+                            {isUploading && uploadProgress > 0 && (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        left: 0,
+                                        bottom: 0,
+                                        width: `${uploadProgress}%`,
+                                        height: '100%',
+                                        backgroundColor: '#4CAF5033',
+                                        transition: 'width 0.3s ease',
+                                        zIndex: 0,
+                                    }}
+                                />
+                            )}
                             <div
                                 style={{
                                     color: 'gray',
                                     textAlign: 'center',
                                     padding: 10,
+                                    position: 'relative',
+                                    zIndex: 1,
                                 }}>
                                 <div style={{ fontSize: '2rem', marginBottom: 5 }}>
                                     {isUploading ? '⏳' : '📁'}
                                 </div>
                                 <span style={{ fontSize: '0.8rem', whiteSpace: 'pre-line', textAlign: 'center' }}>
-                                    {isUploading ? (uploadStatus || '업로드 중...') : `${props.label} 선택`}
+                                    {isUploading ? (
+                                        <>
+                                            {uploadStatus}
+                                            {uploadProgress > 0 && (
+                                                <div style={{ fontWeight: 'bold', marginTop: 5 }}>
+                                                    {uploadProgress}%
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        `${props.label} 선택`
+                                    )}
                                 </span>
                             </div>
                         </FlexCenter>
