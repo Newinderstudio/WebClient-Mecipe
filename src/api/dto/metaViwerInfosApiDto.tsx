@@ -55,6 +55,8 @@ export type CreateMetaViewerMapDto = {
     version?: number;
 
     isDraco?: boolean;
+
+    contentKey?: string;
 }
 
 

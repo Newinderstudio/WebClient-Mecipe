@@ -17,6 +17,7 @@ export interface ChunkedUploadResult {
   url: string;
   size: number;
   originalSize: number;
+  contentKey: string;
 }
 
 const DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024; // 4MB
@@ -126,6 +127,7 @@ export async function uploadChunkedFile(
       url: result.url,
       size: result.size,
       originalSize: result.originalSize || totalSize,
+      contentKey: result.contentKey,
     };
 
   } catch (error) {

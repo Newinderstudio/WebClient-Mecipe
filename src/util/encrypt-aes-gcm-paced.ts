@@ -1,22 +1,47 @@
 
 import crypto from 'crypto';
+import { Buffer } from 'buffer';
 
 /**
- * 버퍼를 AES-256-GCM으로 암호화 (서버 전용)
+ * 버퍼를 AES-256-GCM으로 복호화
  * 포맷: [IV(12)] [TAG(16)] [CIPHERTEXT]
  * 
- * 암호화 키는 인수에서 가져오며,
- * 인수는 base64로 전달됩니다.
- * 
- * ⚠️ 이 파일은 서버 측(API 라우트)에서만 사용됩니다.
+ * 서버(Node.js)와 클라이언트(브라우저) 모두에서 사용 가능
  */
 
+// 환경에 맞는 crypto.subtle 가져오기
+function getSubtleCrypto(): SubtleCrypto {
+  if (typeof window !== 'undefined' && window.crypto?.subtle) {
+    // 브라우저 환경
+    return window.crypto.subtle;
+  } else if (crypto?.subtle) {
+    // Node.js 환경 (v15.0.0+)
+    return crypto.subtle as SubtleCrypto;
+  }
+  throw new Error('SubtleCrypto is not available in this environment');
+}
 
-export async function decryptAesGcmPacked(buf: ArrayBuffer, secret: string): Promise<ArrayBuffer> {
+export async function decryptAesGcmPacked(buf: ArrayBuffer | Buffer, secret: string | Buffer | Uint8Array): Promise<ArrayBuffer> {
 
-    const key:CryptoKey = await crypto.subtle.importKey(
+  if (!secret) {
+    throw new Error('secret is not set');
+  }
+
+    const subtleCrypto = getSubtleCrypto();
+    
+    // secret을 Uint8Array로 변환
+    let secretBytes: Uint8Array;
+    if (typeof secret === 'string') {
+        secretBytes = Buffer.from(secret, 'base64');
+    } else if (secret instanceof Buffer) {
+        secretBytes = new Uint8Array(secret);
+    } else {
+        secretBytes = secret;
+    }
+
+    const key: CryptoKey = await subtleCrypto.importKey(
         'raw',
-        Buffer.from(secret, 'base64'),
+        secretBytes,
         { name: 'AES-GCM' },
         false,
         ['decrypt']
@@ -32,7 +57,7 @@ export async function decryptAesGcmPacked(buf: ArrayBuffer, secret: string): Pro
     ctWithTag.set(ciphertext, 0);
     ctWithTag.set(tag, ciphertext.length);
 
-    return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ctWithTag);
+    return subtleCrypto.decrypt({ name: 'AES-GCM', iv }, key, ctWithTag);
 }
 
 
@@ -41,12 +66,12 @@ export async function decryptAesGcmPacked(buf: ArrayBuffer, secret: string): Pro
  * @param buffer 암호화할 파일의 Buffer
  * @returns 암호화된 Buffer
  */
-export function encryptGlbBuffer(buffer: Buffer, secret: string): Buffer {
+export function encryptGlbBuffer(buffer: Buffer, secret: string | Buffer): Buffer {
   try {
     if (!secret) {
       throw new Error('secret is not set');
     }
-    const key = Buffer.from(secret, 'base64');
+    const key = typeof secret === 'string' ? Buffer.from(secret, 'base64') : secret;
 
     if (key.length !== 32) {
       throw new Error('Key must be 32 bytes (AES-256).');

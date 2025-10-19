@@ -6,12 +6,13 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { LoadedMeshProps } from "../LoadedMesh";
 import { LoadedColliderProps } from "../LoadedCollider";
 
-export default function useWorldRenderer({ rendererProps, encrypted }: { rendererProps: WorldGltfOptions, encrypted: boolean }) {
+export default function useWorldRenderer({ rendererProps }: { rendererProps: WorldGltfOptions }) {
 
     const promiseForMeshRenderer = useMemo(() => {
         return new Promise<LoadedMeshProps>(async (resolve) => {
             try {
-                const rendererGLTF = await promiseForGLTFLoader(rendererProps.worldGltfOptions.path, rendererProps.worldGltfOptions.isDraco, { cache: true, encrypted });
+                const encryptOption = rendererProps.worldGltfOptions.contentKey ? { contentKey: rendererProps.worldGltfOptions.contentKey } : undefined;
+                const rendererGLTF = await promiseForGLTFLoader(rendererProps.worldGltfOptions.path, rendererProps.worldGltfOptions.isDraco, { cache: true, encryptOption });
 
                 // ✅ scene을 clone하여 read-only 문제 해결
                 const clonedScene = SkeletonUtils.clone(rendererGLTF.scene);
@@ -28,12 +29,13 @@ export default function useWorldRenderer({ rendererProps, encrypted }: { rendere
                 throw error;
             }
         });
-    }, [rendererProps, encrypted]);
+    }, [rendererProps]);
 
     const promiseForColliderRenderer = useMemo(() => {
         return new Promise<LoadedColliderProps>(async (resolve) => {
             try {
-                const rendererGLTF = await promiseForGLTFLoader(rendererProps.colliderGltfOptions.path, rendererProps.colliderGltfOptions.isDraco, { cache: true, encrypted });
+                const encryptOption = rendererProps.colliderGltfOptions.contentKey ? { contentKey: rendererProps.colliderGltfOptions.contentKey } : undefined;
+                const rendererGLTF = await promiseForGLTFLoader(rendererProps.colliderGltfOptions.path, rendererProps.colliderGltfOptions.isDraco, { cache: true, encryptOption });
 
                 // ✅ scene을 clone하여 read-only 문제 해결
                 const clonedScene = SkeletonUtils.clone(rendererGLTF.scene);
@@ -46,7 +48,7 @@ export default function useWorldRenderer({ rendererProps, encrypted }: { rendere
                 throw error;
             }
         });
-    }, [rendererProps, encrypted]);
+    }, [rendererProps]);
 
 
     const { gl } = useThree();

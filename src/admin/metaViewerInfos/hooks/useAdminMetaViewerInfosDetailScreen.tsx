@@ -11,7 +11,7 @@ import {
   MetaViewerMapResult,
 } from '@/api/metaViewerInfosApi';
 import { MetaMapType } from '@/data/prisma-client';
-import { MapFileUploadComponentHandler } from '../components/MapFileUploadComponent';
+import { MapFileUploadComponentHandler, MapUploadData } from '../components/MapFileUploadComponent';
 import { useTypedSelector } from '@/store';
 import { CafeInfoResult } from '@/api/cafeInfosApi';
 import { WorldData } from '@/api/dto/metaViwerInfosApiDto';
@@ -235,7 +235,7 @@ export default function useAdminMetaViewerInfosDetailScreen({ id: detailId }: Pr
       return;
     }
 
-    let uploadedMapData: { url: string; size: number; version: number } | null = null;
+    let uploadedMapData: MapUploadData | null = null;
 
     try {
       // 1. 맵 파일 업로드 (암호화 포함)
@@ -252,6 +252,7 @@ export default function useAdminMetaViewerInfosDetailScreen({ id: detailId }: Pr
             size: uploadedMapData.size,
             version: uploadedMapData.version,
             isDraco: newMapIsDraco,
+            contentKey: uploadedMapData.contentKey
           }
         }).unwrap();
 

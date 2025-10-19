@@ -3,6 +3,7 @@ import { uploadChunkedFile } from './uploadChunkedFile';
 export interface UploadMapResult {
   url: string;
   size: number;
+  contentKey: string;
 }
 
 /**
@@ -33,6 +34,7 @@ export async function uploadMetaViewerMapFile(
     return {
       url: result.url,
       size: result.size,
+      contentKey: result.contentKey,
     };
   } catch (error) {
     console.error('Upload failed:', error);
@@ -98,23 +100,20 @@ export const deleteMetaViewerMapFile = async (token: string, urls: string[]) => 
   }
 }
 
-export async function fetchDecryptMetaViewerMapFile(file: File | ArrayBuffer): Promise<ArrayBuffer> {
-  const url = `/api/meta-viewer/decrypt`;
+export async function fetchDecryptMetaViewerMapContentKey(contentKey: string): Promise<string> {
+  const url = `/api/meta-viewer/decrypt-content-key`;
   const response = await fetch(url, {
     method: 'POST',
-    body: file, // ✅ File이든 ArrayBuffer든 그대로 전송
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ contentKey }),
   });
-
+  
   if (!response.ok) {
-    // 에러는 여전히 JSON으로 받을 수도 있음
-    try {
-      const error = await response.json();
-      throw new Error(error.error || 'Decrypt failed');
-    } catch {
-      throw new Error(`Decrypt failed: ${response.statusText}`);
-    }
+    throw new Error(`Failed to decrypt content key: ${response.statusText}`);
   }
-
-  // ✅ ArrayBuffer로 직접 받기
-  return await response.arrayBuffer();
+  
+  const data = await response.json();
+  return data.jwtToken;
 }

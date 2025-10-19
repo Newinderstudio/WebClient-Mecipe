@@ -15,6 +15,7 @@ export interface MapUploadData {
     url: string;
     size: number;
     version: number;
+    contentKey: string;
 }
 
 export interface MapFileUploadComponentHandler {
@@ -61,6 +62,7 @@ const MapFileUploadComponent = forwardRef<MapFileUploadComponentHandler, Props>(
                     url: result.url,
                     size: result.size,
                     version: version,
+                    contentKey: result.contentKey,
                 };
             } catch (error) {
                 console.error('Upload error:', error);

@@ -177,6 +177,7 @@ export function useAdminMetaViewerInfosCreateScreen(): hookMember {
             size: renderMapData.size,
             version: renderMapData.version,
             isDraco: renderMapIsDraco,
+            contentKey: renderMapData.contentKey,
           },
           activeColliderMap: {
             type: MetaMapType.COLLIDER,
@@ -184,6 +185,7 @@ export function useAdminMetaViewerInfosCreateScreen(): hookMember {
             size: colliderMapData.size,
             version: colliderMapData.version,
             isDraco: colliderMapIsDraco,
+            contentKey: colliderMapData.contentKey,
           },
         }
       }).unwrap();

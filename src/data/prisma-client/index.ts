@@ -478,6 +478,7 @@ export type MetaViewerMap = {
     version: number
     url: string
     size: number
+    contentKey: string | null
 
     isDraco: boolean
     metaViewerInfoId: number

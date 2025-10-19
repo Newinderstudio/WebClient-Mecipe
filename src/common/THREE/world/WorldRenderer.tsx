@@ -10,14 +10,13 @@ import PlayersManager, { ControllerOptions, PlayersManagerOptions } from "../cor
 
 export interface WorldRendererProps {
     rendererProps: WorldGltfOptions;
-    encrypted: boolean;
     characterOptions: PlayersManagerOptions;
     controllerOptions: ControllerOptions;
 }
 
-function WorldRenderer({ rendererProps, encrypted, characterOptions, controllerOptions }: WorldRendererProps) {
+function WorldRenderer({ rendererProps, characterOptions, controllerOptions }: WorldRendererProps) {
 
-    const hookMemeber = useWorldRenderer({ rendererProps, encrypted });
+    const hookMemeber = useWorldRenderer({ rendererProps });
 
     return (
         <group>

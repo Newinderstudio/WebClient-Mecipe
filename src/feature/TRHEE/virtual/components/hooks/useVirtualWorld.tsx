@@ -8,15 +8,15 @@ import { WorldRendererProps } from '@/common/THREE/world/WorldRenderer';
 /**
  * @description: 하위 컴포넌트 리렌더링 방지를 위해 다수의의 훅 멤버 메모이제이션
  */
+export interface WorldGltfData {
+    path: string;
+    isDraco: boolean;
+    contentKey: string | null;
+}
+
 export interface WorldGltfOptions {
-    worldGltfOptions: {
-        path: string;
-        isDraco: boolean;
-    }
-    colliderGltfOptions: {
-        path: string;
-        isDraco: boolean;
-    },
+    worldGltfOptions: WorldGltfData;
+    colliderGltfOptions: WorldGltfData;
     position: Vector3;
     rotation: Euler;
     scale: Vector3;
@@ -37,10 +37,12 @@ export default function useVirtualWorld(worldCode: string) {
             worldGltfOptions: {
                 path: worldData.ActiveMaps.ActiveRenderMap.url,
                 isDraco: worldData.ActiveMaps.ActiveRenderMap.isDraco,
+                contentKey: worldData.ActiveMaps.ActiveRenderMap.contentKey,
             },
             colliderGltfOptions: {
                 path: worldData.ActiveMaps.ActiveColliderMap.url,
                 isDraco: worldData.ActiveMaps.ActiveColliderMap.isDraco,
+                contentKey: worldData.ActiveMaps.ActiveColliderMap.contentKey,
             },
             position: worldPosition? new Vector3(worldPosition.x, worldPosition.y, worldPosition.z) : new Vector3(0, 0, 0),
             rotation: worldRotation? new Euler(worldRotation.x, worldRotation.y, worldRotation.z) : new Euler(0, 0, 0),
@@ -98,7 +100,6 @@ export default function useVirtualWorld(worldCode: string) {
             rendererProps: gltfOptions,
             characterOptions,
             controllerOptions,
-            encrypted: true,
         }
     }, [characterOptions, controllerOptions, gltfOptions]);
 
