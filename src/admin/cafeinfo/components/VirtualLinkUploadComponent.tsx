@@ -5,7 +5,7 @@ import { Flex, FlexCenter, FlexRow } from "@/common/styledComponents";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 import VirtualLinkCard, { CafeVirtualLinkDataProp } from "./VirtualLinkCard";
 import { imageResizer } from "@/common/image/imageResizer";
-import fetchImage, { getFileSize, getImageSize } from "@/util/fetchImage";
+import fetchImage, { deleteImage, getFileSize, getImageSize } from "@/util/fetchImage";
 import VirtualLinkInput, { VirtualLinkInputData } from "./VirtualLinkInput";
 import { StyledButton } from "@/common/styledAdmin";
 import Image from "next/image";
@@ -281,15 +281,24 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
         let finalData: CafeVirtualLinkDataProp = {...data};
         if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.token) {
             try {
+                const findIndex = linkDataList.findIndex(data => data.id === finalData.id);
+
                 if (data.file) {
+                    let imageResults: {
+                        url: string,
+                        thumbnailUrl?: string | undefined
+                    }[] = [];
                     try {
                         const result = await getCafeVirtualLinkThumbnailImage(data.file);
                         if (!result) throw new Error("이미지 변환 실패");
                         const form = new FormData();
                         form.append("image", data.file);
-                        const imageResults = await fetchImage(props.token, form, "virtuallinkimage");
+                        imageResults = await fetchImage(props.token, form, "virtuallinkimage");
 
                         if (imageResults.length === 0) throw new Error("이미지 업로드 실패");
+
+                        // 기존 이미지 삭제
+                        if(findIndex >= 0 && linkDataList[findIndex]!.CafeVirtualLinkThumbnailImage!.url) await deleteImage(props.token, [linkDataList[findIndex]!.CafeVirtualLinkThumbnailImage!.url]);
 
                         const imageResult = imageResults[0];
                         finalData.file = undefined;
@@ -303,9 +312,15 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                             }
                         }).unwrap();
 
-                        finalData.CafeVirtualLinkThumbnailImage.url = imageResult.url;
+                        if(finalData.CafeVirtualLinkThumbnailImage.id) alert("이미지 업데이트 성공");
 
                     } catch (e) {
+                        const deleteimages:string[] = [];
+                        imageResults.forEach(result=>{
+                            if(result.url) deleteimages.push(result.url);
+                            if(result.thumbnailUrl) deleteimages.push(result.thumbnailUrl);
+                        });
+                        if(imageResults.length > 0) await deleteImage(props.token, deleteimages);
                         throw (e);
                     }
                 } else {
@@ -327,8 +342,6 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                         throw (e);
                     }
                 }
-
-                const findIndex = linkDataList.findIndex(data => data.id === finalData.id);
 
                 if (findIndex !== -1) {
                     linkDataList[findIndex] = finalData;
