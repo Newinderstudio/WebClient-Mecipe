@@ -8,6 +8,7 @@ import { useCreateCafeVirtualLinkListByAdminMutation } from '@/api/cafeVirtualLi
 import { useUploadCafeRealImagesByAdminMutation } from '@/api/cafeRealImagesApi';
 import { useUploadCafeVirtualImagesByAdminMutation } from '@/api/cafeVirtualImagesApi';
 import { useUploadCafeThumbnailImagesByAdminMutation } from '@/api/cafeThumbnailImagesApi';
+import { deleteImage } from '@/util/fetchImage';
 
 interface hookMember {
 
@@ -20,7 +21,7 @@ interface hookMember {
   // input
   name: string;
   address: string;
-  regionCategoryId: number|undefined;
+  regionCategoryId: number | undefined;
   businessNumber: string;
   ceoName: string;
   directions: string;
@@ -28,7 +29,7 @@ interface hookMember {
 
   onChangeName: (txt: string) => void,
   onChangeAddress: (txt: string) => void,
-  onChangeRegionCategoryId: (num: number|undefined) => void,
+  onChangeRegionCategoryId: (num: number | undefined) => void,
   onChangeBusinessNumber: (txt: string) => void,
   onChangeCeoName: (txt: string) => void,
   onChangeDirections: (txt: string) => void,
@@ -172,6 +173,9 @@ export function useAdminUserCreateScreen(): hookMember {
     }
 
     let cafeInfo: CafeInfoResult | undefined;
+
+    // 롤백 용 이미지 리스트
+    const deleteImages: string[] = [];
     try {
       cafeInfo = await createPlace({ body }).unwrap();
       if (!cafeInfo) throw new Error("카페 생성 에러");
@@ -182,34 +186,59 @@ export function useAdminUserCreateScreen(): hookMember {
 
         if (thumbnailImages.create.find(data => data.thumbnailUrl == undefined)) throw new Error("썸네일 이미지 오류가 있습니다.");
 
-        await uploadCafeThumbnailImage({
-          cafeId: cafeInfo.id,
-          body: {
-            create: thumbnailImages.create.map(data => ({
-              ...data,
-              thumbnailUrl: data.thumbnailUrl!
-            })),
-            update: thumbnailImages.update
-          }
-        })
+        try {
+          thumbnailImages.create.forEach(data => {
+            if (data.url) deleteImages.push(data.url);
+            if (data.thumbnailUrl) deleteImages.push(data.thumbnailUrl);
+          });
+
+          await uploadCafeThumbnailImage({
+            cafeId: cafeInfo.id,
+            body: {
+              create: thumbnailImages.create.map(data => ({
+                ...data,
+                thumbnailUrl: data.thumbnailUrl!
+              })),
+              update: thumbnailImages.update
+            }
+          })
+        } catch (e) {
+          throw new Error("썸네일 이미지 업로드 오류", { cause: e });
+        }
       }
 
       {
         const virtualImages = await virtualImageHandlerRef.current.getImageData(token, cafeInfo.id);
         if (virtualImages.create.length == 0 && virtualImages.update.length == 0) throw new Error("가상 이미지가 없습니다.");
-        await uploadCafeVirtualImage({
-          cafeId: cafeInfo.id,
-          body: virtualImages
-        })
+        virtualImages.create.forEach(data => {
+          if (data.url) deleteImages.push(data.url);
+          if (data.thumbnailUrl) deleteImages.push(data.thumbnailUrl);
+        });
+        try {
+          await uploadCafeVirtualImage({
+            cafeId: cafeInfo.id,
+            body: virtualImages
+          })
+        } catch (e) {
+          throw new Error("가상 이미지 업로드 오류", { cause: e });
+        }
       }
 
       {
         const realImages = await realImageHandlerRef.current.getImageData(token, cafeInfo.id);
         if (realImages.create.length == 0 && realImages.update.length == 0) throw new Error("실제 이미지가 없습니다.");
-        await uploadCafeRealImage({
-          cafeId: cafeInfo.id,
-          body: realImages
-        })
+        try {
+          realImages.create.forEach(data => {
+            if (data.url) deleteImages.push(data.url);
+            if (data.thumbnailUrl) deleteImages.push(data.thumbnailUrl);
+          });
+          await uploadCafeRealImage({
+            cafeId: cafeInfo.id,
+            body: realImages
+          })
+        } catch (e) {
+          throw new Error("실제 이미지 업로드 오류", { cause: e });
+        }
       }
 
       {
@@ -223,8 +252,9 @@ export function useAdminUserCreateScreen(): hookMember {
       alert('카페 정보가 생성되었습니다!');
       router.back();
     } catch (err) {
-      console.error(err)
-      if(cafeInfo) await deletePlace({ id: cafeInfo.id });
+      console.error(err);
+      if (deleteImages.length > 0) await deleteImage(token, deleteImages);
+      if (cafeInfo) await deletePlace({ id: cafeInfo.id });
       alert('생성 중 오류가 발생했습니다.')
     }
   }
@@ -259,7 +289,7 @@ export function useAdminUserCreateScreen(): hookMember {
 
     onChangeName: (txt: string) => { setName(txt) },
     onChangeAddress: (txt: string) => { setAddress(txt); },
-    onChangeRegionCategoryId: (num: number|undefined) => { setRegionCategoryId(num); },
+    onChangeRegionCategoryId: (num: number | undefined) => { setRegionCategoryId(num); },
     onChangeBusinessNumber: (txt: string) => { setBusinessNumber(txt); },
     onChangeCeoName: (txt: string) => { setCeoName(txt); },
     onChangeDirections: (txt: string) => { setDirections(txt); },
