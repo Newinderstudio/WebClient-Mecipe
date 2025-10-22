@@ -32,7 +32,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<PageParams> }): Promise<Metadata> {
   const { id } = await params
-  const res = await fetch(rootUrl + `/places/${id}`);
+  const res = await fetch(rootUrl + `/places/${id}`, { next: { revalidate: 3600} });
   const cafeInfo: CafeInfo = await res.json()
 
   if (!cafeInfo) {
