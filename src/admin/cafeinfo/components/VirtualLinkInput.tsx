@@ -103,7 +103,7 @@ const VirtualLinkInput = (props: Props) => {
                         if (props.isDisable === true) return;
                         setInputData(prev => ({
                             ...prev,
-                            isAvaliable: !inputData.isAvaliable
+                            isAvaliable: !prev.isAvaliable
                         }))
                     }}
                 >

@@ -278,7 +278,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
     }
 
     const onChangeLinkData = async (data: CafeVirtualLinkDataProp, index: number) => {
-        let finalData: CafeVirtualLinkDataProp = data;
+        let finalData: CafeVirtualLinkDataProp = {...data};
         if (data.id && data.CafeVirtualLinkThumbnailImage?.id && props.token) {
             try {
                 if (data.file) {
@@ -310,7 +310,7 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                     }
                 } else {
                     try {
-                        finalData = await updateVirtualLink({
+                        const result = await updateVirtualLink({
                             id: data.id,
                             body: {
                                 name: data.name,
@@ -319,12 +319,17 @@ const VirtualLinkUploadComponent = forwardRef<VirtualLinkUploadComponentHandler,
                                 isAvaliable: data.isAvaliable
                             }
                         }).unwrap();
+                        finalData = {
+                            ...result,
+                            CafeVirtualLinkThumbnailImage: {...data.CafeVirtualLinkThumbnailImage}
+                        }
                     } catch (e) {
                         throw (e);
                     }
                 }
 
                 const findIndex = linkDataList.findIndex(data => data.id === finalData.id);
+
                 if (findIndex !== -1) {
                     linkDataList[findIndex] = finalData;
                     setLinkDataList([...linkDataList]);

@@ -54,7 +54,8 @@ const VirtualLinkCard = (props: Props) => {
             ...cardData,
             name: data.name,
             type: data.type,
-            url: data.url
+            url: data.url,
+            isAvaliable: data.isAvaliable
         });
     }
 
