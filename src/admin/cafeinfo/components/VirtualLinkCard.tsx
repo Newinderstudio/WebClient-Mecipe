@@ -3,7 +3,7 @@
 import { Flex, FlexRow } from "@/common/styledComponents"
 import ImageUploadCard from "./ImageUploadCard";
 import { StyledButton } from "@/common/styledAdmin";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fenxyBlue } from "@/util/constants/style";
 import { getFileSize, getImageSize } from "@/util/fetchImage";
 import { imageResizer } from "@/common/image/imageResizer";
@@ -22,6 +22,8 @@ interface Props {
 const VirtualLinkCard = (props: Props) => {
 
     const [cardData, setCardData] = useState<CafeVirtualLinkDataProp>(props.data);
+
+    const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setCardData(props.data);
@@ -43,9 +45,13 @@ const VirtualLinkCard = (props: Props) => {
                     url: URL.createObjectURL(compressedFile),
                     width,
                     height,
-                    size
+                    size,
+                    id: cardData.CafeVirtualLinkThumbnailImage?.id
                 }
             })
+            if (fileRef.current) {
+                fileRef.current.value = '';
+            }
         }
     }
 
@@ -77,6 +83,7 @@ const VirtualLinkCard = (props: Props) => {
 
             <FlexRow>
                 <input
+                    ref={fileRef}
                     type="file"
                     id={"virtualImage" + cardData.type}
                     accept='image/*'

@@ -10,6 +10,7 @@ import { CafeRealImagePrimitiveResult, useUploadCafeRealImagesByAdminMutation } 
 import { CafeVirtualImagePrimitiveResult, useUploadCafeVirtualImagesByAdminMutation } from '@/api/cafeVirtualImagesApi';
 import { CafeThumbnailImagePrimitiveResult, useUploadCafeThumbnailImagesByAdminMutation } from '@/api/cafeThumbnailImagesApi';
 import { CafeVirtualLinkResult } from '@/api/cafeVirtualLinksApi';
+import { deleteImage } from '@/util/fetchImage';
 
 interface Props {
   id: number;
@@ -108,10 +109,22 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
   }, [initialData])
 
   const updateThumbnailImagesAction = async () => {
+
+    if (!token) {
+      alert("불가능한 접근입니다.");
+      return;
+    }
+
+    const deleteImages: string[] = [];
     try {
       if (!thumbnailImageHandlerRef.current) throw new Error("썸네일 이미지 핸들러가 없습니다.");
 
       const images = await thumbnailImageHandlerRef.current?.getImageData(token!, detailId);
+
+      images.create.forEach(data => {
+        if (data.url) deleteImages.push(data.url);
+        if (data.thumbnailUrl) deleteImages.push(data.thumbnailUrl);
+      });
 
       const result = await uploadCafeThumbnailImage({
         cafeId: detailId,
@@ -128,15 +141,28 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
 
       alert("썸네일 이미지 적용 완료");
     } catch (e) {
+      if (deleteImages.length > 0) await deleteImage(token, deleteImages);
       alert(e);
     }
   }
 
   const updateVirtualImagesAction = async () => {
+
+    if (!token) {
+      alert("불가능한 접근입니다.");
+      return;
+    }
+
+    const deleteImages: string[] = [];
     try {
       if (!virtualImageHandlerRef.current) throw new Error("가상 이미지 핸들러가 없습니다.");
 
-      const images = await virtualImageHandlerRef.current?.getImageData(token!, detailId);
+      const images = await virtualImageHandlerRef.current?.getImageData(token, detailId);
+
+      images.create.forEach(data => {
+        if (data.url) deleteImages.push(data.url);
+        if (data.thumbnailUrl) deleteImages.push(data.thumbnailUrl);
+      });
 
       const result = await uploadCafeVirtualImage({
         cafeId: detailId,
@@ -147,15 +173,28 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
 
       alert("가상 이미지 적용 완료");
     } catch (e) {
+      if (deleteImages.length > 0) await deleteImage(token, deleteImages);
       alert(e);
     }
   }
 
   const updateRealImagesAction = async () => {
+
+    if (!token) {
+      alert("불가능한 접근입니다.");
+      return;
+    }
+
+    const deleteImages: string[] = [];
     try {
       if (!realImageHandlerRef.current) throw new Error("실제 이미지 핸들러가 없습니다.");
 
-      const images = await realImageHandlerRef.current?.getImageData(token!, detailId);
+      const images = await realImageHandlerRef.current?.getImageData(token, detailId);
+
+      images.create.forEach(data => {
+        if (data.url) deleteImages.push(data.url);
+        if (data.thumbnailUrl) deleteImages.push(data.thumbnailUrl);
+      });
 
       const result = await uploadCafeRealImage({
         cafeId: detailId,
@@ -166,6 +205,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
 
       alert("실제 이미지 적용 완료");
     } catch (e) {
+      if (deleteImages.length > 0) await deleteImage(token, deleteImages);
       alert(e);
     }
   }
