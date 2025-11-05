@@ -4,6 +4,7 @@ import { useEffect, useState, } from 'react'
 import styled from '@emotion/styled'
 import {
   useCreateRegionCategoryByAdminMutation,
+  useFindAllRegionCategoriesByAdminMutation,
   RegionCategoryResult,
   GovermentTypeLabel,
   RegionCategoryTreeTable,
@@ -70,6 +71,7 @@ export const RegionCategoryEditor = ({ initialData, parentCandidates, getCategor
   const [parentId, setParentId] = useState<number | undefined>(undefined)
 
   const [createRegion] = useCreateRegionCategoryByAdminMutation()
+  const [findAllRegionCategoriesByAdmin] = useFindAllRegionCategoriesByAdminMutation();
 
   useEffect(()=>{
     if(parentCandidates.list.length===0) setParentId(undefined);
@@ -98,7 +100,7 @@ export const RegionCategoryEditor = ({ initialData, parentCandidates, getCategor
     }
 
     try {
-      const result = await createRegion({
+      await createRegion({
         body: {
           name,
           govermentType
@@ -109,6 +111,8 @@ export const RegionCategoryEditor = ({ initialData, parentCandidates, getCategor
       alert('✅ 지역 카테고리 등록 완료');
       setName('');
       setIsDisable(false);
+
+      const result = await findAllRegionCategoriesByAdmin().unwrap();
 
       getCategories(result);
     } catch (err) {

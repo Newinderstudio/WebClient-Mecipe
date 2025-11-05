@@ -21,7 +21,13 @@ export const regionCategoriesApi = createApi({
             }),
             providesTags: [{ type: 'RegionCategories', id: "LIST" }, { type: 'ClosureRegionCategories', id: "LIST" }]
         }),
-        createRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { body: RegionCategoryCreateInput, parentId?: number }>({
+        findAllRegionCategoriesByAdmin: builder.mutation<RegionCategoryTreeTable, void>({
+            query: () => ({
+                method: 'GET',
+                url: "admin/closure"
+            })
+        }),
+        createRegionCategoryByAdmin: builder.mutation<RegionCategory, { body: RegionCategoryCreateInput, parentId?: number }>({
             query: (arg) => ({
                 method: 'POST',
                 url: `admin/create?parentId=${arg.parentId}`,
@@ -34,14 +40,14 @@ export const regionCategoriesApi = createApi({
                 url: `admin/child?parentId=${arg.parentId}`
             })
         }),
-        updateRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { id: number, body: RegionCategoryUpdateInput, newParentId?: number }>({
+        updateRegionCategoryByAdmin: builder.mutation<RegionCategory, { id: number, body: RegionCategoryUpdateInput, newParentId?: number }>({
             query: (arg) => ({
                 method: 'PATCH',
                 url: `admin/update/${arg.id}?newParentId=${arg.newParentId ?? ''}`,
                 body: arg.body
             }),
         }),
-        disbleRegionCategoryByAdmin: builder.mutation<RegionCategoryTreeTable, { id: number, isDisable: boolean }>({
+        disbleRegionCategoryByAdmin: builder.mutation<RegionCategory, { id: number, isDisable: boolean }>({
             query: (arg) => ({
                 method: 'PATCH',
                 url: `admin/disable/${arg.id}?isDisable=${arg.isDisable ? 'true' : 'false'}`
@@ -58,6 +64,7 @@ export const regionCategoriesApi = createApi({
 
 export const {
     useCreateRegionCategoryByAdminMutation,
+    useFindAllRegionCategoriesByAdminMutation,
     useDisbleRegionCategoryByAdminMutation,
     useFindAllRegionCategoriesQuery,
     useFindChildRegionCategoriesByAdminMutation,
