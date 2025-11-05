@@ -69,7 +69,14 @@ export default function SearchCategoryNavigator({
     }
 
     const handleChange = (depth: number, id: number) => {
-        const newSelected = [...selectedIds.slice(0, depth), id]
+        const prev = selectedIds.slice(0, depth);
+        let newSelected: number[] = [];
+        if(prev[prev.length - 1] === id) {
+            newSelected = prev;
+        } else {
+            newSelected = [...prev, id];
+        }
+        
         setSelectedIds(newSelected)
     }
 
