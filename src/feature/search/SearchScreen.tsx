@@ -6,7 +6,6 @@ import { FlexCenter, FlexRow, ResponsiveWrapper } from "@/common/styledComponent
 import { useSearchScreen } from "./hooks/useSearchScreen";
 import styled from "@emotion/styled";
 import InfoCard from "./components/InfoCard";
-import { useSearchParams } from "next/navigation";
 
 const ResponsiveGrid = styled.div`
   display: grid;
@@ -27,13 +26,7 @@ const ResponsiveGrid = styled.div`
 
 
 function SearchScreen() {
-
-    const searchParams = useSearchParams();
-
-    const searchTextQuery = searchParams.get('searchText') ?? '';
-    const regionCategoryIdQuery = Number(searchParams.get('regionCategoryId'));
-
-    const hookMember = useSearchScreen({ searchTextQuery, regionCategoryIdQuery });
+    const hookMember = useSearchScreen();
 
 
     return (
@@ -73,7 +66,7 @@ function SearchScreen() {
                         borderColor="#005"
                         iconBlack={true}
                         fontColor="#222"
-                        initialSearchText={searchTextQuery}
+                        initialSearchText={hookMember.searchTextParams}
                     />
                 </ResponsiveWrapper>
             </FlexCenter>
