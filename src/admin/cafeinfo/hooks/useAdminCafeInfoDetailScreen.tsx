@@ -11,6 +11,7 @@ import { CafeVirtualImagePrimitiveResult, useUploadCafeVirtualImagesByAdminMutat
 import { CafeThumbnailImagePrimitiveResult, useUploadCafeThumbnailImagesByAdminMutation } from '@/api/cafeThumbnailImagesApi';
 import { CafeVirtualLinkResult } from '@/api/cafeVirtualLinksApi';
 import { deleteImage } from '@/util/fetchImage';
+import { redirectUrl } from '@/util/constants/app';
 
 interface Props {
   id: number;
@@ -108,6 +109,10 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
     setVirtualLinks(initialData.CafeVirtualLinks?.map(data => ({ ...data, id: data.id!, createdAt: data.createdAt! })) ?? []);
   }, [initialData])
 
+  const revalidateCafeInfo = async () => {
+    await fetch(redirectUrl+`/api/revalidate?path=/detail/${detailId}`);
+  }
+
   const updateThumbnailImagesAction = async () => {
 
     if (!token) {
@@ -138,7 +143,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
       }).unwrap();
 
       setThumbnailImages(result);
-
+      revalidateCafeInfo();
       alert("썸네일 이미지 적용 완료");
     } catch (e) {
       if (deleteImages.length > 0) await deleteImage(token, deleteImages);
@@ -170,7 +175,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
       }).unwrap();
 
       setVirtualImages(result);
-
+      revalidateCafeInfo();
       alert("가상 이미지 적용 완료");
     } catch (e) {
       if (deleteImages.length > 0) await deleteImage(token, deleteImages);
@@ -202,7 +207,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
       }).unwrap();
 
       setrealImages(result);
-
+      revalidateCafeInfo();
       alert("실제 이미지 적용 완료");
     } catch (e) {
       if (deleteImages.length > 0) await deleteImage(token, deleteImages);
@@ -327,6 +332,7 @@ export default function useAdminCafeInfoDetailScreen({ id: detailId }: Props): h
       setDirections(cafeInfo.directions);
 
       alert('카페 정보가 수정되었습니다!');
+      revalidateCafeInfo();
     } catch (err) {
       console.error(err)
       if (cafeInfo) await deletePlace({ id: cafeInfo.id });

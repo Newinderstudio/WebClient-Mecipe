@@ -9,6 +9,7 @@ import { useUploadCafeRealImagesByAdminMutation } from '@/api/cafeRealImagesApi'
 import { useUploadCafeVirtualImagesByAdminMutation } from '@/api/cafeVirtualImagesApi';
 import { useUploadCafeThumbnailImagesByAdminMutation } from '@/api/cafeThumbnailImagesApi';
 import { deleteImage } from '@/util/fetchImage';
+import { redirectUrl } from '@/util/constants/app';
 
 interface hookMember {
 
@@ -250,6 +251,8 @@ export function useAdminUserCreateScreen(): hookMember {
       }
 
       alert('카페 정보가 생성되었습니다!');
+      // 간단한 revalidate 처리
+      fetch(redirectUrl+`/api/revalidate?path=/detail/${cafeInfo.id}`);
       router.back();
     } catch (err) {
       console.error(err);
