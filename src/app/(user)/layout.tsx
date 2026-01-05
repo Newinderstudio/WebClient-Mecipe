@@ -9,7 +9,7 @@ function UserLayout({
 
     return (
         <div>
-            <MaintenacePopUpWrapper />
+            {process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true' && <MaintenacePopUpWrapper />}
             {children}
 
             <MainFooter />
