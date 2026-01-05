@@ -1,4 +1,5 @@
 import { MainFooter } from '@/common/footer/MainFooter';
+import MaintenacePopUpWrapper from '@/common/popup/MaintenacePopUpWrapper';
 
 function UserLayout({
     children,
@@ -8,6 +9,7 @@ function UserLayout({
 
     return (
         <div>
+            <MaintenacePopUpWrapper />
             {children}
 
             <MainFooter />
