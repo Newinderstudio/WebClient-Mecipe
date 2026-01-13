@@ -15,6 +15,7 @@ export default function VirtualWorldSocket({
   path?: string;
 }) {
   const initSocket = useSocketStore((state) => state.initSocket);
+  const sessionToken = useSocketStore((state) => state.sessionToken);
   const joinRoom = useSocketStore((state) => state.joinRoom);
   const leaveRoom = useSocketStore((state) => state.leaveRoom);
   const disconnect = useSocketStore((state) => state.disconnect);
@@ -22,25 +23,25 @@ export default function VirtualWorldSocket({
 
   // Socket 초기화
   useEffect(() => {
-    if (enabled) {
-      initSocket(serverUrl, path);
-    }
+    if (!enabled) return;
+    
+    initSocket(serverUrl, path);
 
     return () => {
       disconnect();
     };
-  }, [enabled, serverUrl, path, initSocket, disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, serverUrl, path]); // initSocket, disconnect는 Zustand store 메서드로 안정적인 참조 유지
 
   // Room 참가/퇴장
   useEffect(() => {
-    if (!enabled || !isConnected) return;
+    if (!enabled || !isConnected || !sessionToken) return;
 
     let mounted = true;
 
     const join = async () => {
       if (mounted) {
-        const result = await joinRoom(roomId);
-        console.log('Join room result:', result.message);
+        await joinRoom(roomId);
       }
     };
 
@@ -50,7 +51,7 @@ export default function VirtualWorldSocket({
       mounted = false;
       leaveRoom();
     };
-  }, [enabled, isConnected, roomId, joinRoom, leaveRoom]);
+  }, [enabled, isConnected, roomId, joinRoom, leaveRoom, sessionToken]);
 
   return null;
 }

@@ -113,9 +113,10 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
     return this.movementInput;
   }
 
-  postMovementProcess(playerControl: PlayerControlInterface): void {
-
+  // 화살표 함수로 변경하여 this 바인딩 문제 해결
+  postMovementProcess = (playerControl: PlayerControlInterface): void => {
     if (!this.options || !playerControl) return;
+    
     const curPosition = playerControl.getPosition();
     const curRotation = playerControl.getRotation();
 
@@ -132,12 +133,9 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
         position: { x: curPosition.x, y: curPosition.y, z: curPosition.z },
         rotation: { x: curRotation.x, y: curRotation.y, z: curRotation.z },
       };
+      
+      this.options.broadcastPlayerTransform(this.sendedMovementMessage);
     }
-    else {
-      return;
-    }
-
-    this.options.broadcastPlayerTransform(this.sendedMovementMessage);
   }
 
   setEnabled(enabled: boolean): void {

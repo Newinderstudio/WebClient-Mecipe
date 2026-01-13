@@ -3,13 +3,14 @@ import { useThree } from "@react-three/fiber";
 import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { KeyboardLocalController } from "../../Character/controllers/KeyboardLocalController";
 import { RoomUser, useSocketStore } from "@/store/socket/store";
-import { ClientMessage, BroadcastDatType } from "@/util/socket/socket-message-types";
+import { ClientMessage, BroadcastDatType, UserJoinedResponse, UserLeftResponse, ReadRoomMemberResponse, PlayerTransformData } from "@/util/socket/socket-message-types";
 import { WebSocketController } from "../../Character/controllers/WebSocketController";
 import { CharacterBaseOptions, CharacterInitialPoint, CharacterOptions } from "../../Character/WorldPlayer";
 import { Euler, Vector3 } from "three";
 
 export interface PlayerInfo extends RoomUser {
     controller: RefObject<WebSocketController>;
+    characterInitialPoint: CharacterInitialPoint;
 }
 
 export default function usePlayersManagers({ gltfPath, isDraco, characterOptions }: { gltfPath: string, isDraco: boolean, characterOptions: CharacterOptions | undefined }) {
@@ -26,14 +27,41 @@ export default function usePlayersManagers({ gltfPath, isDraco, characterOptions
     const clientId = useSocketStore((state) => state.clientId);
     const users = useSocketStore((state) => state.users);
     const broadcastPlayerTransform = useSocketStore((state) => state.broadcastPlayerTransform);
-    const subsribeToRoomData = useSocketStore((state) => state.subscribeToRoomData);
+    const subscribeToRoomData = useSocketStore((state) => state.subscribeToRoomData);
+    const subscribeInitializeEnvironment = useSocketStore((state) => state.subscribeInitializeEnvironment);
 
-    const initializeEnvironment = useSocketStore((state) => state.initializeEnvironment);
+    const addUser = useSocketStore((state) => state.addUser);
+    const removeUser = useSocketStore((state) => state.removeUser);
 
     const [players, setPlayers] = useState<PlayerInfo[]>([]);
 
-    // const [characterInitialPointMap, setCharacterInitialPointMap] = useState<Map<string, CharacterInitialPoint>>(new Map());
+    const healthCheck = useSocketStore((state) => state.healthCheck);
+    const restoreUsers = useSocketStore((state) => state.restoreUsers);
 
+    
+    const characterInitialPoint: CharacterInitialPoint = useMemo(() => ({
+        spawnPoint: characterOptions?.spawnPoint || new Vector3(0, 1.8, 0),
+        rotation: characterOptions?.rotation || new Euler(0, 0, 0),
+    }), [characterOptions]);
+
+    const [localInitialPoint, setLocalInitialPoint] = useState<CharacterInitialPoint>(characterInitialPoint);
+
+    // 30초마다 헬스체크
+    useEffect(() => {
+        const interval = setInterval(() => {
+            healthCheck().then((response) => {
+                if (!response.success) {
+                    console.error('Health check failed:', response.message);
+                }
+                else {
+                    console.log('Health check passed:', response.message);
+                }
+            });
+        }, 30000);
+        return () => clearInterval(interval);
+    }, [healthCheck]);
+
+    // const [characterInitialPointMap, setCharacterInitialPointMap] = useState<Map<string, CharacterInitialPoint>>(new Map());
     useEffect(() => {
         if (!gltf || !threeState || keyboardController.current) return;
         const ctrl = new KeyboardLocalController();
@@ -41,19 +69,56 @@ export default function usePlayersManagers({ gltfPath, isDraco, characterOptions
         ctrl.initialize(threeState, { getKeyboarState: get, broadcastPlayerTransform: broadcastPlayerTransform });
     }, [gltf, threeState, get, broadcastPlayerTransform])
 
-    const getRoomDataCallback = useCallback((data: ClientMessage[]) => {
+    const handleRoomDataCallback = useCallback((data: ClientMessage[]) => {
         data.forEach(item => {
-            // 브로드 캐스트 데이터 중, 플레이어 위치 데이터만 처리
-            if (item.type === BroadcastDatType.PLAYER_TRANSFORM && item.clientId != clientId) {
-                dataBufferMapRef.current.set(item.clientId, [...(dataBufferMapRef.current.get(item.clientId) || []), item]);
+            if (item.clientId != clientId) {
+                // 브로드 캐스트 데이터 중, 플레이어 위치 데이터만 처리
+                if (item.type === BroadcastDatType.PLAYER_TRANSFORM) {
+                    dataBufferMapRef.current.set(item.clientId, [...(dataBufferMapRef.current.get(item.clientId) || []), item]);
+                }
+                else if (item.type === BroadcastDatType.USER_JOINED) {
+                    addUser({
+                        clientId: (item.data as UserJoinedResponse)?.socketId as string,
+                        sessionToken: (item.data as UserJoinedResponse)?.sessionToken as string,
+                        joinedAt: (item.data as UserJoinedResponse)?.timestamp as string,
+                    });
+                }
+                else if (item.type === BroadcastDatType.USER_LEFT) {
+                    removeUser({
+                        clientId: (item.data as UserLeftResponse)?.socketId as string,
+                        sessionToken: (item.data as UserLeftResponse)?.sessionToken as string,
+                        joinedAt: (item.data as UserLeftResponse)?.timestamp as string,
+                    });
+                }
+                else if (item.type === BroadcastDatType.READ_ROOM_MEMBER) {
+                    restoreUsers((item.data as ReadRoomMemberResponse)?.members as RoomUser[]);
+                }
+            }
+
+        });
+    }, [clientId, addUser, removeUser, restoreUsers]);
+
+    const handleInitializeEnvironmentCallback = useCallback((data: ClientMessage[]) => {
+        const newPlayers = players;
+        data.forEach(item => {
+            if (item.type === BroadcastDatType.PLAYER_TRANSFORM) {
+                if (item.clientId === clientId) {
+                    const pos = (item.data as PlayerTransformData).position;
+                    const rot = (item.data as PlayerTransformData).rotation;
+                    setLocalInitialPoint({ spawnPoint: new Vector3(pos.x, pos.y, pos.z), rotation: new Euler(rot.x, rot.y, rot.z) });
+                    return;
+                }
+                const targetIndex = newPlayers.findIndex(player => player.clientId === item.clientId);
+                if (targetIndex !== -1) {
+                    const pos = (item.data as PlayerTransformData).position;
+                    const rot = (item.data as PlayerTransformData).rotation;
+                    newPlayers[targetIndex].characterInitialPoint.spawnPoint = new Vector3(pos.x, pos.y, pos.z);
+                    newPlayers[targetIndex].characterInitialPoint.rotation = new Euler(rot.x, rot.y, rot.z);
+                }
             }
         });
-    }, [clientId]);
-
-    const characterInitialPoint: CharacterInitialPoint = useMemo(() => ({
-        spawnPoint: characterOptions?.spawnPoint || new Vector3(0, 1.8, 0),
-        rotation: characterOptions?.rotation || new Euler(0, 0, 0),
-    }), [characterOptions]);
+        setPlayers(newPlayers);
+    }, [players, clientId]);
 
     const characterBaseOptions: CharacterBaseOptions = useMemo(() => ({
         height: characterOptions?.height || 1,
@@ -66,12 +131,20 @@ export default function usePlayersManagers({ gltfPath, isDraco, characterOptions
     }), [characterOptions]);
 
     useEffect(() => {
-        if (!getRoomDataCallback || !subsribeToRoomData) return;
-        const disposeSubsribeToRoomData = subsribeToRoomData(getRoomDataCallback);
+        if (!handleRoomDataCallback || !subscribeToRoomData) return;
+        const disposeSubsribeToRoomData = subscribeToRoomData(handleRoomDataCallback);
         return () => {
             disposeSubsribeToRoomData();
         }
-    }, [subsribeToRoomData, getRoomDataCallback]);
+    }, [subscribeToRoomData, handleRoomDataCallback]);
+
+    useEffect(() => {
+        if (!subscribeInitializeEnvironment || !handleInitializeEnvironmentCallback) return;
+        const disposeSubscribeInitializeEnvironment = subscribeInitializeEnvironment(handleInitializeEnvironmentCallback);
+        return () => {
+            disposeSubscribeInitializeEnvironment();
+        }
+    }, [subscribeInitializeEnvironment, handleInitializeEnvironmentCallback]);
 
     useEffect(() => {
         if (!users || !threeState || !clientId) return;
@@ -83,13 +156,14 @@ export default function usePlayersManagers({ gltfPath, isDraco, characterOptions
             return newUsers.map(user => {
                 let playerControllerRef = prev.find(player => player.clientId === user.clientId)?.controller;
                 if (!playerControllerRef) {
-                    playerControllerRef = {current: new WebSocketController()}
-                    playerControllerRef.current.initialize(threeState, { clientId: user.clientId, dataBufferMapRef: dataBufferMapRef});
+                    playerControllerRef = { current: new WebSocketController() }
+                    playerControllerRef.current.initialize(threeState, { clientId: user.clientId, dataBufferMapRef: dataBufferMapRef });
                 }
 
                 const newPlayer = {
                     ...user,
-                    controller: playerControllerRef
+                    controller: playerControllerRef,
+                    characterInitialPoint: characterInitialPoint,
                 }
 
                 return newPlayer;
@@ -106,25 +180,12 @@ export default function usePlayersManagers({ gltfPath, isDraco, characterOptions
         }
     }, [players, broadcastPlayerTransform, keyboardController]);
 
-    useEffect(() => {
-        if (!initializeEnvironment || !getRoomDataCallback) return;
-        const dataList: ClientMessage[] = [];
-        initializeEnvironment.forEach(item => {
-            if (item.type === BroadcastDatType.PLAYER_TRANSFORM) {
-                dataList.push(item);
-
-            }
-        });
-
-        getRoomDataCallback(dataList);
-    }, [initializeEnvironment, getRoomDataCallback]);
-
     return {
         gltf,
         keyboardController,
         players,
         characterBaseOptions,
-        characterInitialPoint,
+        localInitialPoint,
     }
 
 }

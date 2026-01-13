@@ -25,7 +25,7 @@ export default function PlayersManager({characterOptions, controllerOptions}: {c
     const characterGltfPath = "/3d/models/character.glb";
     const characterGltfIsDraco = true;
 
-    const { gltf, keyboardController, players, characterBaseOptions, characterInitialPoint } = usePlayersManagers({gltfPath: characterGltfPath, isDraco: characterGltfIsDraco, characterOptions});
+    const { gltf, keyboardController, players, characterBaseOptions, localInitialPoint } = usePlayersManagers({gltfPath: characterGltfPath, isDraco: characterGltfIsDraco, characterOptions});
 
     if(!characterOptions) return null;
 
@@ -37,19 +37,19 @@ export default function PlayersManager({characterOptions, controllerOptions}: {c
                 gltf={gltf}
                 controllerRef={keyboardController}
                 characterBaseOptions={characterBaseOptions}
-                characterInitialPoint={characterInitialPoint}
+                characterInitialPoint={localInitialPoint}
                 controllerOptions={controllerOptions}
             />
             {players.map((player) => {
                 return (
                     (
                         <WorldPlayer
-                            key={player.clientId}
+                            key={player.sessionToken}
                             isLocal={false}
                             gltf={gltf}
                             controllerRef={player.controller}
                             characterBaseOptions={characterBaseOptions}
-                            characterInitialPoint={characterInitialPoint}
+                            characterInitialPoint={player.characterInitialPoint}
                             controllerOptions={controllerOptions}
                         />
                     )

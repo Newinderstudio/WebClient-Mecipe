@@ -1,8 +1,6 @@
 export enum ServerToClientListenerType {
     ROOM_BROADCAST = "roomBroadcast",
     ROOM_MESSAGE = "roomMessage",
-    USER_JOINED = "userJoined",
-    USER_LEFT = "userLeft",
     USER_DISCONNECTED = "userDisconnected",
     ROOM_DATA = "roomData",
 
@@ -10,6 +8,7 @@ export enum ServerToClientListenerType {
 
     CONNECT = "connect",
     DISCONNECT = "disconnect",
+    SESSION_TOKEN = "sessionToken",
 
     INITIALIZE_ENV = "initializeEnviroment",
 }
@@ -25,4 +24,5 @@ export enum ClientToServerListenerType {
     GET_ROOM_LIST = "getRoomList",
 
     INITIALIZE_ENV = "initializeEnviroment",
+    HEALTH_CHECK = "healthCheck",
 }
