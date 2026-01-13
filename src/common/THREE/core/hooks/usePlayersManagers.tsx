@@ -61,12 +61,25 @@ export default function usePlayersManagers({ gltfPath, isDraco, characterOptions
         return () => clearInterval(interval);
     }, [healthCheck]);
 
+
+
     // const [characterInitialPointMap, setCharacterInitialPointMap] = useState<Map<string, CharacterInitialPoint>>(new Map());
     useEffect(() => {
-        if (!gltf || !threeState || keyboardController.current) return;
+        if (!gltf || !threeState) return;
+        
+        // HMR 문제 해결: 기존 인스턴스가 있어도 재생성 (개발 모드에서만)
+        if (keyboardController.current) {
+            console.log('🔄 Recreating KeyboardLocalController due to HMR');
+            // 기존 인스턴스 정리 (필요시)
+            if (keyboardController.current.dispose) {
+                keyboardController.current.dispose();
+            }
+        }
+        
         const ctrl = new KeyboardLocalController();
         keyboardController.current = ctrl;
-        ctrl.initialize(threeState, { getKeyboarState: get, broadcastPlayerTransform: broadcastPlayerTransform });
+        ctrl.initialize(threeState, { getKeyboarState: get, broadcastPlayerTransform: (transform) => { broadcastPlayerTransform(transform) } });
+        console.log('✅ KeyboardLocalController initialized');
     }, [gltf, threeState, get, broadcastPlayerTransform])
 
     const handleRoomDataCallback = useCallback((data: ClientMessage[]) => {

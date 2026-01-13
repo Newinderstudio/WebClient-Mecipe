@@ -397,8 +397,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       const findIndex = users.findIndex(u => u.sessionToken === user.sessionToken);
       if(findIndex !== -1 && new Date(user.joinedAt).getTime() > new Date(state.users[findIndex].joinedAt).getTime()) {
         users[findIndex] = user;
-      } else {
-        users.push(user);
       }
       const userCount = users.length;
       console.log('👤 User added:', get().users, 'userCount:', get().userCount);

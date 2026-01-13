@@ -47,8 +47,14 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
   }
 
   getMovementInput(curPosition: Vector3, curRotation: Euler): MovementInput {
-
-    if (!this.rootState || !this.options) return this.movementInput;
+    // 디버깅: early return 확인
+    if (!this.rootState || !this.options) {
+      console.warn('⚠️ getMovementInput early return:', { 
+        hasRootState: !!this.rootState, 
+        hasOptions: !!this.options 
+      });
+      return this.movementInput;
+    }
 
     const { forward: forwardTrigger, backward: backwardTrigger, left: leftTrigger, right: rightTrigger, jump: jumpTrigger } = this.options.getKeyboarState();
 
@@ -109,6 +115,7 @@ export class KeyboardLocalController implements IController<KeyboardControllerPr
 
     this.movementInput.rotation = new Euler(0, newRotationY, 0);
     this.movementInput.speed = this.movementInput.direction.length();
+
 
     return this.movementInput;
   }
