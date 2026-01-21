@@ -42,7 +42,7 @@ interface SocketStore {
   healthCheck: () => Promise<HealthCheckResponse>;
 
   // Room 관리
-  joinRoom: (roomId: string, retryCount?: number) => Promise<{ success: boolean; message: string }>;
+  joinRoom: (roomId: string) => Promise<{ success: boolean; message: string }>;
   leaveRoom: () => Promise<{ success: boolean; message: string }>;
 
   // 데이터 브로드캐스트
@@ -122,41 +122,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
       forceNew: true, // 강제로 새 연결 생성
-      timeout: 20000, // 연결 타임아웃 (배포 환경에서 증가)
-    });
-    
-    // 배포 환경 디버깅: 모든 emit 호출 인터셉트
-    const originalEmit = newSocket.emit.bind(newSocket);
-    newSocket.emit = function(event: string, ...args: unknown[]) {
-      const hasCallback = typeof args[args.length - 1] === 'function';
-      console.log(`🔍 [Emit Intercept] ${event}:`, {
-        hasCallback,
-        argsCount: args.length,
-        firstArg: args[0],
-        timestamp: Date.now(),
-        socketId: this.id,
-        connected: this.connected,
-      });
-      
-      // 원본 emit 호출
-      const result = originalEmit(event, ...args);
-      
-      // emit 호출 후 확인
-      console.log(`✅ [Emit Intercept] ${event} completed:`, {
-        result,
-        timestamp: Date.now(),
-      });
-      
-      return result;
-    };
-    
-    // 네트워크 레벨 에러 확인
-    newSocket.on('error', (error) => {
-      console.error('🔴 Socket error:', error);
-    });
-    
-    newSocket.on('connect_error', (error) => {
-      console.error('🔴 Socket connect_error:', error);
     });
 
     // 세션 토큰 이벤트 (CONNECT 핸들러 밖으로 이동하여 한 번만 등록)
@@ -269,72 +234,31 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   // Room 참가
-  joinRoom: async (roomId: string, retryCount = 0): Promise<{ success: boolean; message: string }> => {
+  joinRoom: async (roomId: string) => {
     const { socket, isInRoom } = get();
 
     if (!socket || !socket.connected) {
-      console.error('❌ joinRoom: Socket not connected');
       return { success: false, message: 'Socket not connected' };
     }
 
     if (isInRoom) {
-      console.log('⚠️ joinRoom: Already in a room');
       return { success: false, message: 'Already in a room' };
     }
 
     return new Promise((resolve) => {
       const request: JoinRoomRequest = { roomId };
-      const maxRetries = 3;
-      // 서버에서 throw되면 ACK가 오지 않으므로 더 짧은 타임아웃 설정
-      // 배포 환경에서 서버 에러 시 빠르게 실패 감지하고 재시도
-      const timeoutDuration = 8000; // 8초로 설정 (서버 에러 시 빠르게 감지)
       
-      console.log(`🚪 joinRoom attempt ${retryCount + 1}/${maxRetries + 1}:`, { 
-        roomId, 
-        socketId: socket.id,
-        timeout: timeoutDuration,
-        timestamp: Date.now()
-      });
-      
-      // 타임아웃 설정
+      // 타임아웃 설정 (10초)
       const timeout = setTimeout(() => {
-        console.error(`❌ joinRoom timeout (attempt ${retryCount + 1}/${maxRetries + 1}): No ACK received within ${timeoutDuration}ms`);
-        console.error(`   This could mean: 1) Server threw an error, 2) Network issue, 3) Server too slow`);
-        
-        // 재시도 로직
-        if (retryCount < maxRetries) {
-          const retryDelay = 1000 * (retryCount + 1); // 점진적 지연: 1s, 2s, 3s
-          console.log(`🔄 Retrying joinRoom in ${retryDelay}ms... (${retryCount + 1}/${maxRetries})`);
-          setTimeout(() => {
-            resolve(get().joinRoom(roomId, retryCount + 1));
-          }, retryDelay);
-        } else {
-          console.error(`❌ joinRoom failed after ${maxRetries + 1} attempts: Server may be throwing errors or network issue`);
-          resolve({ success: false, message: 'Timeout: No response from server after retries. Server may have thrown an error.' });
-        }
-      }, timeoutDuration);
+        console.error('❌ joinRoom timeout: No ACK received within 10 seconds');
+        resolve({ success: false, message: 'Timeout: No response from server' });
+      }, 10000);
 
-      // ACK 콜백이 한 번만 실행되도록 플래그 설정
-      // 중요: 서버에서 throw되면 ACK가 오지 않으므로 타임아웃으로 처리됨
-      let ackReceived = false;
-      
-      const ackCallback = (ack: JoinRoomAck) => {
-        if (ackReceived) {
-          console.warn('⚠️ Duplicate ACK received, ignoring');
-          return;
-        }
-        ackReceived = true;
+      socket.emit(ClientToServerListenerType.USER_JOINED, request, (ack: JoinRoomAck) => {
         clearTimeout(timeout);
         
-        console.log(`📥 joinRoom ACK received (attempt ${retryCount + 1}):`, ack);
-        
-        // 서버에서 정상적으로 ACK를 보낸 경우
-        if (ack && ack.success) {
-          const users = ack.clientsInRoom?.map(client => ({ 
-            clientId: client.socketId, 
-            joinedAt: client.joinAt, 
-            sessionToken: client.sessionToken 
-          })) || [];
+        if (ack.success) {
+          const users = ack.clientsInRoom.map(client => ({ clientId: client.socketId, joinedAt: client.joinAt, sessionToken: client.sessionToken }));
           const userCount = users.length;
           console.log('👤 User joined:', users, 'userCount:', userCount);
           
@@ -347,80 +271,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
               userCount: userCount,
             }
           });
-        } else if (ack && !ack.success) {
-          // 서버에서 에러 응답을 보낸 경우 (throw되지 않고 에러 객체 반환)
-          console.error('❌ joinRoom failed (server error response):', ack.message);
-        } else {
-          // 잘못된 ACK 형식
-          console.error('❌ joinRoom: Invalid ACK response:', ack);
         }
-        resolve(ack || { success: false, message: 'Invalid ACK response' });
-      };
-
-      // 이벤트 전송
-      try {
-        const eventName = ClientToServerListenerType.USER_JOINED;
-        
-        // 배포 환경 디버깅: 소켓 상태 상세 확인
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const socketIO = socket.io as any;
-        const socketState = {
-          connected: socket.connected,
-          disconnected: socket.disconnected,
-          id: socket.id,
-          transport: socketIO?.engine?.transport?.name || 'unknown',
-          readyState: socketIO?._readyState || 'unknown',
-        };
-        console.log(`🔍 Socket state before emit:`, socketState);
-        
-        // 소켓이 완전히 준비되지 않았을 수 있으므로 확인
-        if (!socket.connected) {
-          clearTimeout(timeout);
-          console.error('❌ Socket not connected, cannot emit');
-          resolve({ success: false, message: 'Socket not connected' });
-          return;
-        }
-        
-        // 이벤트 전송 직전 로그
-        console.log(`📤 Emitting joinRoom:`, {
-          event: eventName,
-          request,
-          hasAckCallback: true,
-          timestamp: Date.now(),
-        });
-        
-        // 이벤트 전송 시도
-        const emitResult = socket.emit(eventName, request, (ack: JoinRoomAck) => {
-          console.log(`📨 ACK callback invoked:`, { 
-            received: true, 
-            ack,
-            timestamp: Date.now()
-          });
-          ackCallback(ack);
-        });
-        
-        // emit 메서드는 소켓 인스턴스를 반환하거나 boolean을 반환할 수 있음
-        console.log(`✅ Emit call completed:`, {
-          event: eventName,
-          emitReturnValue: emitResult,
-          timestamp: Date.now(),
-        });
-        
-        // 배포 환경에서 네트워크 레벨 확인을 위한 추가 로그
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (typeof window !== 'undefined' && (window as any).__SOCKET_IO_DEBUG__) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const socketAny = socket as any;
-          console.log('🔬 Socket.IO internal state:', {
-            _callbacks: Object.keys(socketAny._callbacks || {}),
-            _events: Object.keys(socketAny._events || {}),
-          });
-        }
-      } catch (error) {
-        clearTimeout(timeout);
-        console.error('❌ Error emitting joinRoom:', error);
-        resolve({ success: false, message: `Error emitting event: ${error}` });
-      }
+        resolve(ack);
+      });
     });
   },
 
