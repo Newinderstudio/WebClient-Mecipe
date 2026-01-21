@@ -40,8 +40,26 @@ export default function VirtualWorldSocket({
     let mounted = true;
 
     const join = async () => {
-      if (mounted) {
+      if (!mounted) return;
+      
+      // 소켓 인스턴스를 직접 확인하여 안전하게 emit
+      const socket = useSocketStore.getState().socket;
+      
+      if (socket && socket.connected) {
+        console.log('🚪 Attempting to join room:', {
+          roomId,
+          socketId: socket.id,
+          sessionToken,
+          timestamp: Date.now()
+        });
         await joinRoom(roomId);
+      } else {
+        console.error('❌ Cannot join room: Socket not ready', {
+          hasSocket: !!socket,
+          connected: socket?.connected,
+          isConnected,
+          sessionToken
+        });
       }
     };
 
