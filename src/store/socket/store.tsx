@@ -245,36 +245,72 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       return { success: false, message: 'Already in a room' };
     }
 
-    return new Promise((resolve) => {
-      const request: JoinRoomRequest = { roomId };
-      
-      // 타임아웃 설정 (10초)
-      const timeout = setTimeout(() => {
-        console.error('❌ joinRoom timeout: No ACK received within 10 seconds');
-        resolve({ success: false, message: 'Timeout: No response from server' });
-      }, 10000);
+    const maxRetries = 3;
+    const timeoutDuration = 6000; // 6초
+    let attempt = 0;
 
-      socket.emit(ClientToServerListenerType.USER_JOINED, request, (ack: JoinRoomAck) => {
-        clearTimeout(timeout);
+    const attemptJoin = (): Promise<{ success: boolean; message: string }> => {
+      return new Promise((resolve) => {
+        attempt++;
+        const request: JoinRoomRequest = { roomId };
         
-        if (ack.success) {
-          const users = ack.clientsInRoom.map(client => ({ clientId: client.socketId, joinedAt: client.joinAt, sessionToken: client.sessionToken }));
-          const userCount = users.length;
-          console.log('👤 User joined:', users, 'userCount:', userCount);
+        console.log(`🔄 joinRoom attempt ${attempt}/${maxRetries + 1}`, { roomId, socketId: socket.id });
+        
+        // 타임아웃 설정 (6초)
+        const timeout = setTimeout(() => {
+          console.error(`❌ joinRoom timeout (attempt ${attempt}): No ACK received within ${timeoutDuration}ms`);
           
-          set(() => {
-            return {
-              isInRoom: true,
-              currentRoomId: ack.roomId || roomId,
-              clientsInRoom: ack.clientsInRoom?.length || 1,
-              users: users,
-              userCount: userCount,
+          // 재시도 가능한 경우
+          if (attempt <= maxRetries) {
+            console.log(`🔄 Retrying joinRoom... (${attempt}/${maxRetries})`);
+            // 재시도 전에 약간의 지연 (지수 백오프)
+            setTimeout(() => {
+              attemptJoin().then(resolve);
+            }, 1000 * attempt); // 1초, 2초, 3초 지연
+          } else {
+            // 모든 재시도 실패
+            resolve({ success: false, message: 'Timeout: No response from server after all retries' });
+          }
+        }, timeoutDuration);
+
+        socket.emit(ClientToServerListenerType.USER_JOINED, request, (ack: JoinRoomAck) => {
+          clearTimeout(timeout);
+          
+          if (ack.success) {
+            const users = ack.clientsInRoom.map(client => ({ clientId: client.socketId, joinedAt: client.joinAt, sessionToken: client.sessionToken }));
+            const userCount = users.length;
+            console.log(`✅ joinRoom succeeded on attempt ${attempt}:`, users, 'userCount:', userCount);
+            
+            set(() => {
+              return {
+                isInRoom: true,
+                currentRoomId: ack.roomId || roomId,
+                clientsInRoom: ack.clientsInRoom?.length || 1,
+                users: users,
+                userCount: userCount,
+              }
+            });
+            resolve(ack);
+          } else {
+            console.error(`❌ joinRoom failed on attempt ${attempt}:`, ack.message);
+            
+            // 재시도 가능한 경우
+            if (attempt <= maxRetries) {
+              console.log(`🔄 Retrying joinRoom due to failure... (${attempt}/${maxRetries})`);
+              // 재시도 전에 약간의 지연 (지수 백오프)
+              setTimeout(() => {
+                attemptJoin().then(resolve);
+              }, 1000 * attempt); // 1초, 2초, 3초 지연
+            } else {
+              // 모든 재시도 실패
+              resolve(ack);
             }
-          });
-        }
-        resolve(ack);
+          }
+        });
       });
-    });
+    };
+
+    return attemptJoin();
   },
 
   healthCheck: async (): Promise<HealthCheckResponse> => {
